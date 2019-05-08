@@ -18,7 +18,9 @@ class Symbol {
 public:
     Symbol();
     Symbol(char c, int site, int counter, std::vector<int> pos);
+    bool operator<(const Symbol &other) const;
     std::vector<int> getPosition();
+    char getValue();
 };
 
 

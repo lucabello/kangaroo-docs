@@ -9,6 +9,7 @@
 #include "NetworkServer.h"
 #include "Symbol.h"
 #include "Message.h"
+#include "LSEQAllocator.h"
 
 class NetworkServer; //forward declaration
 /**
@@ -19,6 +20,7 @@ class SharedEditor {
     int _siteId; //unique identifier
     std::vector<Symbol> _symbols;
     int _counter; //incremented at every insertion
+    LSEQAllocator _lseq;
 public:
     SharedEditor(NetworkServer& s);
     /**
@@ -46,6 +48,7 @@ public:
      * @return
      */
     std::string to_string();
+    void setSiteId(int siteId);
 };
 
 

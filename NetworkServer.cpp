@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include "NetworkServer.h"
+#include "SharedEditor.h"
 
 int NetworkServer::connect(SharedEditor *sharedEditor) {
     connectedEditors.push_back(sharedEditor);
@@ -23,5 +24,12 @@ void NetworkServer::send(const Message &m) {
 }
 
 void NetworkServer::dispatchMessages() {
-
+    Message m;
+    while(!messageQueue.empty()){
+        m = messageQueue.front();
+        auto it = connectedEditors.begin();
+        for(; it != connectedEditors.end() ; ++it)
+            (*it)->process(m);
+        messageQueue.pop();
+    }
 }

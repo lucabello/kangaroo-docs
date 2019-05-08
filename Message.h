@@ -7,17 +7,19 @@
 
 #include "Symbol.h"
 
-enum Type {INSERT = 0, ERASE = 1};
+enum MessageType {INSERT = 0, ERASE = 1};
 
 /**
  * It holds information for the communication between Editor and Server
  */
 class Message {
-    Type messageType;
+    MessageType type;
     Symbol value;
 public:
     Message();
-    Message(Type t, Symbol s);
+    Message(MessageType t, Symbol s);
+    MessageType getType() const;
+    Symbol getSymbol() const;
 };
 
 
