@@ -8,9 +8,7 @@
 
 int NetworkServer::connect(SharedEditor *sharedEditor) {
     connectedEditors.push_back(sharedEditor);
-    int r = nextSiteId;
-    nextSiteId += 2;
-    return r;
+    return nextSiteId++;
 }
 
 //Using the erase-remove idiom, all occurrences of sharedEditor are removed

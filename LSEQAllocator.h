@@ -28,13 +28,12 @@ public:
     LSEQAllocator();
     /**
      * Allocates a new position between p and q, using LSEQ allocation function.
-     * Allocated positions always terminate with an even number followed by
-     * the siteId of the editor, which is always odd. This makes impossible to
-     * have two symbols with the same position.
-     * A particular behavior should be noted: when allocating between two
-     * consecutive odd numbers (such as [8,6,1] and [8,6,3]), a new level will
-     * be created and the new position will be something like
-     * [8,6,1,new_number,siteId].
+     * Allocated positions always have a position number in even positions
+     * followed by the siteId of the editor in the following odd position.
+     * This makes impossible to have two symbols with the same position.
+     *
+     * Example:
+     * INSERT between [8,1,4,1] and [8,2,5,2] -> [8,1,5,1,number,siteId]
      *
      * @param p position of preceding element
      * @param q position of successive element
