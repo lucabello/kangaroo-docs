@@ -23,7 +23,7 @@ public:
     /**
      * Initialize a NetworkServer with nextSiteId=0
      */
-    NetworkServer() : nextSiteId(0){}
+    NetworkServer() : nextSiteId(1){}
     /**
      * Save the pointer to the editor and return
      * a unique identifier

@@ -6,7 +6,7 @@
 #include "SharedEditor.h"
 
 SharedEditor::SharedEditor(NetworkServer &s) : _server(s), _counter(0),
-    _siteId(0){};
+    _siteId(-1){};
 
 void SharedEditor::localInsert(int index, char value) {
     std::vector<int> prev, succ;
@@ -85,4 +85,5 @@ std::string SharedEditor::to_string() {
 
 void SharedEditor::setSiteId(int id) {
     _siteId = id;
+    _lseq.setSiteId(id);
 }

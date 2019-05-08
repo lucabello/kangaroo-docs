@@ -21,18 +21,27 @@
  * and it is used by the CRDT to find a new position between two.
  */
 class LSEQAllocator {
-    int boundary = 10;
+    int boundary;
+    int siteId;
     std::map<int,bool> allocStrategy;
 public:
     LSEQAllocator();
     /**
      * Allocates a new position between p and q, using LSEQ allocation function.
+     * Allocated positions always terminate with an even number followed by
+     * the siteId of the editor, which is always odd. This makes impossible to
+     * have two symbols with the same position.
+     * A particular behavior should be noted: when allocating between two
+     * consecutive odd numbers (such as [8,6,1] and [8,6,3]), a new level will
+     * be created and the new position will be something like
+     * [8,6,1,new_number,siteId].
      *
      * @param p position of preceding element
      * @param q position of successive element
      * @return
      */
     std::vector<int> alloc(const std::vector<int> p, const std::vector<int> q);
+    void setSiteId(int id);
 };
 
 
