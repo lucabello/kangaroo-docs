@@ -6,11 +6,17 @@ TEMPLATE        = app
 TARGET          = kangaroo-docs
 
 HEADERS         = textedit.h \
-    qsharededitor.h
+    mytcpsocket.h \
+    qsharededitor.h \
+    ../*.h
 
 SOURCES         = textedit.cpp \
                   main.cpp \
-                  qsharededitor.cpp
+                  mytcpsocket.cpp \
+                  qsharededitor.cpp \
+                  ../*.cpp
+
+QT += network
 
 RESOURCES += textedit.qrc
 build_all:!build_pass {

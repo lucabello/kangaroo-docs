@@ -7,7 +7,7 @@
 
 #include "Symbol.h"
 
-enum MessageType {INSERT = 0, ERASE = 1};
+enum MessageType {INSERT = 0, ERASE = 1, FORMAT = 2, LOCAL = 3};
 
 /**
  * It holds information for the communication between Editor and Server

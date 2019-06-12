@@ -86,6 +86,7 @@
 
 #include "textedit.h"
 #include "qsharededitor.h"
+#include "mytcpsocket.h"
 
 #ifdef Q_OS_MAC
 const QString rsrcPath = ":/images/mac";
@@ -101,12 +102,19 @@ TextEdit::TextEdit(QWidget *parent)
 #endif
     setWindowTitle(QCoreApplication::applicationName());
 
+
     //textEdit = new QTextEdit(this);
     textEdit = new QSharedEditor(this);
+    tcpSocket = new MyTcpSocket(this);
+    //tcpSocket->doConnect();
+    textEdit->setExampleSiteId();
+
     connect(textEdit, &QTextEdit::currentCharFormatChanged,
             this, &TextEdit::currentCharFormatChanged);
     connect(textEdit, &QTextEdit::cursorPositionChanged,
             this, &TextEdit::cursorPositionChanged);
+    /*connect(textEdit, &QSharedEditor::packetReady,
+            tcpSocket, &MyTcpSocket::writeData);*/
 /*
     connect(textEdit, &QTextEdit::textChanged,
             this, &TextEdit::notifyTextChanged);
@@ -566,6 +574,14 @@ void TextEdit::textBold()
 {
     QTextCharFormat fmt;
     fmt.setFontWeight(actionTextBold->isChecked() ? QFont::Bold : QFont::Normal);
+    int start = textEdit->textCursor().selectionStart();
+    int end = textEdit->textCursor().selectionEnd();
+    if(actionTextBold->isChecked()){
+        textEdit->localSetStyle(start, end, StyleType::Bold);
+    }
+    else{
+        textEdit->localUnsetStyle(start, end, StyleType::Bold);
+    }
     mergeFormatOnWordOrSelection(fmt);
 }
 
@@ -573,13 +589,29 @@ void TextEdit::textUnderline()
 {
     QTextCharFormat fmt;
     fmt.setFontUnderline(actionTextUnderline->isChecked());
+    int start = textEdit->textCursor().selectionStart();
+    int end = textEdit->textCursor().selectionEnd();
+    if(actionTextUnderline->isChecked()){
+        textEdit->localSetStyle(start, end, StyleType::Underlined);
+    }
+    else{
+        textEdit->localUnsetStyle(start, end, StyleType::Underlined);
+    }
     mergeFormatOnWordOrSelection(fmt);
 }
 
 void TextEdit::textItalic()
 {
     QTextCharFormat fmt;
+    int start = textEdit->textCursor().selectionStart();
+    int end = textEdit->textCursor().selectionEnd();
     fmt.setFontItalic(actionTextItalic->isChecked());
+    if(actionTextItalic->isChecked()){
+        textEdit->localSetStyle(start, end, StyleType::Italic);
+    }
+    else{
+        textEdit->localUnsetStyle(start, end, StyleType::Italic);
+    }
     mergeFormatOnWordOrSelection(fmt);
 }
 
@@ -821,4 +853,3 @@ void TextEdit::alignmentChanged(Qt::Alignment a)
     else if (a & Qt::AlignJustify)
         actionAlignJustify->setChecked(true);
 }
-

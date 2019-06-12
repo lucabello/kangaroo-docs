@@ -54,6 +54,9 @@
 #include <QMainWindow>
 #include <QMap>
 #include <QPointer>
+#include <QtNetwork/QTcpSocket>
+#include <QtNetwork/QAbstractSocket>
+#include "mytcpsocket.h"
 #include "qsharededitor.h"
 
 QT_BEGIN_NAMESPACE
@@ -147,6 +150,7 @@ private:
     QString fileName;
     //QTextEdit *textEdit;
     QSharedEditor *textEdit;
+    MyTcpSocket *tcpSocket;
 };
 
 #endif // TEXTEDIT_H
