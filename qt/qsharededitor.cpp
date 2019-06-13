@@ -105,6 +105,7 @@ void QSharedEditor::updatePreviousFields(){
 
 bool isKeyPrintable(QKeyEvent * e){
     int k = e->key();
+    /*
     int modifiers = e->modifiers();
     if(modifiers == Qt::ControlModifier){
         return false;
@@ -118,11 +119,19 @@ bool isKeyPrintable(QKeyEvent * e){
             k == 0))
         return false;
     if(e->text().length() != 1)
+        return false;*/
+    int category = e->text().unicode()[0].category();
+    qDebug() << "CATEGORY = " << category;
+    if(category >= 14 && category <= 29)
+        return true;
+    else if(category >= 0 && category <= 8)
+        return true;
+    else
         return false;
-    return true;
 }
 
 bool isKeyPaste(QKeyEvent * e){
+    //paste is in QChar category 9! change this function and test it
     int k = e->key();
     int modifiers = e->modifiers();
     if(modifiers == Qt::ControlModifier && k == Qt::Key_V)
@@ -137,18 +146,23 @@ void QSharedEditor::keyPressEvent(QKeyEvent * e){
         qDebug() << "Hope for the best. Good luck.";
         eraseTwinTags();
         qDebug() << "++++++++++++++++++++++++++++";
-        qDebug() << to_string().c_str();
+        qDebug() << to_string();
         qDebug() << "++++++++++++++++++++++++++++";
         return;
     }
     qDebug() << "KEY PRESS CAUGHT YAY";
+    qDebug() << "KEY = " << e->key();
     if(isKeyPrintable(e)){
         qDebug() << "- Printable key: " << e->text() << " - key: " << e->key();
-        localInsert(this->textCursor().position(), e->text()[0].unicode());
+        wchar_t c[1];
+        e->text().toWCharArray(c);
+        localInsert(this->textCursor().position(), c[0]);
         //emit packetReady(e->text()); //only for testing. separate thread should already send packet
     }
-    else if(isKeyPaste(e))
-        qDebug() << "- You pasted: " << QApplication::clipboard()->mimeData()->html();
+    else if(isKeyPaste(e)){
+        //qDebug() << "- You pasted: " << QApplication::clipboard()->mimeData()->html();
+        return;
+    }
     QTextEdit::keyPressEvent(e);
 }
 
@@ -174,9 +188,10 @@ int QSharedEditor::realIndex(int i){
     return count+i;
 }
 
-void QSharedEditor::localInsert(int index, char value) {
+void QSharedEditor::localInsert(int index, wchar_t value) {
     std::vector<int> prev, succ;
     //get prev and succ positions if present
+    qDebug() << "START";
     index = realIndex(index); //sum number of tag symbols to index
     prev = (index-1 >= 0 && index-1 < _symbols.size())?
             _symbols.at(index-1).getPosition() : prev;
@@ -184,7 +199,9 @@ void QSharedEditor::localInsert(int index, char value) {
             _symbols.at(index).getPosition() : succ;
     Symbol s {value, _siteId, _counter, _lseq.alloc(prev, succ)};
     _counter++;
+    qDebug() << "BEFORE INSERT";
     _symbols.insert(_symbols.begin()+index, s);
+    qDebug() << "END";
     //Message m {MessageType::INSERT, s}; //prepare and send message
     //_mqOut.push(m);
 }
@@ -352,14 +369,18 @@ void QSharedEditor::process(const Message &m) {
     }
 }
 
-std::string QSharedEditor::to_string() {
-    std::string result;
+std::wstring QSharedEditor::to_string() {
+    std::wstring result;
     auto it = _symbols.begin();
     for( ; it != _symbols.end() ; ++it){
         if((*it).isContent())
             result.push_back((*it).getContent());
-        else
-            result.append((*it).getTag());
+        else{
+            std::wstring tmp((*it).getTag().length(), L' ');
+            std::string base((*it).getTag());
+            std::copy(base.begin(), base.end(), tmp.begin());
+            result.append(std::wstring(tmp));
+        }
     }
     return result;
 }

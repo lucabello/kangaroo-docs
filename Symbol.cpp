@@ -4,32 +4,43 @@
 
 #include "Symbol.h"
 
+//Constructors
+
 Symbol::Symbol() : c(0), siteId(-1), siteCounter(-1) {};
 
-Symbol::Symbol(char c, int site, int counter, std::vector<int> pos) : c(c),
-    siteId(site), siteCounter(counter), position(pos), type(SymbolType::CONTENT){};
+Symbol::Symbol(wchar_t c, int site, int counter, std::vector<int> pos) : c(c),
+    siteId(site), siteCounter(counter), position(pos), type(SymbolType::Content){};
 
 Symbol::Symbol(StyleType style, int site, int counter, std::vector<int> pos) : style(style),
-    siteId(site), siteCounter(counter), position(pos), type(SymbolType::STYLE){
-    if(style == Paragraph)
-        tag = "<p>";
-    else if(style == Bold)
-        tag = "<b>";
-    else if(style == BoldEnd)
-        tag = "</b>";
-    else if(style == Italic)
-        tag = "<i>";
-    else if(style == ItalicEnd)
-        tag = "</i>";
-    else if(style == Underlined)
-        tag = "<u>";
-    else if(style == UnderlinedEnd)
-        tag = "</u>";
-    else if(style == Color)
-        tag = "<color>";
-    else if(style == ColorEnd)
-        tag = "</color>";
+    siteId(site), siteCounter(counter), position(pos), type(SymbolType::Style){
+    setProperTag();
 };
+
+Symbol::Symbol(StyleType style, AlignmentType alignment, int site, int counter, std::vector<int> pos) : style(style),
+    alignment(alignment), siteId(site), siteCounter(counter), position(pos), type(SymbolType::Style){
+    setProperTag();
+};
+
+Symbol::Symbol(StyleType style, std::string param, int site, int counter, std::vector<int> pos) : style(style),
+    siteId(site), siteCounter(counter), position(pos), type(SymbolType::Style){
+    if(style == StyleType::Color)
+        color = param;
+    else if(style == StyleType::ColorEnd)
+        color = param;
+    else if(style == StyleType::Font)
+        fontname = param;
+    else if(style == StyleType::FontEnd)
+        fontname = param;
+    setProperTag();
+};
+
+Symbol::Symbol(StyleType style, int fontsize, int site, int counter, std::vector<int> pos) : style(style),
+    fontsize(fontsize), siteId(site), siteCounter(counter), position(pos), type(SymbolType::Style){
+    setProperTag();
+};
+
+
+//General methods
 
 bool Symbol::operator<(const Symbol &other) const {
     int depth=0, p=-1, q=-1;
@@ -46,29 +57,49 @@ bool Symbol::operator<(const Symbol &other) const {
     return false;
 }
 
+bool Symbol::isContent(){
+    return (type == SymbolType::Content);
+}
+
+bool Symbol::isStyle(){
+    return (type == SymbolType::Style);
+}
+
 std::vector<int> Symbol::getPosition() {
     return position;
 }
 
-char Symbol::getContent() {
-    return c;
-}
+//Getters
 
-std::string Symbol::getTag() {
-    return tag;
+wchar_t Symbol::getContent() {
+    return c;
 }
 
 StyleType Symbol::getStyleType(){
     return style;
 }
 
-int Symbol::getColor(){
+std::string Symbol::getTag() {
+    return tag;
+}
+
+AlignmentType Symbol::getAlignment(){
+    return alignment;
+}
+
+std::string Symbol::getColor(){
     return color;
 }
 
-int Symbol::getAlignment(){
-    return alignment;
+std::string Symbol::getFontName(){
+    return fontname;
 }
+
+int Symbol::getFontSize(){
+    return fontsize;
+}
+
+//Utilities
 
 bool Symbol::isOpenTag(){
     if(style == Bold || style == Italic || style == Underlined || style == Color)
@@ -80,14 +111,6 @@ bool Symbol::isCloseTag(){
     return !isOpenTag();
 }
 
-bool Symbol::isContent(){
-    return (type == SymbolType::CONTENT);
-}
-
-bool Symbol::isStyle(){
-    return (type == SymbolType::STYLE);
-}
-
 StyleType Symbol::getClosedStyle(StyleType s){
     if(s == StyleType::Bold)
         return BoldEnd;
@@ -97,5 +120,164 @@ StyleType Symbol::getClosedStyle(StyleType s){
         return UnderlinedEnd;
     if(s == StyleType::Color)
         return ColorEnd;
+    if(s == StyleType::Font)
+        return FontEnd;
+    if(s == StyleType::FontSize)
+        return FontSize;
     return Paragraph; //should never get here
+}
+
+void Symbol::setProperTag(){
+    if(style == Bold)
+        tag = "<b>";
+    else if(style == BoldEnd)
+        tag = "</b>";
+    else if(style == Italic)
+        tag = "<i>";
+    else if(style == ItalicEnd)
+        tag = "</i>";
+    else if(style == Underlined)
+        tag = "<u>";
+    else if(style == UnderlinedEnd)
+        tag = "</u>";
+    else if(style == Paragraph){
+        if(alignment == AlignmentType::AlignLeft)
+            tag = "<p align:left/>";
+        else if(alignment == AlignmentType::AlignCenter)
+            tag = "<p align:center/>";
+        else if(alignment == AlignmentType::AlignRight)
+            tag = "<p align:right/>";
+    }
+    else if(style == StyleType::Color)
+        tag = "<color:0x"+color+">";
+    else if(style == StyleType::ColorEnd)
+        tag = "</color>";
+    else if(style == StyleType::Font)
+        tag = "<font:"+fontname+">";
+    else if(style == StyleType::FontEnd)
+        tag = "</font>";
+    else if(style == StyleType::FontSize)
+        tag = "<font-size:"+std::to_string(fontsize)+"pt>";
+    else if(style == StyleType::FontSizeEnd)
+        tag = "</font-size>";
+
+}
+
+//Network
+
+void pushIntToByteArray(int i, char *bytes, int *offset){
+    bytes[0+*offset] = (i & 0xFF000000) >> 24;
+    bytes[1+*offset] = (i & 0x00FF0000) >> 16;
+    bytes[2+*offset] = (i & 0x0000FF00) >> 8;
+    bytes[3+*offset] = (i & 0x000000FF);
+    *offset = *offset + 4;
+}
+
+void pushWCharToByteArray(wchar_t c, char *bytes, int *offset){
+    bytes[0+*offset] = (c & 0xFF00) >> 8;
+    bytes[1+*offset] = (c & 0x00FF);
+    *offset = *offset + 2;
+}
+
+int popIntFromByteArray(char *bytes, int *offset){
+    int i = (bytes[0+*offset] << 24) | (bytes[1+*offset] << 16) | (bytes[2+*offset] << 8) | (bytes[3+*offset]);
+    *offset = *offset + 4;
+    return i;
+}
+
+wchar_t popWCharFromByteArray(char *bytes, int *offset){
+    wchar_t c = (bytes[0+*offset] << 8) | (bytes[1+*offset]);
+    *offset = *offset + 2;
+    return c;
+}
+
+char* Symbol::serialize(Symbol s){
+    char *bytes = new char[100]; //only for testing, REMEMBER TO DELETE CORRECTLY
+    int offset=0;
+    pushIntToByteArray(s.type, bytes, &offset);
+    pushIntToByteArray(s.siteId, bytes, &offset);
+    pushIntToByteArray(s.siteCounter, bytes, &offset);
+    pushIntToByteArray(s.position.size(), bytes, &offset);
+    for(int i=0; i<s.position.size(); i++)
+        pushIntToByteArray(s.position.at(i), bytes, &offset);
+    if(s.isContent())
+        pushWCharToByteArray(s.c, bytes, &offset);
+    else if(s.isStyle()){
+        pushIntToByteArray(s.style, bytes, &offset);
+        if(s.style == StyleType::Paragraph)
+            pushIntToByteArray(s.alignment, bytes, &offset);
+        else if(s.style == StyleType::Color){
+            pushIntToByteArray(s.color.length(), bytes, &offset);
+            for(int i=0; i<s.color.length(); i++)
+                bytes[offset++] = s.color.at(i);
+        }
+        else if(s.style == StyleType::ColorEnd){
+            pushIntToByteArray(s.color.length(), bytes, &offset);
+            for(int i=0; i<s.color.length(); i++)
+                bytes[offset++] = s.color.at(i);
+        }
+        else if(s.style == StyleType::Font){
+            pushIntToByteArray(s.fontname.length(), bytes, &offset);
+            for(int i=0; i<s.color.length(); i++)
+                bytes[offset++] = s.fontname.at(i);
+        }
+        else if(s.style == StyleType::FontEnd){
+            pushIntToByteArray(s.fontname.length(), bytes, &offset);
+            for(int i=0; i<s.color.length(); i++)
+                bytes[offset++] = s.fontname.at(i);
+        }
+        else if(s.style == StyleType::FontSize){
+            pushIntToByteArray(s.fontsize, bytes, &offset);
+        }
+        else if(s.style == StyleType::FontSizeEnd){
+            pushIntToByteArray(s.fontsize, bytes, &offset);
+        }
+    }
+    return bytes;
+}
+
+Symbol Symbol::unserialize(char *bytes){
+    Symbol s;
+    int offset=0;
+    s.type = (SymbolType)popIntFromByteArray(bytes, &offset);
+    s.siteId = popIntFromByteArray(bytes, &offset);
+    s.siteCounter = popIntFromByteArray(bytes, &offset);
+    int posLen = popIntFromByteArray(bytes, &offset);
+    for(int i=0; i<posLen; i++)
+        s.position.push_back(popIntFromByteArray(bytes, &offset));
+    if(s.isContent())
+        s.c = popWCharFromByteArray(bytes, &offset);
+    else if(s.isStyle()){
+        s.style = (StyleType)popIntFromByteArray(bytes, &offset);
+        if(s.style == StyleType::Paragraph)
+            s.alignment = (AlignmentType)popIntFromByteArray(bytes, &offset);
+        else if(s.style == StyleType::Color){
+            int colLen = popIntFromByteArray(bytes, &offset);
+            for(int i=0; i<colLen; i++)
+                s.color.push_back(bytes[offset++]);
+        }
+        else if(s.style == StyleType::ColorEnd){
+            int colLen = popIntFromByteArray(bytes, &offset);
+            for(int i=0; i<colLen; i++)
+                s.color.push_back(bytes[offset++]);
+        }
+        else if(s.style == StyleType::Font){
+            int fontLen = popIntFromByteArray(bytes, &offset);
+            for(int i=0; i<fontLen; i++)
+                s.color.push_back(bytes[offset++]);
+        }
+        else if(s.style == StyleType::FontEnd){
+            int fontLen = popIntFromByteArray(bytes, &offset);
+            for(int i=0; i<fontLen; i++)
+                s.color.push_back(bytes[offset++]);
+        }
+        else if(s.style == StyleType::FontSize){
+            s.fontsize = popIntFromByteArray(bytes, &offset);
+        }
+        else if(s.style == StyleType::FontSizeEnd){
+            s.fontsize = popIntFromByteArray(bytes, &offset);
+        }
+    }
+    s.setProperTag();
+    return s;
 }

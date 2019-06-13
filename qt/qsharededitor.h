@@ -66,7 +66,7 @@ private:
      * @param index
      * @param value
      */
-    void localInsert(int index, char value);
+    void localInsert(int index, wchar_t value);
     void localInsertStyle(int index, StyleType style);
     /**
      * Erase a char locally and send a Message to the server
@@ -86,7 +86,7 @@ private:
      *
      * @return
      */
-    std::string to_string();
+    std::wstring to_string();
     void setSiteId(int siteId);
     void eraseTwinTags();
     bool areTwinTags(Symbol a, Symbol b);
