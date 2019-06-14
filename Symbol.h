@@ -57,6 +57,7 @@ class Symbol {
     std::string color;
     std::string fontname;
     int fontsize;
+
 public:
     Symbol();
     //Content constructor
@@ -69,6 +70,8 @@ public:
     Symbol(StyleType style, std::string param, int site, int counter, std::vector<int> pos);
     //Style constructor for FontSize
     Symbol(StyleType style, int fontsize, int site, int counter, std::vector<int> pos);
+    //Style constructor for copy
+    Symbol(Symbol s, int site, int counter, std::vector<int> pos);
 
     //general methods
     bool operator<(const Symbol &other) const;
@@ -89,6 +92,11 @@ public:
     bool isOpenTag();
     bool isCloseTag();
     static StyleType getClosedStyle(StyleType s);
+    static Symbol getClosedStyle(Symbol s);
+    bool isSameStyleAs(Symbol other);
+    bool isOpeningOf(Symbol other);
+    static bool areTwinTags(Symbol a, Symbol b);
+    static bool areSimilarTags(Symbol a, Symbol b);
     void setProperTag();
 
     //network

@@ -39,6 +39,19 @@ Symbol::Symbol(StyleType style, int fontsize, int site, int counter, std::vector
     setProperTag();
 };
 
+Symbol::Symbol(Symbol s, int site, int counter, std::vector<int> pos){
+    this->type = s.type;
+    this->siteId = site;
+    this->siteCounter = counter;
+    this->position = pos;
+
+    this->style = s.style;
+    this->tag = s.tag;
+    this->alignment = s.alignment;
+    this->color = s.color;
+    this->fontname = s.fontname;
+    this->fontsize = s.fontsize;
+}
 
 //General methods
 
@@ -127,6 +140,83 @@ StyleType Symbol::getClosedStyle(StyleType s){
     return Paragraph; //should never get here
 }
 
+Symbol Symbol::getClosedStyle(Symbol s){
+    Symbol result(getClosedStyle(s.style), s.siteId, s.siteCounter, s.position);
+    return result;
+}
+
+bool Symbol::isSameStyleAs(Symbol other){
+    if(!this->isStyle() || !other.isStyle())
+        return false;
+    if(this->style == StyleType::Bold && other.style == StyleType::Bold)
+        return true;
+    if(this->style == StyleType::Italic && other.style == StyleType::Italic)
+        return true;
+    if(this->style == StyleType::Underlined && other.style == StyleType:: Underlined)
+        return true;
+    if(this->style == StyleType::Color && other.style == StyleType::Color)
+        if(this->color == other.color)
+            return true;
+    if(this->style == StyleType::Font && other.style == StyleType::Font)
+        if(this->fontname == other.fontname)
+            return true;
+    if(this->style == StyleType::FontSize && other.style == StyleType::FontSize)
+        if(this->fontsize == other.fontsize)
+            return true;
+    return false;
+}
+
+bool Symbol::isOpeningOf(Symbol other){
+    if(!this->isStyle() || !other.isStyle())
+        return false;
+    if(this->style == StyleType::Bold && other.style == StyleType::BoldEnd)
+        return true;
+    if(this->style == StyleType::Italic && other.style == StyleType::ItalicEnd)
+        return true;
+    if(this->style == StyleType::Underlined && other.style == StyleType:: UnderlinedEnd)
+        return true;
+    if(this->style == StyleType::Color && other.style == StyleType::ColorEnd)
+        if(this->color == other.color)
+            return true;
+    if(this->style == StyleType::Font && other.style == StyleType::FontEnd)
+        if(this->fontname == other.fontname)
+            return true;
+    if(this->style == StyleType::FontSize && other.style == StyleType::FontSizeEnd)
+        if(this->fontsize == other.fontsize)
+            return true;
+    return false;
+}
+
+bool Symbol::areTwinTags(Symbol a, Symbol b){
+    return (a.isOpeningOf(b) || b.isOpeningOf(a));
+}
+
+bool Symbol::areSimilarTags(Symbol a, Symbol b){
+    if(!a.isStyle() || !b.isStyle())
+        return false;
+    if(a.style == b.style)
+        return true;
+    if((a.style == StyleType::Bold && b.style == StyleType::BoldEnd) ||
+            (b.style == StyleType::Bold && a.style == StyleType::BoldEnd))
+        return true;
+    if((a.style == StyleType::Italic && b.style == StyleType::ItalicEnd) ||
+            (b.style == StyleType::Italic && a.style == StyleType::ItalicEnd))
+        return true;
+    if((a.style == StyleType::Underlined && b.style == StyleType:: UnderlinedEnd) ||
+            (b.style == StyleType::Underlined && a.style == StyleType:: UnderlinedEnd))
+        return true;
+    if((a.style == StyleType::Color && b.style == StyleType::ColorEnd) ||
+            (b.style == StyleType::Color && a.style == StyleType::ColorEnd))
+        return true;
+    if((a.style == StyleType::Font && b.style == StyleType::FontEnd) ||
+            (b.style == StyleType::Font && a.style == StyleType::FontEnd))
+        return true;
+    if((a.style == StyleType::FontSize && b.style == StyleType::FontSizeEnd) ||
+            (b.style == StyleType::FontSize && a.style == StyleType::FontSizeEnd))
+        return true;
+    return false;
+}
+
 void Symbol::setProperTag(){
     if(style == Bold)
         tag = "<b>";
@@ -149,7 +239,7 @@ void Symbol::setProperTag(){
             tag = "<p align:right/>";
     }
     else if(style == StyleType::Color)
-        tag = "<color:0x"+color+">";
+        tag = "<color:"+color+">";
     else if(style == StyleType::ColorEnd)
         tag = "</color>";
     else if(style == StyleType::Font)
@@ -193,7 +283,7 @@ wchar_t popWCharFromByteArray(char *bytes, int *offset){
 
 char* Symbol::serialize(Symbol s){
     char *bytes = new char[100]; //only for testing, REMEMBER TO DELETE CORRECTLY
-    int offset=0;
+    int offset=4;
     pushIntToByteArray(s.type, bytes, &offset);
     pushIntToByteArray(s.siteId, bytes, &offset);
     pushIntToByteArray(s.siteCounter, bytes, &offset);
@@ -233,12 +323,16 @@ char* Symbol::serialize(Symbol s){
             pushIntToByteArray(s.fontsize, bytes, &offset);
         }
     }
+    int payloadLen = offset-4;
+    int tmp = 0;
+    pushIntToByteArray(payloadLen, bytes, &tmp);
     return bytes;
 }
 
 Symbol Symbol::unserialize(char *bytes){
     Symbol s;
     int offset=0;
+    int payloadLen = popIntFromByteArray(bytes, &offset); //payload length
     s.type = (SymbolType)popIntFromByteArray(bytes, &offset);
     s.siteId = popIntFromByteArray(bytes, &offset);
     s.siteCounter = popIntFromByteArray(bytes, &offset);
