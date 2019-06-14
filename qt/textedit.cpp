@@ -577,10 +577,10 @@ void TextEdit::textBold()
     int start = textEdit->textCursor().selectionStart();
     int end = textEdit->textCursor().selectionEnd();
     if(actionTextBold->isChecked()){
-        textEdit->localSetStyle(start, end, StyleType::Bold);
+        textEdit->localSetStyle(start, end, Symbol(StyleType::Bold, -1, -1, std::vector<int>()));
     }
     else{
-        textEdit->localUnsetStyle(start, end, StyleType::Bold);
+        textEdit->localUnsetStyle(start, end, Symbol(StyleType::Bold, -1, -1, std::vector<int>()));
     }
     mergeFormatOnWordOrSelection(fmt);
 }
@@ -592,10 +592,10 @@ void TextEdit::textUnderline()
     int start = textEdit->textCursor().selectionStart();
     int end = textEdit->textCursor().selectionEnd();
     if(actionTextUnderline->isChecked()){
-        textEdit->localSetStyle(start, end, StyleType::Underlined);
+        textEdit->localSetStyle(start, end, Symbol(StyleType::Underlined, -1, -1, std::vector<int>()));
     }
     else{
-        textEdit->localUnsetStyle(start, end, StyleType::Underlined);
+        textEdit->localUnsetStyle(start, end, Symbol(StyleType::Underlined, -1, -1, std::vector<int>()));
     }
     mergeFormatOnWordOrSelection(fmt);
 }
@@ -607,10 +607,10 @@ void TextEdit::textItalic()
     int end = textEdit->textCursor().selectionEnd();
     fmt.setFontItalic(actionTextItalic->isChecked());
     if(actionTextItalic->isChecked()){
-        textEdit->localSetStyle(start, end, StyleType::Italic);
+        textEdit->localSetStyle(start, end, Symbol(StyleType::Italic, -1, -1, std::vector<int>()));
     }
     else{
-        textEdit->localUnsetStyle(start, end, StyleType::Italic);
+        textEdit->localUnsetStyle(start, end, Symbol(StyleType::Italic, -1, -1, std::vector<int>()));
     }
     mergeFormatOnWordOrSelection(fmt);
 }
@@ -704,6 +704,9 @@ void TextEdit::textColor()
     QColor col = QColorDialog::getColor(textEdit->textColor(), this);
     if (!col.isValid())
         return;
+    int start = textEdit->textCursor().selectionStart();
+    int end = textEdit->textCursor().selectionEnd();
+    textEdit->localSetStyle(start, end, Symbol(StyleType::Color, col.name().toStdString(), -1, -1, std::vector<int>()));
     QTextCharFormat fmt;
     fmt.setForeground(col);
     mergeFormatOnWordOrSelection(fmt);

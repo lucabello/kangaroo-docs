@@ -39,6 +39,7 @@ public:
     void moveCursor(QTextCursor::MoveOperation operation, QTextCursor::MoveMode mode = QTextCursor::MoveAnchor);
 
     virtual void keyPressEvent(QKeyEvent * e);
+    virtual void clear();
 
     void setExampleSiteId() {_siteId = 1; _counter=0;}
     void updatePreviousFields();
@@ -48,8 +49,8 @@ public:
     QString tempSelection, tempLChar, tempRChar;
     bool fileLoading = true;
 
-    void localSetStyle(int start, int end, StyleType style);
-    void localUnsetStyle(int start, int end, StyleType style);
+    void localSetStyle(int start, int end, Symbol s);
+    void localUnsetStyle(int start, int end, Symbol s);
 
 signals:
     void packetReady(QString);
@@ -67,7 +68,7 @@ private:
      * @param value
      */
     void localInsert(int index, wchar_t value);
-    void localInsertStyle(int index, StyleType style);
+    void localInsertStyle(int index, Symbol styleSymbol);
     /**
      * Erase a char locally and send a Message to the server
      * It needs to check if the erase provokes a style erasure.

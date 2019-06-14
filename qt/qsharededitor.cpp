@@ -120,6 +120,8 @@ bool isKeyPrintable(QKeyEvent * e){
         return false;
     if(e->text().length() != 1)
         return false;*/
+    if(e->key() == Qt::Key_Enter || e->key() == Qt::Key_Return)
+        return true;
     int category = e->text().unicode()[0].category();
     qDebug() << "CATEGORY = " << category;
     if(category >= 14 && category <= 29)
@@ -191,7 +193,6 @@ int QSharedEditor::realIndex(int i){
 void QSharedEditor::localInsert(int index, wchar_t value) {
     std::vector<int> prev, succ;
     //get prev and succ positions if present
-    qDebug() << "START";
     index = realIndex(index); //sum number of tag symbols to index
     prev = (index-1 >= 0 && index-1 < _symbols.size())?
             _symbols.at(index-1).getPosition() : prev;
@@ -199,21 +200,22 @@ void QSharedEditor::localInsert(int index, wchar_t value) {
             _symbols.at(index).getPosition() : succ;
     Symbol s {value, _siteId, _counter, _lseq.alloc(prev, succ)};
     _counter++;
-    qDebug() << "BEFORE INSERT";
     _symbols.insert(_symbols.begin()+index, s);
-    qDebug() << "END";
+    if(value == '\r'){
+        localInsertStyle(index+1, Symbol(StyleType::Paragraph, AlignmentType::AlignLeft, -1, -1, std::vector<int>()));
+    }
     //Message m {MessageType::INSERT, s}; //prepare and send message
     //_mqOut.push(m);
 }
 
-void QSharedEditor::localInsertStyle(int index, StyleType style){
+void QSharedEditor::localInsertStyle(int index, Symbol styleSymbol){
     std::vector<int> prev, succ;
     //get prev and succ positions if present
     prev = (index-1 >= 0 && index-1 < _symbols.size())?
             _symbols.at(index-1).getPosition() : prev;
     succ = (index >= 0 && index < _symbols.size())?
             _symbols.at(index).getPosition() : succ;
-    Symbol s {style, _siteId, _counter, _lseq.alloc(prev, succ)};
+    Symbol s {styleSymbol, _siteId, _counter, _lseq.alloc(prev, succ)};
     _counter++;
     _symbols.insert(_symbols.begin()+index, s);
     //Message m {MessageType::INSERT, s}; //prepare and send message
@@ -221,29 +223,30 @@ void QSharedEditor::localInsertStyle(int index, StyleType style){
 }
 
 //start and end are included
-void QSharedEditor::localSetStyle(int start, int end, StyleType style){
+//TODO: DOES NOT WORK CORRECTLY FOR COLOR AND SIMILAR TAGS.
+void QSharedEditor::localSetStyle(int start, int end, Symbol s){
     start = realIndex(start);
     end = realIndex(end);
     bool insertOpenTag = true, insertCloseTag = true;
     int i;
     //check if we are inside a -style- tag
     for(i=start-1; i>=0; i--){
-        if(_symbols.at(i).isStyle() && _symbols.at(i).getStyleType() == Symbol::getClosedStyle(style)){
+        if(_symbols.at(i).isOpeningOf(s)){
             //if(i == start-1) //continuing previous tag
             //    insertOpenTag = false;
             break;
         }
-        if(_symbols.at(i).isStyle() && _symbols.at(i).getStyleType() == style){
+        if(_symbols.at(i).isSameStyleAs(s)){
             insertOpenTag = false;
             break;
         }
 
     }
     for(i=end; i<_symbols.size(); i++){
-        if(_symbols.at(i).isStyle() && _symbols.at(i).getStyleType() == style){
+        if(_symbols.at(i).isSameStyleAs(s)){
             break;
         }
-        if(_symbols.at(i).isStyle() && _symbols.at(i).getStyleType() == Symbol::getClosedStyle(style)){
+        if(_symbols.at(i).isOpeningOf(s)){
             insertCloseTag = false;
             break;
         }
@@ -253,45 +256,43 @@ void QSharedEditor::localSetStyle(int start, int end, StyleType style){
     //remove all -style- tags between end and start
     //start from last so we don't ruin indexes
     if(end >= _symbols.size()){
-        localInsertStyle(end, Symbol::getClosedStyle(style));
+        localInsertStyle(end, Symbol::getClosedStyle(s));
         insertCloseTag = false;
         end--;
     }
     for(i=end; i>=start; i--){
-        if(_symbols.at(i).isStyle() &&
-                (_symbols.at(i).getStyleType() == style ||
-                 _symbols.at(i).getStyleType() == Symbol::getClosedStyle(style))){
+        if(_symbols.at(i).isStyle() && Symbol::areSimilarTags(_symbols.at(i), s)){
             localErase(i);
             end--;
         }
     }
     if(insertCloseTag)
-        localInsertStyle(end, Symbol::getClosedStyle(style));
+        localInsertStyle(end, Symbol::getClosedStyle(s));
     if(insertOpenTag)
-        localInsertStyle(start, style);
+        localInsertStyle(start, s);
 }
 
 //start and end are included
-void QSharedEditor::localUnsetStyle(int start, int end, StyleType style){
+void QSharedEditor::localUnsetStyle(int start, int end, Symbol s){
     start = realIndex(start);
     end = realIndex(end)-1;
     bool insertOpenTag = false, insertCloseTag = false;
     int i;
     //check if we are inside a -style- tag
     for(i=start-1; i>=0; i--){
-        if(_symbols.at(i).isStyle() && _symbols.at(i).getStyleType() == Symbol::getClosedStyle(style)){
+        if(_symbols.at(i).isOpeningOf(s)){
             break;
         }
-        if(_symbols.at(i).isStyle() && _symbols.at(i).getStyleType() == style){
+        if(_symbols.at(i).isSameStyleAs(s)){
             insertCloseTag = true;
             break;
         }
     }
     for(i=end+1; i<_symbols.size(); i++){
-        if(_symbols.at(i).isStyle() && _symbols.at(i).getStyleType() == style){
+        if(_symbols.at(i).isSameStyleAs(s)){
             break;
         }
-        if(_symbols.at(i).isStyle() && _symbols.at(i).getStyleType() == Symbol::getClosedStyle(style)){
+        if(_symbols.at(i).isOpeningOf(s)){
             insertOpenTag = true;
             break;
         }
@@ -301,18 +302,30 @@ void QSharedEditor::localUnsetStyle(int start, int end, StyleType style){
     //remove all -style- tags between end and start
     //start from last so we don't ruin indexes
     for(i=end; i>=start; i--){
-        if(_symbols.at(i).isStyle() &&
-                (_symbols.at(i).getStyleType() == style ||
-                 _symbols.at(i).getStyleType() == Symbol::getClosedStyle(style))){
+        if(_symbols.at(i).isStyle() && Symbol::areSimilarTags(_symbols.at(i), s)){
             localErase(i);
             end--;
         }
     }
     if(insertOpenTag)
-        localInsertStyle(end+1, style);
+        localInsertStyle(end+1, s);
     if(insertCloseTag)
-        localInsertStyle(start, Symbol::getClosedStyle(style));
+        localInsertStyle(start, Symbol::getClosedStyle(s));
     //eraseTwinTags();
+}
+
+void QSharedEditor::clear(){
+    _symbols.clear();
+    QTextEdit::clear();
+    _counter = 0;
+    localInsertStyle(0, Symbol(StyleType::Paragraph, AlignmentType::AlignLeft, _siteId, _counter, std::vector<int>()));
+    localInsertStyle(1, Symbol(StyleType::Font, "Arial", _siteId, _counter, std::vector<int>()));
+    localInsertStyle(2, Symbol(StyleType::FontSize, 8, _siteId, _counter, std::vector<int>()));
+    localInsertStyle(3, Symbol(StyleType::Color, "000000", _siteId, _counter, std::vector<int>()));
+    localInsert(0, '\0');
+    localInsertStyle(5, Symbol(StyleType::FontEnd, "Arial", _siteId, _counter, std::vector<int>()));
+    localInsertStyle(6, Symbol(StyleType::FontSizeEnd, 8, _siteId, _counter, std::vector<int>()));
+    localInsertStyle(7, Symbol(StyleType::ColorEnd, "000000", _siteId, _counter, std::vector<int>()));
 }
 
 void QSharedEditor::localErase(int index) {
@@ -325,56 +338,59 @@ void QSharedEditor::localErase(int index) {
     //_mqOut.push(m);
 }
 
+//to correct
 void QSharedEditor::process(const Message &m) {
-    int l=0, r=_symbols.size()-1, middle=-1;
-    if(m.getType() == MessageType::INSERT){
-        /*
-         * After this binary search, the variable middle can be:
-         * - -1 if the vector is empty
-         * - index of the first element bigger than s
-         * - index of the first element smaller than s
-         * If the symbol is found, the function will return.
-         */
-        while(l<=r){
-            middle = (l+r)/2;
-            if(_symbols.at(middle) < m.getSymbol())
-                l = middle+1;
-            else if(m.getSymbol() < _symbols.at(middle))
-                r = middle-1;
-            else
-                break;
-        }
-        if(l<=r) //Symbol found (already inserted)
-            return;
-        if(middle == -1) //empty vector, never entered while cycle
-            _symbols.insert(_symbols.begin(), m.getSymbol());
-        else if (m.getSymbol() < _symbols.at(middle))
-            _symbols.insert(_symbols.begin()+middle, m.getSymbol());
-        else
-            _symbols.insert(_symbols.begin()+middle+1, m.getSymbol());
-    } else if (m.getType() == MessageType::ERASE) {
-        //middle variable is modified or the function returns
-        while(l<=r){
-            middle = (l+r)/2;
-            if(_symbols.at(middle) < m.getSymbol())
-                l = middle+1;
-            else if(m.getSymbol() < _symbols.at(middle))
-                r = middle-1;
-            else
-                break;
-        }
-        if(l > r) //Symbol not found (already deleted or empty vector)
-            return;
-        _symbols.erase(_symbols.begin()+middle);
-    }
+//    int l=0, r=_symbols.size()-1, middle=-1;
+//    if(m.getType() == MessageType::INSERT){
+//        /*
+//         * After this binary search, the variable middle can be:
+//         * - -1 if the vector is empty
+//         * - index of the first element bigger than s
+//         * - index of the first element smaller than s
+//         * If the symbol is found, the function will return.
+//         */
+//        while(l<=r){
+//            middle = (l+r)/2;
+//            if(_symbols.at(middle) < m.getSymbol())
+//                l = middle+1;
+//            else if(m.getSymbol() < _symbols.at(middle))
+//                r = middle-1;
+//            else
+//                break;
+//        }
+//        if(l<=r) //Symbol found (already inserted)
+//            return;
+//        if(middle == -1) //empty vector, never entered while cycle
+//            _symbols.insert(_symbols.begin(), m.getSymbol());
+//        else if (m.getSymbol() < _symbols.at(middle))
+//            _symbols.insert(_symbols.begin()+middle, m.getSymbol());
+//        else
+//            _symbols.insert(_symbols.begin()+middle+1, m.getSymbol());
+//    } else if (m.getType() == MessageType::ERASE) {
+//        //middle variable is modified or the function returns
+//        while(l<=r){
+//            middle = (l+r)/2;
+//            if(_symbols.at(middle) < m.getSymbol())
+//                l = middle+1;
+//            else if(m.getSymbol() < _symbols.at(middle))
+//                r = middle-1;
+//            else
+//                break;
+//        }
+//        if(l > r) //Symbol not found (already deleted or empty vector)
+//            return;
+//        _symbols.erase(_symbols.begin()+middle);
+//    }
 }
 
 std::wstring QSharedEditor::to_string() {
     std::wstring result;
     auto it = _symbols.begin();
     for( ; it != _symbols.end() ; ++it){
-        if((*it).isContent())
-            result.push_back((*it).getContent());
+        if((*it).isContent()){
+            if(!(*it).getContent()=='\0')
+                result.push_back((*it).getContent());
+        }
         else{
             std::wstring tmp((*it).getTag().length(), L' ');
             std::string base((*it).getTag());
@@ -396,36 +412,19 @@ void QSharedEditor::eraseTwinTags(){
         if(_symbols.at(i).isContent())
             continue;
         for(int j = i; j < _symbols.size(); j++){
+            //empty tags have no content between them
             if(_symbols.at(j).isContent())
                 break;
             //if there is no text between the two tags
-            if(areTwinTags(_symbols.at(i), _symbols.at(j)) ||
-                    areTwinTags(_symbols.at(j), _symbols.at(i))){
+            if(Symbol::areTwinTags(_symbols.at(i), _symbols.at(j))){
                 //two twin tags
                 localErase(j);
                 localErase(i);
-            } else if(_symbols.at(i).getStyleType() == _symbols.at(j).getStyleType()
+            } else if(Symbol::areTwinTags(_symbols.at(i), _symbols.at(j))
                       && _symbols.at(j).getStyleType() == StyleType::Paragraph){
-                //two consecutive paragraphs, remove the second one
-                localErase(j);
+                //two consecutive paragraphs, remove the first one
+                localErase(i);
             }
         }
     }
-}
-
-bool QSharedEditor::areTwinTags(Symbol a, Symbol b){
-    StyleType sa, sb;
-    if(!a.isStyle() || !b.isStyle())
-        return false;
-    sa = a.getStyleType();
-    sb = b.getStyleType();
-    if(sa == StyleType::Bold && sb == StyleType::BoldEnd)
-        return true;
-    if(sa == StyleType::Italic && sb == StyleType::ItalicEnd)
-        return true;
-    if(sa == StyleType::Underlined && sb == StyleType:: UnderlinedEnd)
-        return true;
-    if(sa == StyleType::Color && sb == StyleType::ColorEnd)
-        return true;
-    return false;
 }
