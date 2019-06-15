@@ -91,13 +91,17 @@ public:
     //utilites
     bool isOpenTag();
     bool isCloseTag();
+    static StyleType getOpenStyle(StyleType s);
     static StyleType getClosedStyle(StyleType s);
+    static Symbol getOpenStyle(Symbol s);
     static Symbol getClosedStyle(Symbol s);
     bool isSameStyleAs(Symbol other);
     bool isOpeningOf(Symbol other);
     static bool areTwinTags(Symbol a, Symbol b);
     static bool areSimilarTags(Symbol a, Symbol b);
     void setProperTag();
+    bool isSimpleStyle();
+    bool isComplexStyle();
 
     //network
     //quick and dirty: this serialization depends on the endiannes of the machine

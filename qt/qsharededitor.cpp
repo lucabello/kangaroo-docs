@@ -223,8 +223,7 @@ void QSharedEditor::localInsertStyle(int index, Symbol styleSymbol){
 }
 
 //start and end are included
-//TODO: DOES NOT WORK CORRECTLY FOR COLOR AND SIMILAR TAGS.
-void QSharedEditor::localSetStyle(int start, int end, Symbol s){
+void QSharedEditor::localSetSimpleStyle(int start, int end, Symbol s){
     start = realIndex(start);
     end = realIndex(end);
     bool insertOpenTag = true, insertCloseTag = true;
@@ -314,6 +313,62 @@ void QSharedEditor::localUnsetStyle(int start, int end, Symbol s){
     //eraseTwinTags();
 }
 
+void QSharedEditor::localSetComplexStyle(int start, int end, Symbol s){
+    start = realIndex(start);
+    end = realIndex(end);
+    bool insertOpenTag = true, insertCloseTag = true;
+    int i;
+    Symbol openSymbol, closeSymbol;
+    //check if we are inside a -style- tag
+    for(i=start-1; i>=0; i--){
+        if(_symbols.at(i).isSameStyleAs(s)){
+            insertOpenTag = false;
+            break;
+        }
+        if(Symbol::areSimilarTags(_symbols.at(i), s)){
+            openSymbol = _symbols.at(i);
+            break;
+        }
+
+    }
+    for(i=end; i<_symbols.size(); i++){
+        if(Symbol::areSimilarTags(_symbols.at(i), s)){
+            closeSymbol = _symbols.at(i);
+            break;
+        }
+        if(_symbols.at(i).isOpeningOf(s)){
+            insertCloseTag = false;
+            break;
+        }
+    }
+    if(!insertOpenTag && !insertCloseTag)
+        return;
+    //remove all -style- tags between end and start
+    //start from last so we don't ruin indexes
+    for(i=end; i>=start; i--){
+        if(_symbols.at(i).isStyle() && Symbol::areSimilarTags(_symbols.at(i), s)){
+            localErase(i);
+            end--;
+        }
+    }
+    if(insertCloseTag){
+        localInsertStyle(end, Symbol::getClosedStyle(s));
+        localInsertStyle(end+1, Symbol::getOpenStyle(closeSymbol));
+    }
+    if(insertOpenTag){
+        localInsertStyle(start, Symbol::getClosedStyle(openSymbol));
+        localInsertStyle(start+1, s);
+    }
+}
+
+
+void QSharedEditor::localSetStyle(int start, int end, Symbol s){
+    if(s.isSimpleStyle())
+        localSetSimpleStyle(start, end, s);
+    else
+        localSetComplexStyle(start, end, s);
+}
+
 void QSharedEditor::clear(){
     _symbols.clear();
     QTextEdit::clear();
@@ -321,11 +376,11 @@ void QSharedEditor::clear(){
     localInsertStyle(0, Symbol(StyleType::Paragraph, AlignmentType::AlignLeft, _siteId, _counter, std::vector<int>()));
     localInsertStyle(1, Symbol(StyleType::Font, "Arial", _siteId, _counter, std::vector<int>()));
     localInsertStyle(2, Symbol(StyleType::FontSize, 8, _siteId, _counter, std::vector<int>()));
-    localInsertStyle(3, Symbol(StyleType::Color, "000000", _siteId, _counter, std::vector<int>()));
+    localInsertStyle(3, Symbol(StyleType::Color, "#000000", _siteId, _counter, std::vector<int>()));
     localInsert(0, '\0');
     localInsertStyle(5, Symbol(StyleType::FontEnd, "Arial", _siteId, _counter, std::vector<int>()));
     localInsertStyle(6, Symbol(StyleType::FontSizeEnd, 8, _siteId, _counter, std::vector<int>()));
-    localInsertStyle(7, Symbol(StyleType::ColorEnd, "000000", _siteId, _counter, std::vector<int>()));
+    localInsertStyle(7, Symbol(StyleType::ColorEnd, "#000000", _siteId, _counter, std::vector<int>()));
 }
 
 void QSharedEditor::localErase(int index) {

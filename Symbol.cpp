@@ -124,6 +124,22 @@ bool Symbol::isCloseTag(){
     return !isOpenTag();
 }
 
+StyleType Symbol::getOpenStyle(StyleType s){
+    if(s == StyleType::BoldEnd)
+        return Bold;
+    if(s == StyleType::ItalicEnd)
+        return Italic;
+    if(s == StyleType::UnderlinedEnd)
+        return Underlined;
+    if(s == StyleType::ColorEnd)
+        return Color;
+    if(s == StyleType::FontEnd)
+        return Font;
+    if(s == StyleType::FontSizeEnd)
+        return FontSize;
+    return Paragraph; //should never get here
+}
+
 StyleType Symbol::getClosedStyle(StyleType s){
     if(s == StyleType::Bold)
         return BoldEnd;
@@ -136,12 +152,21 @@ StyleType Symbol::getClosedStyle(StyleType s){
     if(s == StyleType::Font)
         return FontEnd;
     if(s == StyleType::FontSize)
-        return FontSize;
+        return FontSizeEnd;
     return Paragraph; //should never get here
 }
 
+Symbol Symbol::getOpenStyle(Symbol s){
+    Symbol result(s, s.siteId, s.siteCounter, s.position);
+    result.style = getOpenStyle(s.style);
+    result.setProperTag();
+    return result;
+}
+
 Symbol Symbol::getClosedStyle(Symbol s){
-    Symbol result(getClosedStyle(s.style), s.siteId, s.siteCounter, s.position);
+    Symbol result(s, s.siteId, s.siteCounter, s.position);
+    result.style = getClosedStyle(s.style);
+    result.setProperTag();
     return result;
 }
 
@@ -231,26 +256,40 @@ void Symbol::setProperTag(){
     else if(style == UnderlinedEnd)
         tag = "</u>";
     else if(style == Paragraph){
-        if(alignment == AlignmentType::AlignLeft)
+        if(alignment == AlignLeft)
             tag = "<p align:left/>";
-        else if(alignment == AlignmentType::AlignCenter)
+        else if(alignment == AlignCenter)
             tag = "<p align:center/>";
-        else if(alignment == AlignmentType::AlignRight)
+        else if(alignment == AlignRight)
             tag = "<p align:right/>";
     }
-    else if(style == StyleType::Color)
+    else if(style == Color)
         tag = "<color:"+color+">";
-    else if(style == StyleType::ColorEnd)
-        tag = "</color>";
-    else if(style == StyleType::Font)
+    else if(style == ColorEnd)
+        tag = "</color:"+color+">";
+    else if(style == Font)
         tag = "<font:"+fontname+">";
-    else if(style == StyleType::FontEnd)
-        tag = "</font>";
-    else if(style == StyleType::FontSize)
+    else if(style == FontEnd)
+        tag = "</font:"+fontname+">";
+    else if(style == FontSize)
         tag = "<font-size:"+std::to_string(fontsize)+"pt>";
-    else if(style == StyleType::FontSizeEnd)
-        tag = "</font-size>";
+    else if(style == FontSizeEnd)
+        tag = "</font-size:"+std::to_string(fontsize)+"pt>";
 
+}
+
+bool Symbol::isSimpleStyle(){
+    if(style == Bold || style == BoldEnd)
+        return true;
+    if(style == Italic || style == ItalicEnd)
+        return true;
+    if(style == Underlined || style == UnderlinedEnd)
+        return true;
+    return false;
+}
+
+bool Symbol::isComplexStyle(){
+    return !isSimpleStyle();
 }
 
 //Network

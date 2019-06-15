@@ -92,6 +92,10 @@ private:
     void eraseTwinTags();
     bool areTwinTags(Symbol a, Symbol b);
     int realIndex(int i);
+
+    void localSetSimpleStyle(int start, int end, Symbol s);
+    void localUnsetSimpleStyle(int start, int end, Symbol s);
+    void localSetComplexStyle(int start, int end, Symbol s);
 };
 
 #endif // QSHAREDEDITOR_H
