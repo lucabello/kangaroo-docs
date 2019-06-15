@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <string>
+//#include "Serializable.h"
 
 enum SymbolType {Content = 0, Style = 1};
 enum StyleType {Paragraph,
@@ -108,6 +109,16 @@ public:
     //CHANGE IT TO BE INDEPENDENT FROM MACHINE'S ENDIANNES !!!
     static char* serialize(Symbol s);
     static Symbol unserialize(char* bytes);
+    static void pushObjectIntoArray(Symbol obj, char *bytes, int *offset);
+    static Symbol popObjectFromArray(char *bytes, int *offset);
+
+    static void pushIntToByteArray(int i, char *bytes, int *offset);
+    static void pushWCharToByteArray(wchar_t c, char *bytes, int *offset);
+    static void pushBytesToByteArray(char *dest, int *offset, char *source, int sourceOff, int len);
+    static int peekIntFromByteArray(char *bytes);
+    static int popIntFromByteArray(char *bytes, int *offset);
+    static wchar_t popWCharFromByteArray(char *bytes, int *offset);
+
 };
 
 

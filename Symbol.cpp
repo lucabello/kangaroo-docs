@@ -294,7 +294,7 @@ bool Symbol::isComplexStyle(){
 
 //Network
 
-void pushIntToByteArray(int i, char *bytes, int *offset){
+void Symbol::pushIntToByteArray(int i, char *bytes, int *offset){
     bytes[0+*offset] = (i & 0xFF000000) >> 24;
     bytes[1+*offset] = (i & 0x00FF0000) >> 16;
     bytes[2+*offset] = (i & 0x0000FF00) >> 8;
@@ -302,19 +302,24 @@ void pushIntToByteArray(int i, char *bytes, int *offset){
     *offset = *offset + 4;
 }
 
-void pushWCharToByteArray(wchar_t c, char *bytes, int *offset){
+void Symbol::pushWCharToByteArray(wchar_t c, char *bytes, int *offset){
     bytes[0+*offset] = (c & 0xFF00) >> 8;
     bytes[1+*offset] = (c & 0x00FF);
     *offset = *offset + 2;
 }
 
-int popIntFromByteArray(char *bytes, int *offset){
-    int i = (bytes[0+*offset] << 24) | (bytes[1+*offset] << 16) | (bytes[2+*offset] << 8) | (bytes[3+*offset]);
+int Symbol::peekIntFromByteArray(char *bytes){
+    int i = (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | (bytes[3]);
+    return i;
+}
+
+int Symbol::popIntFromByteArray(char *bytes, int *offset){
+    int i = peekIntFromByteArray(bytes+*offset);
     *offset = *offset + 4;
     return i;
 }
 
-wchar_t popWCharFromByteArray(char *bytes, int *offset){
+wchar_t Symbol::popWCharFromByteArray(char *bytes, int *offset){
     wchar_t c = (bytes[0+*offset] << 8) | (bytes[1+*offset]);
     *offset = *offset + 2;
     return c;
@@ -413,4 +418,20 @@ Symbol Symbol::unserialize(char *bytes){
     }
     s.setProperTag();
     return s;
+}
+
+void Symbol::pushObjectIntoArray(Symbol obj, char *bytes, int *offset){
+    char *serializedObject = Symbol::serialize(obj);
+    int payloadLen = peekIntFromByteArray(serializedObject);
+    for(int i=0; i<payloadLen+4; i++){
+        bytes[*offset] = serializedObject[i];
+        *offset = *offset+1;
+    }
+    delete[] serializedObject;
+    return;
+}
+
+Symbol Symbol::popObjectFromArray(char *bytes, int *offset){
+    Symbol obj = Symbol::unserialize(bytes+*offset);
+    return obj;
 }

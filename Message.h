@@ -6,8 +6,9 @@
 #define KANGAROO_DOCS_MESSAGE_H
 
 #include "Symbol.h"
+#include "Serializable.h"
 
-enum MessageType {INSERT = 0, ERASE = 1, FORMAT = 2, LOCAL = 3};
+enum MessageType {Insert, Erase, Command};
 
 /**
  * It holds information for the communication between Editor and Server
@@ -18,8 +19,12 @@ class Message {
 public:
     Message();
     Message(MessageType t, Symbol s);
+
     MessageType getType() const;
     Symbol getSymbol() const;
+    static char* serialize(Message m);
+    static Message unserialize(char *bytes);
+
 };
 
 

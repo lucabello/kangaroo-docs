@@ -15,3 +15,19 @@ MessageType Message::getType() const {
 Symbol Message::getSymbol() const {
     return value;
 }
+
+char* Message::serialize(Message m){
+    char *bytes = new char[100];
+    int offset = 0;
+    Symbol::pushIntToByteArray(m.type, bytes, &offset);
+    Symbol::pushObjectIntoArray(m.value, bytes, &offset);
+    return bytes;
+}
+
+Message Message::unserialize(char *bytes){
+    Message m;
+    int offset = 0;
+    m.type = (MessageType)Symbol::popIntFromByteArray(bytes, &offset);
+    m.value = Symbol::popObjectFromArray(bytes, &offset);
+    return m;
+}
