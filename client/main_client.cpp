@@ -48,7 +48,7 @@
 **
 ****************************************************************************/
 
-#include "textedit.h"
+#include "TextEdit.h"
 
 #include <QApplication>
 #include <QDesktopWidget>
@@ -57,7 +57,7 @@
 
 int main(int argc, char *argv[])
 {
-    Q_INIT_RESOURCE(textedit);
+    Q_INIT_RESOURCE(kangaroodocs);
 
     QApplication a(argc, argv);
     QCoreApplication::setOrganizationName("QtProject");
@@ -77,8 +77,9 @@ int main(int argc, char *argv[])
     mw.move((availableGeometry.width() - mw.width()) / 2,
             (availableGeometry.height() - mw.height()) / 2);
 
-    if (!mw.load(parser.positionalArguments().value(0, QLatin1String(":/example.html"))))
-        mw.fileNew();
+//    if (!mw.load(parser.positionalArguments().value(0, QLatin1String(":/example.html"))))
+//        mw.fileNew();
+    mw.fileNew();
 
     mw.show();
     return a.exec();
