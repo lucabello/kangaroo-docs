@@ -6,20 +6,42 @@
 #include <time.h>
 #include "LSEQAllocator.h"
 
+/**
+ * Generate a random boolean value.
+ *
+ * @return
+ */
 bool getRandomBool();
+
+/**
+ * Generate a random number in the interval [min, max].
+ *
+ *
+ * @param min
+ * @param max
+ * @return
+ */
 int getRandomInt(int min, int max);
 
+//This vectors is used as look-up table for computing powers of 2, starting
+//from 2^5. Max number is the maximum value of an "int", signed.
 const std::vector<int> baseSize {32, 64, 128, 256, 512, 1024, 2048, 4096, 8192,
     16384, 32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304,
     8388608, 16777216, 33554432, 67108864, 134217728, 268435456, 536870912,
     1073741824, 2147483647};
 
-LSEQAllocator::LSEQAllocator() : boundary(10) { //boundary can be any constant
+LSEQAllocator::LSEQAllocator() : siteId(-1), boundary(10){}
+
+LSEQAllocator::LSEQAllocator(int siteId, int boundary) : siteId(siteId), boundary(boundary) { //boundary can be any constant
     srand(time(NULL));
 }
 
-std::vector<int> LSEQAllocator::alloc(const std::vector<int> p,
-        const std::vector<int> q) {
+/**
+ * For a new level of depth, a new strategy is chosen between Boundary+ and
+ * Boundary-. Read the paper linked in the header for more informations.
+ */
+std::vector<int> LSEQAllocator::alloc(const std::vector<int>& p,
+        const std::vector<int>& q) {
     int depth = -1, interval = 0, step;
     int pPos, qPos, pSite, base = baseSize.at(0), offset;
     bool strategy;
@@ -40,8 +62,8 @@ std::vector<int> LSEQAllocator::alloc(const std::vector<int> p,
         newPos.push_back(pPos); //copy position while exploring the tree
         //if position was not empty, a siteId is always present
         //check anyway in case p is already fully scanned
-        pSite = (depth*2+1 < p.size())? p.at(depth*2+1) : 0;
-        newPos.push_back(pSite);
+        //pSite = (depth*2+1 < p.size())? p.at(depth*2+1) : 0;
+        newPos.push_back(siteId);
     }
     //step = min(boundary, interval), maximum step to stay between p and q
     step = interval;
@@ -58,7 +80,7 @@ std::vector<int> LSEQAllocator::alloc(const std::vector<int> p,
     else //boundary-
         offset = qPos - getRandomInt(1, step-1);
     newPos.at(newPos.size()-2) = offset; //update last index
-    newPos.at(newPos.size()-1) = siteId; //update with correct siteId
+    //newPos.at(newPos.size()-1) = siteId; //update with correct siteId
 
     return newPos;
 }
@@ -67,23 +89,10 @@ void LSEQAllocator::setSiteId(int id) {
     siteId = id;
 }
 
-/**
- * Generate a random boolean value.
- *
- * @return
- */
 bool getRandomBool() {
     return rand() % 2;
 }
 
-/**
- * Generate a random number in the interval [min, max].
- *
- *
- * @param min
- * @param max
- * @return
- */
 int getRandomInt(int min, int max) {
     return rand() % (max-min+1) + min;
 }

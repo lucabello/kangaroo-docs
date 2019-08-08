@@ -25,7 +25,19 @@ class LSEQAllocator {
     int siteId;
     std::map<int,bool> allocStrategy;
 public:
+    /**
+     * Default constructor for not connected editors.
+     * Since siteIds must be positive, siteId is set to -1 to spot errors
+     * easily.
+     */
     LSEQAllocator();
+    /**
+     * @param siteId id relative to the associated editor
+     * @param boundary maximum distance between two allocated numbers
+     * at the same level. The default value of 10 is taken from the
+     * paper linked above.
+     */
+    LSEQAllocator(int siteId, int boundary=10);
     /**
      * Allocates a new position between p and q, using LSEQ allocation function.
      * Allocated positions always have a position number in even positions
@@ -39,7 +51,14 @@ public:
      * @param q position of successive element
      * @return
      */
-    std::vector<int> alloc(const std::vector<int> p, const std::vector<int> q);
+    std::vector<int> alloc(const std::vector<int>& p, const std::vector<int>& q);
+    /**
+     * Sets the siteId for the LSEQAllocator, since in a position (starting
+     * from index 0) odd places always indicate an editor siteId.
+     * A new siteId is set whenever the editor connects to a server.
+     *
+     * @param id new siteId
+     */
     void setSiteId(int id);
 };
 
