@@ -8,6 +8,24 @@
 
 Symbol::Symbol() : c(0), siteId(-1), siteCounter(-1) {};
 
+Symbol::Symbol(const Symbol& old) : type(old.type), position(old.position),
+    siteId(old.siteId), siteCounter(old.siteCounter){
+    if(old.type == SymbolType::Content){
+        c = old.c;
+    } else if (old.type == SymbolType::Style) {
+        style = old.style;
+        tag = old.tag;
+        if(style == StyleType::Paragraph)
+            alignment = old.alignment;
+        else if(style == StyleType::Color || style == StyleType::ColorEnd)
+            color = old.color;
+        else if(style == StyleType::Font || style == StyleType::FontEnd)
+            fontname = old.fontname;
+        else if(style == StyleType::FontSize || style == StyleType::FontSizeEnd)
+            fontsize = old.fontsize;
+    }
+}
+
 Symbol::Symbol(wchar_t c, int site, int counter, std::vector<int> pos) : c(c),
     siteId(site), siteCounter(counter), position(pos), type(SymbolType::Content){};
 
@@ -39,7 +57,7 @@ Symbol::Symbol(StyleType style, int fontsize, int site, int counter, std::vector
     setProperTag();
 };
 
-Symbol::Symbol(Symbol s, int site, int counter, std::vector<int> pos){
+Symbol::Symbol(Symbol& s, int site, int counter, std::vector<int> pos){
     this->type = s.type;
     this->siteId = site;
     this->siteCounter = counter;
@@ -82,6 +100,18 @@ std::vector<int> Symbol::getPosition() {
     return position;
 }
 
+std::string Symbol::toString(){
+    std::string result = "Symbol("+std::to_string(siteId)+","+std::to_string(siteCounter)+"): ";
+    if(this->type == SymbolType::Style)
+        result += this->tag;
+    else if(this->type == SymbolType::Content)
+        result += this->c;
+    result += " Position: ";
+    for(int a : this->position)
+        result += std::to_string(a) + ",";
+    return result;
+}
+
 //Getters
 
 wchar_t Symbol::getContent() {
@@ -115,12 +145,14 @@ int Symbol::getFontSize(){
 //Utilities
 
 bool Symbol::isOpenTag(){
-    if(style == Bold || style == Italic || style == Underlined || style == Color)
+    if(style == StyleType::Bold || style == StyleType::Italic || style == StyleType::Underlined || style == StyleType::Color)
         return true;
     return false;
 }
 
 bool Symbol::isCloseTag(){
+    if(style == StyleType::Paragraph)
+        return false;
     return !isOpenTag();
 }
 
@@ -156,21 +188,21 @@ StyleType Symbol::getClosedStyle(StyleType s){
     return Paragraph; //should never get here
 }
 
-Symbol Symbol::getOpenStyle(Symbol s){
+Symbol Symbol::getOpenStyle(Symbol& s){
     Symbol result(s, s.siteId, s.siteCounter, s.position);
     result.style = getOpenStyle(s.style);
     result.setProperTag();
     return result;
 }
 
-Symbol Symbol::getClosedStyle(Symbol s){
+Symbol Symbol::getClosedStyle(Symbol& s){
     Symbol result(s, s.siteId, s.siteCounter, s.position);
     result.style = getClosedStyle(s.style);
     result.setProperTag();
     return result;
 }
 
-bool Symbol::isSameStyleAs(Symbol other){
+bool Symbol::isSameStyleAs(Symbol& other){
     if(!this->isStyle() || !other.isStyle())
         return false;
     if(this->style == StyleType::Bold && other.style == StyleType::Bold)
@@ -188,10 +220,26 @@ bool Symbol::isSameStyleAs(Symbol other){
     if(this->style == StyleType::FontSize && other.style == StyleType::FontSize)
         if(this->fontsize == other.fontsize)
             return true;
+    //The following is not relevant since it is never used
+    if(this->style == StyleType::BoldEnd && other.style == StyleType::BoldEnd)
+        return true;
+    if(this->style == StyleType::ItalicEnd && other.style == StyleType::ItalicEnd)
+        return true;
+    if(this->style == StyleType::UnderlinedEnd && other.style == StyleType:: UnderlinedEnd)
+        return true;
+    if(this->style == StyleType::ColorEnd && other.style == StyleType::ColorEnd)
+        if(this->color == other.color)
+            return true;
+    if(this->style == StyleType::FontEnd && other.style == StyleType::FontEnd)
+        if(this->fontname == other.fontname)
+            return true;
+    if(this->style == StyleType::FontSizeEnd && other.style == StyleType::FontSizeEnd)
+        if(this->fontsize == other.fontsize)
+            return true;
     return false;
 }
 
-bool Symbol::isOpeningOf(Symbol other){
+bool Symbol::isOpeningOf(Symbol& other){
     if(!this->isStyle() || !other.isStyle())
         return false;
     if(this->style == StyleType::Bold && other.style == StyleType::BoldEnd)
@@ -212,11 +260,11 @@ bool Symbol::isOpeningOf(Symbol other){
     return false;
 }
 
-bool Symbol::areTwinTags(Symbol a, Symbol b){
+bool Symbol::areTwinTags(Symbol& a, Symbol& b){
     return (a.isOpeningOf(b) || b.isOpeningOf(a));
 }
 
-bool Symbol::areSimilarTags(Symbol a, Symbol b){
+bool Symbol::areSimilarTags(Symbol& a, Symbol& b){
     if(!a.isStyle() || !b.isStyle())
         return false;
     if(a.style == b.style)
@@ -279,6 +327,8 @@ void Symbol::setProperTag(){
 }
 
 bool Symbol::isSimpleStyle(){
+    if(type != SymbolType::Style)
+        return false;
     if(style == Bold || style == BoldEnd)
         return true;
     if(style == Italic || style == ItalicEnd)
@@ -289,15 +339,17 @@ bool Symbol::isSimpleStyle(){
 }
 
 bool Symbol::isComplexStyle(){
+    if(type != SymbolType::Style)
+        return false;
     return !isSimpleStyle();
 }
 
 //Network
 
-void Symbol::pushIntToByteArray(int i, char *bytes, int *offset){
-    bytes[0+*offset] = (i & 0xFF000000) >> 24;
-    bytes[1+*offset] = (i & 0x00FF0000) >> 16;
-    bytes[2+*offset] = (i & 0x0000FF00) >> 8;
+void Symbol::pushIntToByteArray(uint32_t i, char *bytes, int *offset){
+    bytes[0+*offset] = ((i & 0xFF000000) >> 24) & 0x000000FF;
+    bytes[1+*offset] = ((i & 0x00FF0000) >> 16) & 0x000000FF;
+    bytes[2+*offset] = ((i & 0x0000FF00) >> 8) & 0x000000FF;
     bytes[3+*offset] = (i & 0x000000FF);
     *offset = *offset + 4;
 }
@@ -308,18 +360,19 @@ void Symbol::pushWCharToByteArray(wchar_t c, char *bytes, int *offset){
     *offset = *offset + 2;
 }
 
-int Symbol::peekIntFromByteArray(char *bytes){
-    int i = (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | (bytes[3]);
+uint32_t Symbol::peekIntFromByteArray(const char *bytes){
+    uint32_t i = (bytes[0]<<24&0xFF00000) | (bytes[1]<<16&0x00FF0000) | (bytes[2]<<8&0x0000FF00) | (bytes[3]&0x000000FF);
+    //uint32_t i = (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | (bytes[3]);
     return i;
 }
 
-int Symbol::popIntFromByteArray(char *bytes, int *offset){
-    int i = peekIntFromByteArray(bytes+*offset);
+uint32_t Symbol::popIntFromByteArray(const char *bytes, int *offset){
+    uint32_t i = peekIntFromByteArray(bytes+*offset);
     *offset = *offset + 4;
     return i;
 }
 
-wchar_t Symbol::popWCharFromByteArray(char *bytes, int *offset){
+wchar_t Symbol::popWCharFromByteArray(const char *bytes, int *offset){
     wchar_t c = (bytes[0+*offset] << 8) | (bytes[1+*offset]);
     *offset = *offset + 2;
     return c;
@@ -352,12 +405,12 @@ char* Symbol::serialize(Symbol s){
         }
         else if(s.style == StyleType::Font){
             pushIntToByteArray(s.fontname.length(), bytes, &offset);
-            for(int i=0; i<s.color.length(); i++)
+            for(int i=0; i<s.fontname.length(); i++)
                 bytes[offset++] = s.fontname.at(i);
         }
         else if(s.style == StyleType::FontEnd){
             pushIntToByteArray(s.fontname.length(), bytes, &offset);
-            for(int i=0; i<s.color.length(); i++)
+            for(int i=0; i<s.fontname.length(); i++)
                 bytes[offset++] = s.fontname.at(i);
         }
         else if(s.style == StyleType::FontSize){
@@ -373,7 +426,7 @@ char* Symbol::serialize(Symbol s){
     return bytes;
 }
 
-Symbol Symbol::unserialize(char *bytes){
+Symbol Symbol::unserialize(const char *bytes){
     Symbol s;
     int offset=0;
     int payloadLen = popIntFromByteArray(bytes, &offset); //payload length
@@ -382,7 +435,7 @@ Symbol Symbol::unserialize(char *bytes){
     s.siteCounter = popIntFromByteArray(bytes, &offset);
     int posLen = popIntFromByteArray(bytes, &offset);
     for(int i=0; i<posLen; i++)
-        s.position.push_back(popIntFromByteArray(bytes, &offset));
+        s.position.push_back((unsigned int)popIntFromByteArray(bytes, &offset));
     if(s.isContent())
         s.c = popWCharFromByteArray(bytes, &offset);
     else if(s.isStyle()){
@@ -431,7 +484,7 @@ void Symbol::pushObjectIntoArray(Symbol obj, char *bytes, int *offset){
     return;
 }
 
-Symbol Symbol::popObjectFromArray(char *bytes, int *offset){
+Symbol Symbol::popObjectFromArray(const char *bytes, int *offset){
     Symbol obj = Symbol::unserialize(bytes+*offset);
     return obj;
 }
