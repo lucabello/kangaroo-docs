@@ -84,9 +84,8 @@
 #endif
 #endif
 
-#include "textedit.h"
-#include "qsharededitor.h"
-#include "mytcpsocket.h"
+#include "TextEdit.h"
+#include "ClientSocket.h"
 
 #ifdef Q_OS_MAC
 const QString rsrcPath = ":/images/mac";
@@ -102,28 +101,24 @@ TextEdit::TextEdit(QWidget *parent)
 #endif
     setWindowTitle(QCoreApplication::applicationName());
 
-
     //textEdit = new QTextEdit(this);
-    textEdit = new QSharedEditor(this);
-    tcpSocket = new MyTcpSocket(this);
-    //tcpSocket->doConnect();
+    textEdit = new SharedEditor(this);
     textEdit->setExampleSiteId();
+    tcpSocket = new ClientSocket("127.0.0.1", 1501);
+    tcpSocket->doConnect();
 
     connect(textEdit, &QTextEdit::currentCharFormatChanged,
             this, &TextEdit::currentCharFormatChanged);
     connect(textEdit, &QTextEdit::cursorPositionChanged,
             this, &TextEdit::cursorPositionChanged);
-    /*connect(textEdit, &QSharedEditor::packetReady,
-            tcpSocket, &MyTcpSocket::writeData);*/
-/*
-    connect(textEdit, &QTextEdit::textChanged,
-            this, &TextEdit::notifyTextChanged);
-    connect(textEdit, &QTextEdit::currentCharFormatChanged,
-            this, &TextEdit::notifyCurrentCharFormatChanged);
-    connect(textEdit, &QTextEdit::selectionChanged,
-            this, &TextEdit::notifySelectionChanged);
-    connect(textEdit, &QTextEdit::cursorPositionChanged,
-            this, &TextEdit::notifyCursorPositionChanged);*/
+    connect(textEdit, &SharedEditor::packetReady,
+            tcpSocket, &ClientSocket::writeData);
+    connect(tcpSocket, &ClientSocket::incomingMessage,
+            textEdit, &SharedEditor::incomingPacket);
+    //temporary, REMOVE THIS AFTER TESTING
+    //connection should happen by proper menu interaction
+    connect(textEdit, &SharedEditor::connectToServer,
+            this, &TextEdit::connectToServer);
 
     setCentralWidget(textEdit);
 
@@ -367,6 +362,8 @@ void TextEdit::setupTextActions()
     addToolBarBreak(Qt::TopToolBarArea);
     addToolBar(tb);
 
+    /*
+    //REMOVING COMBO BOX FOR LISTS
     comboStyle = new QComboBox(tb);
     tb->addWidget(comboStyle);
     comboStyle->addItem("Standard");
@@ -386,6 +383,7 @@ void TextEdit::setupTextActions()
     comboStyle->addItem("Heading 6");
 
     connect(comboStyle, QOverload<int>::of(&QComboBox::activated), this, &TextEdit::textStyle);
+    */
 
     comboFont = new QFontComboBox(tb);
     tb->addWidget(comboFont);
@@ -617,13 +615,20 @@ void TextEdit::textItalic()
 
 void TextEdit::textFamily(const QString &f)
 {
+    int start = textEdit->textCursor().selectionStart();
+    int end = textEdit->textCursor().selectionEnd();
+    textEdit->localSetStyle(start, end, Symbol(StyleType::Font, f.toStdString(), -1, -1, std::vector<int>()));
     QTextCharFormat fmt;
     fmt.setFontFamily(f);
     mergeFormatOnWordOrSelection(fmt);
+
 }
 
 void TextEdit::textSize(const QString &p)
 {
+    int start = textEdit->textCursor().selectionStart();
+    int end = textEdit->textCursor().selectionEnd();
+    textEdit->localSetStyle(start, end, Symbol(StyleType::FontSize, p.toFloat(), -1, -1, std::vector<int>()));
     qreal pointSize = p.toFloat();
     if (p.toFloat() > 0) {
         QTextCharFormat fmt;
@@ -632,6 +637,7 @@ void TextEdit::textSize(const QString &p)
     }
 }
 
+/*
 void TextEdit::textStyle(int styleIndex)
 {
     QTextCursor cursor = textEdit->textCursor();
@@ -698,6 +704,7 @@ void TextEdit::textStyle(int styleIndex)
 
     cursor.endEditBlock();
 }
+*/
 
 void TextEdit::textColor()
 {
@@ -715,14 +722,23 @@ void TextEdit::textColor()
 
 void TextEdit::textAlign(QAction *a)
 {
-    if (a == actionAlignLeft)
+    int position = textEdit->textCursor().position();
+    if (a == actionAlignLeft){
+        textEdit->localSetAlignment(position, AlignmentType::AlignLeft);
         textEdit->setAlignment(Qt::AlignLeft | Qt::AlignAbsolute);
-    else if (a == actionAlignCenter)
+    }
+    else if (a == actionAlignCenter){
+        textEdit->localSetAlignment(position, AlignmentType::AlignCenter);
         textEdit->setAlignment(Qt::AlignHCenter);
-    else if (a == actionAlignRight)
+    }
+    else if (a == actionAlignRight){
+        textEdit->localSetAlignment(position, AlignmentType::AlignRight);
         textEdit->setAlignment(Qt::AlignRight | Qt::AlignAbsolute);
-    else if (a == actionAlignJustify)
+    }
+    else if (a == actionAlignJustify){
+        textEdit->localSetAlignment(position, AlignmentType::AlignJustified);
         textEdit->setAlignment(Qt::AlignJustify);
+    }
 }
 
 void TextEdit::currentCharFormatChanged(const QTextCharFormat &format)
@@ -731,42 +747,10 @@ void TextEdit::currentCharFormatChanged(const QTextCharFormat &format)
     colorChanged(format.foreground().color());
 }
 
-#include <QDebug>
-void TextEdit::notifyTextChanged(){
-    qDebug() << "Q_SIGNAL textChanged";
-    /*
-    disconnect(textEdit, &QTextEdit::textChanged,
-            this, &TextEdit::notifyTextChanged);
-//    if(textEdit->textCursor().position() != 0)
-//        textEdit->textCursor().insertText(QString("PATATA"));
-    connect(textEdit, &QTextEdit::textChanged,
-            this, &TextEdit::notifyTextChanged);*/
-}
-
-void TextEdit::notifyCurrentCharFormatChanged(){
-    qDebug() << "Q_SIGNAL currentCharFormatChanged";
-}
-
-void TextEdit::notifySelectionChanged(){
-    qDebug() << "Q_SIGNAL selectionChanged";
-}
-
-void TextEdit::notifyCursorPositionChanged(){
-    qDebug() << "Q_SIGNAL cursorPositionChanged";
-
-}
-
 void TextEdit::cursorPositionChanged()
 {
-
-//    qDebug() << "Position: " << textEdit->textCursor().position();
-//    qDebug() << "Anchor: " << textEdit->textCursor().anchor();
-//    qDebug() << "Selection: " << textEdit->textCursor().selectedText();
-//    qDebug() << "Selection start: " << textEdit->textCursor().selectionStart();
-//    qDebug() << "Selection end: " << textEdit->textCursor().selectionEnd();
-//    qDebug() << "---------------------------------";
-
     alignmentChanged(textEdit->alignment());
+    /*
     QTextList *list = textEdit->textCursor().currentList();
     if (list) {
         switch (list->format().style()) {
@@ -802,11 +786,11 @@ void TextEdit::cursorPositionChanged()
         int headingLevel = textEdit->textCursor().blockFormat().headingLevel();
         comboStyle->setCurrentIndex(headingLevel ? headingLevel + 8 : 0);
     }
+    */
 }
 
 void TextEdit::clipboardDataChanged()
 {
-    qDebug() << "New Clipboard data: " << QApplication::clipboard()->mimeData();
 #ifndef QT_NO_CLIPBOARD
     if (const QMimeData *md = QApplication::clipboard()->mimeData())
         actionPaste->setEnabled(md->hasText());
@@ -815,9 +799,8 @@ void TextEdit::clipboardDataChanged()
 
 void TextEdit::about()
 {
-    QMessageBox::about(this, tr("About"), tr("This example demonstrates Qt's "
-        "rich text editing facilities in action, providing an example "
-        "document for you to experiment with."));
+    QMessageBox::about(this, tr("About"), tr("Kangaroo Docs\nA collaborative "
+        "rich text editor that will make you jump from happiness."));
 }
 
 void TextEdit::mergeFormatOnWordOrSelection(const QTextCharFormat &format)

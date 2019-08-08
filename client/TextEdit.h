@@ -56,8 +56,8 @@
 #include <QPointer>
 #include <QtNetwork/QTcpSocket>
 #include <QtNetwork/QAbstractSocket>
-#include "mytcpsocket.h"
-#include "qsharededitor.h"
+#include "ClientSocket.h"
+#include "../common/SharedEditor.h"
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -85,33 +85,77 @@ protected:
     void closeEvent(QCloseEvent *e) override;
 
 private slots:
+    //Already present functions
+    /**
+     * Dialog window to open a file.
+     */
     void fileOpen();
+    /**
+     * Saves a file to disk.
+     * @return true for success
+     */
     bool fileSave();
+    /**
+     * Saves a file as ... to disk.
+     * @return true for success
+     */
     bool fileSaveAs();
+    /**
+     * Prints the document.
+     */
     void filePrint();
+    /**
+     * Previews the printing of the document connecting the slot
+     * "printPreview".
+     */
     void filePrintPreview();
+    /**
+     * Prints the document to PDF.
+     */
     void filePrintPdf();
 
+    //Modified functions
+    /**
+     * Sets selected text as bold, both on SymbolVector and on editor.
+     */
     void textBold();
+    /**
+     * Sets selected text as underlined, both on SymbolVector and on editor.
+     */
     void textUnderline();
+    /**
+     * Sets selected text as italic, both on SymbolVector and on editor.
+     */
     void textItalic();
+    /**
+     * Changes the font of the selected text, both on SymbolVector and
+     * on editor.
+     */
     void textFamily(const QString &f);
+    /**
+     * Changes the size of the selected text, both on SymbolVector and
+     * on editor.
+     */
     void textSize(const QString &p);
-    void textStyle(int styleIndex);
+    //void textStyle(int styleIndex);
+    /**
+     * Changes the color of the selected text, both on SymbolVector and
+     * on editor.
+     */
     void textColor();
+    /**
+     * Changes the alignment of the selected text, both on SymbolVector and
+     * on editor.
+     */
     void textAlign(QAction *a);
 
+    //Already present functions
     void currentCharFormatChanged(const QTextCharFormat &format);
     void cursorPositionChanged();
 
     void clipboardDataChanged();
     void about();
     void printPreview(QPrinter *);
-
-    void notifyTextChanged();
-    void notifyCurrentCharFormatChanged();
-    void notifySelectionChanged();
-    void notifyCursorPositionChanged();
 
 private:
     void setupFileActions();
@@ -142,15 +186,16 @@ private:
     QAction *actionPaste;
 #endif
 
-    QComboBox *comboStyle;
+    //QComboBox *comboStyle;
     QFontComboBox *comboFont;
     QComboBox *comboSize;
 
     QToolBar *tb;
     QString fileName;
-    //QTextEdit *textEdit;
-    QSharedEditor *textEdit;
-    MyTcpSocket *tcpSocket;
+    SharedEditor *textEdit;
+    ClientSocket *tcpSocket;
+    //temporary, REMOVE THIS AFTER TESTING/DEBUGGING
+    void connectToServer(){tcpSocket->doConnect();}
 };
 
 #endif // TEXTEDIT_H
