@@ -103,5 +103,3 @@ fabric.properties
 
 # QT project and build
 build*/
-qt/images/
-qt/example.html
