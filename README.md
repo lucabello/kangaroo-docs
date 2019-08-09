@@ -50,16 +50,16 @@ The server runs 3 similar threads (input, output, message).
 For classes description, it is advised to read the respective headers.
 
 ## **TODO list**
-[ ] Create dialog box for login on client
-[ ] Implement login process on server, also adding informations in the ConnectedEditor structure
-[ ] Implement login process on client, also receiving and setting proper siteId
-[ ] Impose login and file selection/creation before enabling the editor
-[ ] Fix the "SharedEditor::process" function on client
-[ ] MessageQueue, FIFO, to be shared by input-message threads and output-application threads
-[ ] Implement serialization mechanism using Qt
-[ ] Copy constructor, assignment and destructor where appropriate
-[ ] Check what functions should be tagged as "const"
-[ ] SharedEditor: set the proper siteCounter when opening/creating a file
-[ ] After correcting serialization, be SURE that no memory leaks happen
-[ ] Multithreading, locking localInsert/localErase functions
-[ ] Multithreading in general, creating threads etc
+- [ ] Create dialog box for login on client
+- [ ] Implement login process on server, also adding informations in the ConnectedEditor structure
+- [ ] Implement login process on client, also receiving and setting proper siteId
+- [ ] Impose login and file selection/creation before enabling the editor
+- [ ] Fix the "SharedEditor::process" function on client
+- [ ] MessageQueue, FIFO, to be shared by input-message threads and output-application threads
+- [ ] Implement serialization mechanism using Qt
+- [ ] Copy constructor, assignment and destructor where appropriate
+- [ ] Check what functions should be tagged as "const"
+- [ ] SharedEditor: set the proper siteCounter when opening/creating a file
+- [ ] After correcting serialization, be SURE that no memory leaks happen
+- [ ] Multithreading, locking localInsert/localErase functions
+- [ ] Multithreading in general, creating threads etc
