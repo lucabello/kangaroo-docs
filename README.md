@@ -1,6 +1,6 @@
 # kangaroo-docs
 
-![Kangaroo Logo](/logo.png)
+![Kangaroo Logo](/kangaroo-logo.png)
 
 KangarooDocs is a collaborative text editor in C++ based on Qt framework. The application uses the rich text editor by Qt (TextEdit), modifying it and extending it to support collaborative editing using a CRDT (common replicate data type) instead of characters.
 The applicaton connects to a server which stores accessible files and allows for creating new ones. After authenticating with the server, applications can work either on the same file or on different files.
