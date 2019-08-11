@@ -15,10 +15,10 @@ public:
     explicit ServerSocket(QObject *parent = nullptr);
     explicit ServerSocket(QTcpSocket *s);
     int getDescriptor();
+    void disconnectFromHost();
 
 signals:
-    void controlCommand(int, std::string);
-    void actionCommand(int, Message);
+    void deliverMessage(int, Message);
 
 public slots:
     void connected();
@@ -31,7 +31,6 @@ public slots:
 private:
     QTcpSocket *socket;
     int descriptor;
-    void processMessage(Message m);
 };
 
 #endif // MYTCPSOCKET_H

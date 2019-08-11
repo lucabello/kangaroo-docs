@@ -22,21 +22,6 @@ ServerSocket::ServerSocket(QTcpSocket *s): socket(s),
             this, SLOT(readyRead()));
 }
 
-void ServerSocket::processMessage(Message m){
-    //qDebug() << "Processing following message: ";
-    //qDebug() << QString::fromStdString(m.toString());
-    if(m.getType() == MessageType::Command){
-        emit controlCommand(descriptor, m.getCommand());
-    }
-    else if(m.getType() == MessageType::Insert){
-        emit actionCommand(descriptor, m);
-
-    }
-    else if(m.getType() == MessageType::Erase){
-        emit actionCommand(descriptor, m);
-    }
-}
-
 int ServerSocket::getDescriptor(){
     return descriptor;
 }
@@ -82,7 +67,7 @@ void ServerSocket::readyRead()
         //qDebug() << "->-> MessageType: " << m.getType();
         //qDebug() << "->-> SymbolContent: " << m.getSymbol().getContent();
         //qDebug() << "->-> processing message...";
-        processMessage(m);
+        emit deliverMessage(descriptor,m);
         //qDebug() << "->-> message processed.";
     }
     //qDebug() << "-------------------------------- Now no more messages! Nice!";
@@ -92,4 +77,8 @@ void ServerSocket::writeData(char *data, int len){
     qDebug() << "[DEBUG] writing data to" << socket->socketDescriptor() << " ...";
     qDebug() << "[DEBUG] writing " << len << " bytes ...";
     int written = socket->write(data, len);
+}
+
+void ServerSocket::disconnectFromHost(){
+    socket->disconnectFromHost();
 }

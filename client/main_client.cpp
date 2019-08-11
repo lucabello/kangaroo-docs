@@ -49,7 +49,7 @@
 ****************************************************************************/
 
 #include "TextEdit.h"
-#include "Login.h"
+#include "LoginWindow.h"
 
 #include <QApplication>
 #include <QDesktopWidget>
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
     parser.process(a);
 
     //TextEdit mw;
-    Login mw;
+    LoginWindow mw{};
 
     const QRect availableGeometry = QApplication::desktop()->availableGeometry(&mw);
     mw.resize(availableGeometry.width() / 2, (availableGeometry.height() * 2) / 3);

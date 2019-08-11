@@ -24,10 +24,10 @@ std::string Message::toString(){
         result += "Insert";
     else if(this->type == MessageType::Erase)
         result += "Erase";
-    else if(this->type == MessageType::Command)
-        result += "Command";
+    else if(this->type == MessageType::Login)
+        result += "Login";
     result += " - Content: ";
-    if(this->type == MessageType::Command)
+    if(this->type != MessageType::Erase &&this->type!=MessageType::Insert)
         result += this->command;
     else
         result += this->value.toString();
@@ -42,7 +42,7 @@ char* Message::serialize(Message m){
     char *bytes = new char[100];
     int offset = 0;
     Symbol::pushIntToByteArray(m.type, bytes, &offset);
-    if(m.type != MessageType::Command)
+    if(m.type == MessageType::Erase||m.type==MessageType::Insert)
         Symbol::pushObjectIntoArray(m.value, bytes, &offset);
     else {
         Symbol::pushIntToByteArray(m.command.length(), bytes, &offset);
@@ -59,7 +59,7 @@ Message Message::unserialize(const char *bytes){
     Message m;
     int offset = 0;
     m.type = (MessageType)Symbol::popIntFromByteArray(bytes, &offset);
-    if(m.type != MessageType::Command)
+    if(m.type == MessageType::Erase||m.type==MessageType::Insert)
         m.value = Symbol::popObjectFromArray(bytes, &offset);
     else {
         char cstring[100];
@@ -71,4 +71,16 @@ Message Message::unserialize(const char *bytes){
         m.command = std::string(cstring);
     }
     return m;
+}
+
+std::vector<std::string> Message::split(std::string s,std::string delimiter){
+    std::vector<std::string> tokens;
+    size_t pos = 0;
+    while ((pos = s.find(delimiter)) != std::string::npos) {
+        tokens.push_back(s.substr(0, pos));
+        s.erase(0, pos + delimiter.length());
+    }
+    tokens.push_back(s);
+    return tokens;
+
 }

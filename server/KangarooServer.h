@@ -13,15 +13,14 @@ class KangarooServer : public QObject
 {
     Q_OBJECT
 public:
-    explicit KangarooServer(QObject *parent = 0);
+    explicit KangarooServer(QObject *parent = nullptr);
     explicit KangarooServer(std::string address, unsigned short port);
 
 signals:
 
 public slots:
     void newConnection();
-    void control(int descriptor, std::string message);
-    void action(int descriptor, Message m);
+    void processMessage(int descriptor,Message message);
 
 private:
     QTcpServer *server;
@@ -29,6 +28,8 @@ private:
     std::map<std::string, std::vector<int>> filenameToDescriptors;
     //Temporary, for testing and debugging collaborative editing
     std::vector<int> connectedList;
+    void propagate(int descriptor,Message message);
+    void login(int descriptor,Message message);
 };
 
 #endif // MYTCPSERVER_H
