@@ -571,9 +571,12 @@ void TextEdit::filePrintPdf()
 void TextEdit::textBold()
 {
     QTextCharFormat fmt;
+    QTextCursor cursor = textEdit->textCursor();
     fmt.setFontWeight(actionTextBold->isChecked() ? QFont::Bold : QFont::Normal);
-    int start = textEdit->textCursor().selectionStart();
-    int end = textEdit->textCursor().selectionEnd();
+    if(!cursor.hasSelection())
+        cursor.select(QTextCursor::WordUnderCursor);
+    int start = cursor.selectionStart();
+    int end = cursor.selectionEnd();
     if(actionTextBold->isChecked()){
         textEdit->localSetStyle(start, end, Symbol(StyleType::Bold, -1, -1, std::vector<int>()));
     }
@@ -587,8 +590,11 @@ void TextEdit::textUnderline()
 {
     QTextCharFormat fmt;
     fmt.setFontUnderline(actionTextUnderline->isChecked());
-    int start = textEdit->textCursor().selectionStart();
-    int end = textEdit->textCursor().selectionEnd();
+    QTextCursor cursor = textEdit->textCursor();
+    if(!cursor.hasSelection())
+        cursor.select(QTextCursor::WordUnderCursor);
+    int start = cursor.selectionStart();
+    int end = cursor.selectionEnd();
     if(actionTextUnderline->isChecked()){
         textEdit->localSetStyle(start, end, Symbol(StyleType::Underlined, -1, -1, std::vector<int>()));
     }
@@ -601,9 +607,12 @@ void TextEdit::textUnderline()
 void TextEdit::textItalic()
 {
     QTextCharFormat fmt;
-    int start = textEdit->textCursor().selectionStart();
-    int end = textEdit->textCursor().selectionEnd();
     fmt.setFontItalic(actionTextItalic->isChecked());
+    QTextCursor cursor = textEdit->textCursor();
+    if(!cursor.hasSelection())
+        cursor.select(QTextCursor::WordUnderCursor);
+    int start = cursor.selectionStart();
+    int end = cursor.selectionEnd();
     if(actionTextItalic->isChecked()){
         textEdit->localSetStyle(start, end, Symbol(StyleType::Italic, -1, -1, std::vector<int>()));
     }
@@ -615,8 +624,11 @@ void TextEdit::textItalic()
 
 void TextEdit::textFamily(const QString &f)
 {
-    int start = textEdit->textCursor().selectionStart();
-    int end = textEdit->textCursor().selectionEnd();
+    QTextCursor cursor = textEdit->textCursor();
+    if(!cursor.hasSelection())
+        cursor.select(QTextCursor::WordUnderCursor);
+    int start = cursor.selectionStart();
+    int end = cursor.selectionEnd();
     textEdit->localSetStyle(start, end, Symbol(StyleType::Font, f.toStdString(), -1, -1, std::vector<int>()));
     QTextCharFormat fmt;
     fmt.setFontFamily(f);
@@ -626,8 +638,11 @@ void TextEdit::textFamily(const QString &f)
 
 void TextEdit::textSize(const QString &p)
 {
-    int start = textEdit->textCursor().selectionStart();
-    int end = textEdit->textCursor().selectionEnd();
+    QTextCursor cursor = textEdit->textCursor();
+    if(!cursor.hasSelection())
+        cursor.select(QTextCursor::WordUnderCursor);
+    int start = cursor.selectionStart();
+    int end = cursor.selectionEnd();
     textEdit->localSetStyle(start, end, Symbol(StyleType::FontSize, p.toFloat(), -1, -1, std::vector<int>()));
     qreal pointSize = p.toFloat();
     if (p.toFloat() > 0) {
@@ -711,8 +726,11 @@ void TextEdit::textColor()
     QColor col = QColorDialog::getColor(textEdit->textColor(), this);
     if (!col.isValid())
         return;
-    int start = textEdit->textCursor().selectionStart();
-    int end = textEdit->textCursor().selectionEnd();
+    QTextCursor cursor = textEdit->textCursor();
+    if(!cursor.hasSelection())
+        cursor.select(QTextCursor::WordUnderCursor);
+    int start = cursor.selectionStart();
+    int end = cursor.selectionEnd();
     textEdit->localSetStyle(start, end, Symbol(StyleType::Color, col.name().toStdString(), -1, -1, std::vector<int>()));
     QTextCharFormat fmt;
     fmt.setForeground(col);
