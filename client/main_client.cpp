@@ -49,6 +49,7 @@
 ****************************************************************************/
 
 #include "TextEdit.h"
+#include "Login.h"
 
 #include <QApplication>
 #include <QDesktopWidget>
@@ -70,7 +71,8 @@ int main(int argc, char *argv[])
     parser.addPositionalArgument("file", "The file to open.");
     parser.process(a);
 
-    TextEdit mw;
+    //TextEdit mw;
+    Login mw;
 
     const QRect availableGeometry = QApplication::desktop()->availableGeometry(&mw);
     mw.resize(availableGeometry.width() / 2, (availableGeometry.height() * 2) / 3);
@@ -79,7 +81,7 @@ int main(int argc, char *argv[])
 
 //    if (!mw.load(parser.positionalArguments().value(0, QLatin1String(":/example.html"))))
 //        mw.fileNew();
-    mw.fileNew();
+   // mw.fileNew();
 
     mw.show();
     return a.exec();

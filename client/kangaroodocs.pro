@@ -12,11 +12,13 @@ HEADERS         = ClientSocket.h \
     ../common/MessageQueue.h \
     ../common/SharedEditor.h \
     ../common/Symbol.h \
+    Login.h \
     TextEdit.h
 
 SOURCES         = ClientSocket.cpp \
     LSEQAllocator.cpp \
     ../common/Message.cpp \
+    Login.cpp \
     main_client.cpp \
     ../common/MessageQueue.cpp \
     ../common/SharedEditor.cpp \
