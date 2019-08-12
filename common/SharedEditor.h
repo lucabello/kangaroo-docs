@@ -2,6 +2,7 @@
 #define SHAREDEDITOR_H
 
 #include <string>
+#include <queue>
 #include <QTextEdit>
 #include "LSEQAllocator.h"
 #include "../common/Symbol.h"

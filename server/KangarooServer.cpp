@@ -105,13 +105,22 @@ void KangarooServer::login(int descriptor,Message message){
         }
     }
     std::string content;
-    if(result)
+    if(result==true)
         content="true";
     else
         content="false";
     Message m {MessageType::Login,content}; //prepare and send message
     char *serM = Message::serialize(m);
     descriptorToEditor.at(descriptor).getSocket()->writeData(serM,Symbol::peekIntFromByteArray(serM+4)+8);
-    descriptorToEditor.at(descriptor).getSocket()->disconnectFromHost();//?
-
+    if(result==true){
+        std::ifstream file("files.txt");
+        std::string fileList;
+        std::string fileName;
+        while (std::getline(file,fileName))
+            fileList+=fileName+",";
+        Message fileListMessage{MessageType::FileList,fileList};
+        serM=Message::serialize(fileListMessage);
+        descriptorToEditor.at(descriptor).getSocket()->writeData(serM,Symbol::peekIntFromByteArray(serM+4)+8);
+    }else
+        descriptorToEditor.at(descriptor).getSocket()->disconnectFromHost();
 }

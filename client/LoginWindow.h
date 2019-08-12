@@ -26,7 +26,7 @@ private:
     QLineEdit *passwordLine;
     QLineEdit *ipLine;
     ClientSocket *tcpSocket;
-    void openEditorWindow();
+    void openFileListWindow(Message message);
     void login(Message message);
 };
 

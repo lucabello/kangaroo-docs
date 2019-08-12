@@ -6,7 +6,7 @@
 #include <QMessageBox>
 
 #include "LoginWindow.h"
-#include "TextEdit.h"
+#include "FileListWindow.h"
 
 LoginWindow::LoginWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -79,6 +79,9 @@ void LoginWindow::incomingPacket(Message message){
         case MessageType::Login:
             login(message);
             break;
+        case MessageType::FileList:
+            openFileListWindow(message);
+            break;
         default:
             break;
     }
@@ -87,21 +90,20 @@ void LoginWindow::incomingPacket(Message message){
 void LoginWindow::login(Message message){
     bool result=message.getCommand()=="true";
     if(result==true)
-        openEditorWindow();
+        QMessageBox::information(this,"Login","Login Successfull");
     else
         QMessageBox::warning(this,"Login","Username and password are not correct. Try again.");
 }
 
-void LoginWindow::openEditorWindow(){
+void LoginWindow::openFileListWindow(Message message){
     this->hide();
+    std::string fileList=message.getCommand();
 
-    TextEdit *textEdit=new TextEdit(this);
+    FileListWindow *fileListWindow=new FileListWindow(this,tcpSocket,fileList);
 
-    textEdit->resize(this->width(),this->height());
-    textEdit->move(this->x(),this->y());
+    fileListWindow->resize(this->width(),this->height());
+    fileListWindow->move(this->x(),this->y());
 
-    textEdit->fileNew();
-
-    textEdit->show();
+    fileListWindow->show();
 }
 

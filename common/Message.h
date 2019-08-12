@@ -6,7 +6,7 @@
 #define KANGAROO_DOCS_MESSAGE_H
 
 #include "Symbol.h"
-enum MessageType {Insert, Erase, Login};
+enum MessageType {Insert, Erase, Login, FileList};
 
 /**
  * It holds information for the communication between Editor and Server
