@@ -69,7 +69,12 @@ void KangarooServer::processMessage(int descriptor,Message message){
             propagate(descriptor,message);
             break;
         case MessageType::Login:
-            login(descriptor,message);
+            doLogin(descriptor,message);
+            break;
+        case MessageType::Register:
+            doRegister(descriptor,message);
+            break;
+        default:
             break;
     }
 }
@@ -86,8 +91,7 @@ void KangarooServer::propagate(int descriptor, Message message){
     }
 }
 
-void KangarooServer::login(int descriptor,Message message){
-    //open file and look for the tuple, for now everything is fine
+void KangarooServer::doLogin(int descriptor,Message message){
     std::vector<std::string> fields=Message::split(message.getCommand(),",");
     std::string username=Message::split(fields.at(0),":").at(1);
     std::string password=Message::split(fields.at(1),":").at(1);
@@ -106,9 +110,53 @@ void KangarooServer::login(int descriptor,Message message){
     }
     std::string content;
     if(result==true)
-        content="true";
+        content="Welcome back "+username;
     else
-        content="false";
+        content="Username and password are not correct. Try again";
+    file.close();
+    Message m {MessageType::Login,content};
+    char *serM = Message::serialize(m);
+    descriptorToEditor.at(descriptor).getSocket()->writeData(serM,Symbol::peekIntFromByteArray(serM+4)+8);
+    if(result==true){
+        std::ifstream file("files.txt");
+        std::string fileList;
+        std::string fileName;
+        while (std::getline(file,fileName))
+            fileList+=fileName+",";
+        fileList=fileList.substr(0, fileList.size()-1);
+        Message fileListMessage{MessageType::FileList,fileList};
+        serM=Message::serialize(fileListMessage);
+        descriptorToEditor.at(descriptor).getSocket()->writeData(serM,Symbol::peekIntFromByteArray(serM+4)+8);
+    }else
+        descriptorToEditor.at(descriptor).getSocket()->disconnectFromHost();
+}
+
+void KangarooServer::doRegister(int descriptor,Message message){
+    //open file, look for the tuple, add in case
+    std::vector<std::string> fields=Message::split(message.getCommand(),",");
+    std::string username=Message::split(fields.at(0),":").at(1);
+    std::string password=Message::split(fields.at(1),":").at(1);
+    std::ifstream file("users.txt");
+    std::string str;
+    bool result=true;
+    while (std::getline(file, str)) {
+        std::vector<std::string> fields=Message::split(str,",");
+        std::string user=fields[0];
+        std::string pass=fields[1];
+        if(username==user){
+            result=false;
+        }
+    }
+    file.close();
+    std::string content;
+    if(result==true){
+        std::ofstream output("users.txt",std::fstream::app);
+        output << username+","+password+"\n";
+        content="Registration completed";
+        output.close();
+    }
+    else
+        content=username+" already exists";
     Message m {MessageType::Login,content}; //prepare and send message
     char *serM = Message::serialize(m);
     descriptorToEditor.at(descriptor).getSocket()->writeData(serM,Symbol::peekIntFromByteArray(serM+4)+8);
@@ -118,6 +166,7 @@ void KangarooServer::login(int descriptor,Message message){
         std::string fileName;
         while (std::getline(file,fileName))
             fileList+=fileName+",";
+        fileList=fileList.substr(0, fileList.size()-1);
         Message fileListMessage{MessageType::FileList,fileList};
         serM=Message::serialize(fileListMessage);
         descriptorToEditor.at(descriptor).getSocket()->writeData(serM,Symbol::peekIntFromByteArray(serM+4)+8);

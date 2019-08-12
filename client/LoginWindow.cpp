@@ -4,6 +4,7 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QMessageBox>
+#include <QDesktopWidget>
 
 #include "LoginWindow.h"
 #include "FileListWindow.h"
@@ -15,43 +16,60 @@ LoginWindow::LoginWindow(QWidget *parent) : QMainWindow(parent)
 #endif
     setWindowTitle(QCoreApplication::applicationName());
 
-    gb=new QGroupBox(this);
-    gb->setTitle("SignIn");
-    gb->resize(this->width(),this->height());
-    setCentralWidget(gb);
+    const QRect availableGeometry = QApplication::desktop()->availableGeometry(this);
+    resize(availableGeometry.width() / 2, (availableGeometry.height() * 2) / 3);
+    move((availableGeometry.width() - this->width()) / 2,
+            (availableGeometry.height() - this->height()) / 2);
 
-    QLabel *usernameLabel=new QLabel(gb);
+    QLabel *usernameLabel=new QLabel(this);
     usernameLabel->setText("Username:");
-    usernameLabel->move((gb->width()-usernameLabel->width())/2,(gb->height()-usernameLabel->height())/2);
 
-    usernameLine=new QLineEdit(gb);
-    usernameLine->move(usernameLabel->x()+usernameLabel->width(),usernameLabel->y());
+    usernameLine=new QLineEdit(this);
+    usernameLine->move(usernameLabel->width(),0);
 
-    QLabel *passwordLabel=new QLabel(gb);
+    QLabel *passwordLabel=new QLabel(this);
     passwordLabel->setText("Password:");
-    passwordLabel->move(usernameLabel->x(),usernameLabel->y()+usernameLabel->height());
+    passwordLabel->move(0,usernameLabel->height());
 
-    passwordLine=new QLineEdit(gb);
-    passwordLine->move(passwordLabel->x()+passwordLabel->width(),passwordLabel->y());
+    passwordLine=new QLineEdit(this);
+    passwordLine->move(passwordLabel->width(),passwordLabel->y());
 
-    QLabel *ipLabel=new QLabel(gb);
+    QLabel *ipLabel=new QLabel(this);
     ipLabel->setText("IP:");
-    ipLabel->move(passwordLabel->x(),passwordLabel->y()+passwordLabel->height());
+    ipLabel->move(0,passwordLabel->y()+passwordLabel->height());
 
-    ipLine=new QLineEdit(gb);
-    ipLine->move(ipLabel->x()+ipLabel->width(),ipLabel->y());
+    ipLine=new QLineEdit(this);
     ipLine->setText("127.0.0.1");
+    ipLine->move(ipLabel->width(),ipLabel->y());
 
-    QPushButton *button=new QPushButton(gb);
-    button->setText("Login");
-    button->move((gb->width()-button->width())/2,ipLine->y()+ipLine->height());
+    QPushButton *buttonLogin=new QPushButton(this);
+    buttonLogin->setText("Login");
+    buttonLogin->move(0,ipLabel->y()+ipLabel->height());
+    QPushButton *buttonRegister=new QPushButton(this);
+    buttonRegister->setText("Register");
+    buttonRegister->move(buttonLogin->width(),buttonLogin->y());
 
-    connect(button, SIGNAL (released()), this, SLOT (on_button_clicked()));
+    int width=usernameLabel->width()+usernameLine->width();
+    int height=buttonLogin->y()+buttonLogin->height();
+    int offsetX=(this->width()-width)/2;
+    int offsetY=(this->height()-height)/2;
 
-    gb->setFocus();
+    usernameLabel->move(usernameLabel->x()+offsetX,usernameLabel->y()+offsetY);
+    usernameLine->move(usernameLine->x()+offsetX,usernameLine->y()+offsetY);
+    passwordLabel->move(passwordLabel->x()+offsetX,passwordLabel->y()+offsetY);
+    passwordLine->move(passwordLine->x()+offsetX,passwordLine->y()+offsetY);
+    ipLabel->move(ipLabel->x()+offsetX,ipLabel->y()+offsetY);
+    ipLine->move(ipLine->x()+offsetX,ipLine->y()+offsetY);
+    buttonLogin->move(buttonLogin->x()+offsetX,buttonLogin->y()+offsetY);
+    buttonRegister->move(buttonRegister->x()+offsetX,buttonRegister->y()+offsetY);
+    buttonLogin->resize(width/2,buttonLogin->height());
+    buttonRegister->resize(width/2,buttonRegister->height());
+
+    connect(buttonLogin, SIGNAL (released()), this, SLOT (loginClicked()));
+    connect(buttonRegister, SIGNAL (released()), this, SLOT (registerClicked()));
 }
 
-void LoginWindow::on_button_clicked(){
+void LoginWindow::loginClicked(){
     QString username=usernameLine->text();
     QString password=passwordLine->text();
     QString ip=ipLine->text();
@@ -64,20 +82,29 @@ void LoginWindow::on_button_clicked(){
     Message m {MessageType::Login,"username:"+username.toStdString()+",password:"+password.toStdString()}; //prepare and send message
     char *serM = Message::serialize(m);
     tcpSocket->writeData(serM,Symbol::peekIntFromByteArray(serM+4)+8);
+}
 
-    /*if(username=="test"&&password=="test")
-        openEditorWindow();
-    else
-        QMessageBox::warning(this,"Login","Username and password are not correct");*/
+void LoginWindow::registerClicked(){
+    QString username=usernameLine->text();
+    QString password=passwordLine->text();
+    QString ip=ipLine->text();
 
+    tcpSocket = new ClientSocket(ip.toStdString(), 1501);
+    tcpSocket->doConnect();
+    connect(tcpSocket, &ClientSocket::incomingMessage,
+            this, &LoginWindow::incomingPacket);
+
+    Message m {MessageType::Register,"username:"+username.toStdString()+",password:"+password.toStdString()}; //prepare and send message
+    char *serM = Message::serialize(m);
+    tcpSocket->writeData(serM,Symbol::peekIntFromByteArray(serM+4)+8);
 }
 
 void LoginWindow::incomingPacket(Message message){
-    qDebug() << "A new packet arrived! Message is the following.";
-    qDebug() << QString::fromStdString(message.toString());
+    qDebug()<<QString::fromStdString(message.getCommand());
     switch(message.getType()){
         case MessageType::Login:
-            login(message);
+        case MessageType::Register:
+            showResult(message);
             break;
         case MessageType::FileList:
             openFileListWindow(message);
@@ -87,22 +114,15 @@ void LoginWindow::incomingPacket(Message message){
     }
 }
 
-void LoginWindow::login(Message message){
-    bool result=message.getCommand()=="true";
-    if(result==true)
-        QMessageBox::information(this,"Login","Login Successfull");
-    else
-        QMessageBox::warning(this,"Login","Username and password are not correct. Try again.");
+void LoginWindow::showResult(Message message){
+    QMessageBox::information(this,"Result",QString::fromStdString(message.getCommand()));
 }
 
 void LoginWindow::openFileListWindow(Message message){
     this->hide();
-    std::string fileList=message.getCommand();
+    std::vector<std::string> fileList=Message::split(message.getCommand(),",");
 
     FileListWindow *fileListWindow=new FileListWindow(this,tcpSocket,fileList);
-
-    fileListWindow->resize(this->width(),this->height());
-    fileListWindow->move(this->x(),this->y());
 
     fileListWindow->show();
 }

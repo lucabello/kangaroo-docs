@@ -18,16 +18,16 @@ public slots:
     void incomingPacket(Message message);
 
 private slots:
-    void on_button_clicked();
+    void loginClicked();
+    void registerClicked();
 
 private:
-    QGroupBox *gb;
     QLineEdit *usernameLine;
     QLineEdit *passwordLine;
     QLineEdit *ipLine;
     ClientSocket *tcpSocket;
+    void showResult(Message message);
     void openFileListWindow(Message message);
-    void login(Message message);
 };
 
 #endif // LOGIN_H

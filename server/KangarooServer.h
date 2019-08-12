@@ -29,7 +29,8 @@ private:
     //Temporary, for testing and debugging collaborative editing
     std::vector<int> connectedList;
     void propagate(int descriptor,Message message);
-    void login(int descriptor,Message message);
+    void doLogin(int descriptor,Message message);
+    void doRegister(int descriptor,Message message);
 };
 
 #endif // MYTCPSERVER_H
