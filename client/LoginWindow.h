@@ -15,7 +15,7 @@ public:
 signals:
 
 public slots:
-    void incomingPacket(Message message);
+    void incomingMessage(Message message);
 
 private slots:
     void loginClicked();

@@ -20,7 +20,7 @@ signals:
 
 public slots:
     void newConnection();
-    void processMessage(int descriptor,Message message);
+    void incomingMessage(int descriptor,Message message);
 
 private:
     QTcpServer *server;
@@ -31,6 +31,7 @@ private:
     void propagate(int descriptor,Message message);
     void doLogin(int descriptor,Message message);
     void doRegister(int descriptor,Message message);
+    void sendFileList(int descriptor);
 };
 
 #endif // MYTCPSERVER_H

@@ -131,10 +131,9 @@ void SharedEditor::localInsert(int index, wchar_t value) {
         localInsertStyle(index+1, Symbol(StyleType::Paragraph, AlignmentType::AlignLeft, -1, -1, std::vector<int>()));
     }
     Message m {MessageType::Insert, s}; //prepare and send message
-    char *serM = Message::serialize(m);
     //qDebug() << QString::fromStdString(m.toString());
     //EMISSION OF SIGNAL SHOULD HAPPEN IN MESSAGE QUEUE, BY ANOTHER THREAD
-    emit packetReady(serM, Symbol::peekIntFromByteArray(serM+4)+8); //DEBUG TESTING, NEEDS TO BE ADDED TO STYLE TOO
+    emit packetReady(m); //DEBUG TESTING, NEEDS TO BE ADDED TO STYLE TOO
     //_mqOut.push(m);
 }
 
@@ -149,9 +148,8 @@ void SharedEditor::localInsertStyle(int index, Symbol styleSymbol){
     _counter++;
     _symbols.insert(_symbols.begin()+index, s);
     Message m {MessageType::Insert, s}; //prepare and send message
-    char *serM = Message::serialize(m);
     //EMISSION OF SIGNAL SHOULD HAPPEN IN MESSAGE QUEUE, BY ANOTHER THREAD
-    emit packetReady(serM, Symbol::peekIntFromByteArray(serM+4)+8); //DEBUG TESTING, NEEDS TO BE ADDED TO STYLE TOO
+    emit packetReady(m); //DEBUG TESTING, NEEDS TO BE ADDED TO STYLE TOO
     //_mqOut.push(m);
 }
 
@@ -354,9 +352,8 @@ void SharedEditor::localErase(int index) {
     //super inefficient, but should work at least for testing
     while(eraseTwinTags() > 0);
     Message m {MessageType::Erase, s};
-    char *serM = Message::serialize(m);
     //EMISSION OF SIGNAL SHOULD HAPPEN IN MESSAGE QUEUE, BY ANOTHER THREAD
-    emit packetReady(serM, Symbol::peekIntFromByteArray(serM+4)+8); //DEBUG TESTING, NEEDS TO BE ADDED TO STYLE TOO
+    emit packetReady(m); //DEBUG TESTING, NEEDS TO BE ADDED TO STYLE TOO
     //_mqOut.push(m);
 }
 

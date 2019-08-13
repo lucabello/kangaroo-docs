@@ -46,8 +46,8 @@ void KangarooServer::newConnection()
     qDebug() << "[SERVER] Connection received!";
     ServerSocket *mySocket = new ServerSocket(server->nextPendingConnection());
 
-    connect(mySocket, &ServerSocket::deliverMessage,
-            this, &KangarooServer::processMessage);
+    connect(mySocket, &ServerSocket::signalMessage,
+            this, &KangarooServer::incomingMessage);
 
     int descriptor = mySocket->getDescriptor();
     ConnectedEditor ce(mySocket);
@@ -62,7 +62,7 @@ void KangarooServer::newConnection()
 //    socket->close();
 }
 
-void KangarooServer::processMessage(int descriptor,Message message){
+void KangarooServer::incomingMessage(int descriptor,Message message){
     switch(message.getType()){
         case MessageType::Erase:
         case MessageType::Insert:
@@ -82,11 +82,9 @@ void KangarooServer::processMessage(int descriptor,Message message){
 void KangarooServer::propagate(int descriptor, Message message){
     qDebug() << "A: " << QString::fromStdString(message.toString());
     //TEMP FOR TESTING ONLY
-    char *serM = Message::serialize(message);
-    int len = Symbol::peekIntFromByteArray(serM+4)+8;
     for(int d : connectedList){
         if(d != descriptor){
-            descriptorToEditor.at(d).getSocket()->writeData(serM, len);
+            descriptorToEditor.at(d).getSocket()->writeMessage(message);
         }
     }
 }
@@ -115,19 +113,10 @@ void KangarooServer::doLogin(int descriptor,Message message){
         content="Username and password are not correct. Try again";
     file.close();
     Message m {MessageType::Login,content};
-    char *serM = Message::serialize(m);
-    descriptorToEditor.at(descriptor).getSocket()->writeData(serM,Symbol::peekIntFromByteArray(serM+4)+8);
-    if(result==true){
-        std::ifstream file("files.txt");
-        std::string fileList;
-        std::string fileName;
-        while (std::getline(file,fileName))
-            fileList+=fileName+",";
-        fileList=fileList.substr(0, fileList.size()-1);
-        Message fileListMessage{MessageType::FileList,fileList};
-        serM=Message::serialize(fileListMessage);
-        descriptorToEditor.at(descriptor).getSocket()->writeData(serM,Symbol::peekIntFromByteArray(serM+4)+8);
-    }else
+    descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
+    if(result==true)
+        sendFileList(descriptor);
+    else
         descriptorToEditor.at(descriptor).getSocket()->disconnectFromHost();
 }
 
@@ -157,19 +146,21 @@ void KangarooServer::doRegister(int descriptor,Message message){
     }
     else
         content=username+" already exists";
-    Message m {MessageType::Login,content}; //prepare and send message
-    char *serM = Message::serialize(m);
-    descriptorToEditor.at(descriptor).getSocket()->writeData(serM,Symbol::peekIntFromByteArray(serM+4)+8);
-    if(result==true){
-        std::ifstream file("files.txt");
-        std::string fileList;
-        std::string fileName;
-        while (std::getline(file,fileName))
-            fileList+=fileName+",";
-        fileList=fileList.substr(0, fileList.size()-1);
-        Message fileListMessage{MessageType::FileList,fileList};
-        serM=Message::serialize(fileListMessage);
-        descriptorToEditor.at(descriptor).getSocket()->writeData(serM,Symbol::peekIntFromByteArray(serM+4)+8);
-    }else
+    Message m {MessageType::Login,content};
+    descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
+    if(result==true)
+        sendFileList(descriptor);
+    else
         descriptorToEditor.at(descriptor).getSocket()->disconnectFromHost();
+}
+
+void KangarooServer::sendFileList(int descriptor){
+    std::ifstream file("files.txt");
+    std::string fileList;
+    std::string fileName;
+    while (std::getline(file,fileName))
+        fileList+=fileName+",";
+    fileList=fileList.substr(0, fileList.size()-1);
+    Message m{MessageType::FileList,fileList};
+    descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
 }

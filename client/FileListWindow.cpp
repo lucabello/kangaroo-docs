@@ -22,8 +22,8 @@ FileListWindow::FileListWindow(QWidget *parent,ClientSocket *tcpSocket,std::vect
     resize(parent->size());
     move(parent->pos());
 
-    connect(tcpSocket, &ClientSocket::incomingMessage,
-            this, &FileListWindow::incomingPacket);
+    connect(tcpSocket, &ClientSocket::signalMessage,
+            this, &FileListWindow::incomingMessage);
 
     QPushButton *buttonNewFile=new QPushButton(this);
     buttonNewFile->setText("New File");
@@ -59,7 +59,7 @@ void FileListWindow::newFileClicked(){
     openEditorWindow("new");
 }
 
-void FileListWindow::incomingPacket(Message message){
+void FileListWindow::incomingMessage(Message message){
     qDebug() << "A new packet arrived! Message is the following.";
     qDebug() << QString::fromStdString(message.toString());
     switch(message.getType()){

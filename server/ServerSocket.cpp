@@ -19,7 +19,7 @@ ServerSocket::ServerSocket(QTcpSocket *s): socket(s),
     connect(socket, SIGNAL(bytesWritten(qint64)),
             this, SLOT(bytesWritten(qint64)));
     connect(socket, SIGNAL(readyRead()),
-            this, SLOT(readyRead()));
+            this, SLOT(readMessage()));
 }
 
 int ServerSocket::getDescriptor(){
@@ -41,7 +41,7 @@ void ServerSocket::bytesWritten(qint64 bytes)
     qDebug() << "[DEBUG] " << bytes << " bytes written...";
 }
 
-void ServerSocket::readyRead()
+void ServerSocket::readMessage()
 {
     while(socket->bytesAvailable() > 0){
         //qDebug() << "reading from" << socket->socketDescriptor() << "...";
@@ -67,16 +67,18 @@ void ServerSocket::readyRead()
         //qDebug() << "->-> MessageType: " << m.getType();
         //qDebug() << "->-> SymbolContent: " << m.getSymbol().getContent();
         //qDebug() << "->-> processing message...";
-        emit deliverMessage(descriptor,m);
+        emit signalMessage(descriptor,m);
         //qDebug() << "->-> message processed.";
     }
     //qDebug() << "-------------------------------- Now no more messages! Nice!";
 }
 
-void ServerSocket::writeData(char *data, int len){
-    qDebug() << "[DEBUG] writing data to" << socket->socketDescriptor() << " ...";
-    qDebug() << "[DEBUG] writing " << len << " bytes ...";
+void ServerSocket::writeMessage(Message message){
+    char *data = Message::serialize(message);
+    int len = Symbol::peekIntFromByteArray(data+4)+8;
+    qDebug() << "writing " << len << " bytes to" << socket->socketDescriptor() << " ...";
     int written = socket->write(data, len);
+    qDebug() << written << " bytes written.";
 }
 
 void ServerSocket::disconnectFromHost(){

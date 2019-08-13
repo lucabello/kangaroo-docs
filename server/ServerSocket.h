@@ -18,14 +18,14 @@ public:
     void disconnectFromHost();
 
 signals:
-    void deliverMessage(int, Message);
+    void signalMessage(int, Message);
 
 public slots:
     void connected();
     void disconnected();
     void bytesWritten(qint64 bytes);
-    void readyRead();
-    void writeData(char *data, int len);
+    void readMessage();
+    void writeMessage(Message message);
 
 
 private:

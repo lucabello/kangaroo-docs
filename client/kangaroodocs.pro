@@ -7,18 +7,20 @@ TEMPLATE        = app
 TARGET          = kangaroo-docs
 
 HEADERS         = ClientSocket.h \
+    FileListWindow.h \
     LSEQAllocator.h \
     ../common/Message.h \
     ../common/MessageQueue.h \
     ../common/SharedEditor.h \
     ../common/Symbol.h \
-    Login.h \
+    LoginWindow.h \
     TextEdit.h
 
 SOURCES         = ClientSocket.cpp \
+    FileListWindow.cpp \
     LSEQAllocator.cpp \
     ../common/Message.cpp \
-    Login.cpp \
+    LoginWindow.cpp \
     main_client.cpp \
     ../common/MessageQueue.cpp \
     ../common/SharedEditor.cpp \

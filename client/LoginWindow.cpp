@@ -75,13 +75,14 @@ void LoginWindow::loginClicked(){
     QString ip=ipLine->text();
 
     tcpSocket = new ClientSocket(ip.toStdString(), 1501);
+    connect(tcpSocket, &ClientSocket::signalMessage,
+            this, &LoginWindow::incomingMessage);
+
     tcpSocket->doConnect();
-    connect(tcpSocket, &ClientSocket::incomingMessage,
-            this, &LoginWindow::incomingPacket);
 
     Message m {MessageType::Login,"username:"+username.toStdString()+",password:"+password.toStdString()}; //prepare and send message
-    char *serM = Message::serialize(m);
-    tcpSocket->writeData(serM,Symbol::peekIntFromByteArray(serM+4)+8);
+    //char *serM = Message::serialize(m);
+    tcpSocket->writeMessage(m);//serM,Symbol::peekIntFromByteArray(serM+4)+8);
 }
 
 void LoginWindow::registerClicked(){
@@ -91,15 +92,14 @@ void LoginWindow::registerClicked(){
 
     tcpSocket = new ClientSocket(ip.toStdString(), 1501);
     tcpSocket->doConnect();
-    connect(tcpSocket, &ClientSocket::incomingMessage,
-            this, &LoginWindow::incomingPacket);
+    connect(tcpSocket, &ClientSocket::signalMessage,
+            this, &LoginWindow::incomingMessage);
 
-    Message m {MessageType::Register,"username:"+username.toStdString()+",password:"+password.toStdString()}; //prepare and send message
-    char *serM = Message::serialize(m);
-    tcpSocket->writeData(serM,Symbol::peekIntFromByteArray(serM+4)+8);
+    Message m {MessageType::Register,"username:"+username.toStdString()+",password:"+password.toStdString()};
+    tcpSocket->writeMessage(m);
 }
 
-void LoginWindow::incomingPacket(Message message){
+void LoginWindow::incomingMessage(Message message){
     qDebug()<<QString::fromStdString(message.getCommand());
     switch(message.getType()){
         case MessageType::Login:

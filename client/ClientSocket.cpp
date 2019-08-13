@@ -16,7 +16,7 @@ void ClientSocket::doConnect()
     connect(socket, SIGNAL(bytesWritten(qint64)),
             this, SLOT(bytesWritten(qint64)));
     connect(socket, SIGNAL(readyRead()),
-            this, SLOT(readyRead()));
+            this, SLOT(readMessage()));
 
     qDebug() << "connecting...";
 
@@ -45,7 +45,7 @@ void ClientSocket::bytesWritten(qint64 bytes)
     qDebug() << bytes << " bytes written...";
 }
 
-void ClientSocket::readyRead()
+void ClientSocket::readMessage()
 {
     qDebug() << "reading...";
 
@@ -72,13 +72,15 @@ void ClientSocket::readyRead()
         //qDebug() << "->-> MessageType: " << m.getType();
         //qDebug() << "->-> SymbolContent: " << m.getSymbol().getContent();
         //qDebug() << "->-> processing message...";
-        emit incomingMessage(m);
+        emit signalMessage(m);
         //qDebug() << "->-> message processed.";
     }
     //qDebug() << "-------------------------------- Now no more messages! Nice!";
 }
 
-void ClientSocket::writeData(char *data, int len){
+void ClientSocket::writeMessage(Message message){
+    char *data = Message::serialize(message);
+    int len = Symbol::peekIntFromByteArray(data+4)+8;
     qDebug() << "writing " << len << " bytes ...";
     int written = socket->write(data, len);
     qDebug() << written << " bytes written.";

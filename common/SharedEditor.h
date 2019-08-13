@@ -110,7 +110,7 @@ signals:
      * @param bytes
      * @param len
      */
-    void packetReady(char *bytes, int len);
+    void packetReady(Message message);
     /**
      * Used to connect to server with a keypress, useful for debugging
      * purposes.

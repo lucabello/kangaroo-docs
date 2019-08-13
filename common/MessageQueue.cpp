@@ -20,6 +20,7 @@ void MessageQueue::clear(){
 void MessageQueue::push(const Message& m){
     QMutexLocker locker(&mutex);
     queue.enqueue(m);
+    cv.notify_all();
 }
 
 Message MessageQueue::pop(){

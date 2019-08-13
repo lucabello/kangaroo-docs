@@ -40,20 +40,23 @@ signals:
     /**
      * This signal is emitted when a Message is read from the socket.
      */
-    void incomingMessage(Message);
+    void signalMessage(Message);
 
 public slots:
+    /**
+     * Not used by now
+     */
     void connected();
     void disconnected();
     void bytesWritten(qint64 bytes);
     /**
-     * This slot is called when some data is available on the socket.
+     * Slots called to send/receive messages on the socket.
      * Note that readyRead signal will not be received while inside
      * the readyRead slot, so the function handles it by reading all
      * messages that arrived completely.
      */
-    void readyRead();
-    void writeData(char *data, int len);
+    void readMessage();
+    void writeMessage(Message message);
 
 
 private:

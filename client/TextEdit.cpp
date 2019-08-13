@@ -112,8 +112,8 @@ TextEdit::TextEdit(QWidget *parent)
     connect(textEdit, &QTextEdit::cursorPositionChanged,
             this, &TextEdit::cursorPositionChanged);
     connect(textEdit, &SharedEditor::packetReady,
-            tcpSocket, &ClientSocket::writeData);
-    connect(tcpSocket, &ClientSocket::incomingMessage,
+            tcpSocket, &ClientSocket::writeMessage);
+    connect(tcpSocket, &ClientSocket::signalMessage,
             textEdit, &SharedEditor::incomingPacket);
     //temporary, REMOVE THIS AFTER TESTING
     //connection should happen by proper menu interaction

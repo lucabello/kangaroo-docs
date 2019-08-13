@@ -18,7 +18,7 @@ private slots:
     void newFileClicked();
 
 public slots:
-    void incomingPacket(Message message);
+    void incomingMessage(Message message);
 
 private slots:
 
