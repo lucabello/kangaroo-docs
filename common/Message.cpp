@@ -26,6 +26,18 @@ std::string Message::toString(){
         result += "Erase";
     else if(this->type == MessageType::Login)
         result += "Login";
+    else if(this->type == MessageType::Open)
+        result += "Open";
+    else if(this->type == MessageType::Error)
+        result += "Error";
+    else if(this->type == MessageType::Create)
+        result += "Create";
+    else if(this->type == MessageType::FileList)
+        result += "FileList";
+    else if(this->type == MessageType::Register)
+        result += "Register";
+    else
+        result += "Unknown";
     result += " - Content: ";
     if(this->type != MessageType::Erase &&this->type!=MessageType::Insert)
         result += this->command;
@@ -71,16 +83,4 @@ Message Message::unserialize(const char *bytes){
         m.command = std::string(cstring);
     }
     return m;
-}
-
-std::vector<std::string> Message::split(std::string s,std::string delimiter){
-    std::vector<std::string> tokens;
-    size_t pos = 0;
-    while ((pos = s.find(delimiter)) != std::string::npos) {
-        tokens.push_back(s.substr(0, pos));
-        s.erase(0, pos + delimiter.length());
-    }
-    tokens.push_back(s);
-    return tokens;
-
 }

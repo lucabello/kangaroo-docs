@@ -6,7 +6,7 @@
 #define KANGAROO_DOCS_MESSAGE_H
 
 #include "Symbol.h"
-enum MessageType {Insert, Erase, Login, Register, FileList};
+enum MessageType {Insert, Erase, Login, Register, FileList, Create, Open, Error};
 
 /**
  * It holds information for the communication between Editor and Server
@@ -37,9 +37,6 @@ public:
     //first 4 bytes: message type - second 4 bytes: remaining length
     static char* serialize(Message m);
     static Message unserialize(const char *bytes);
-
-    static std::vector<std::string> split(std::string s,std::string delimiter);
-
 };
 
 
