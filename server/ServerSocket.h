@@ -19,6 +19,7 @@ public:
 
 signals:
     void signalMessage(int, Message);
+    void hostDisconnected(int);
 
 public slots:
     void connected();

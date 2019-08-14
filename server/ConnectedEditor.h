@@ -15,6 +15,7 @@ public:
     ConnectedEditor(ServerSocket *s);
     int getDescriptor();
     ServerSocket* getSocket();
+    std::string getWorkingFile();
     void setSiteId(int id);
     void setWorkingFile(std::string filename);
 

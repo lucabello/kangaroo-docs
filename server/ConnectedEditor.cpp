@@ -14,6 +14,10 @@ ServerSocket* ConnectedEditor::getSocket(){
     return mySocket;
 }
 
+std::string ConnectedEditor::getWorkingFile(){
+    return workingFile;
+}
+
 void ConnectedEditor::setSiteId(int id){
     siteId = id;
 }

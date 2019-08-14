@@ -34,6 +34,7 @@ void ServerSocket::connected()
 void ServerSocket::disconnected()
 {
     qDebug() << descriptor << "disconnected...";
+    hostDisconnected(descriptor);
 }
 
 void ServerSocket::bytesWritten(qint64 bytes)
