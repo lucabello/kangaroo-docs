@@ -71,6 +71,7 @@ public:
      *   them enclosing no content
      */
     virtual void clear();
+    void clearWithSymbols();
 
     //Set fixed siteId for testing and debugging purposes
     //the real ones should be communicated from server!
@@ -102,6 +103,12 @@ public:
      * @param a
      */
     void localSetAlignment(int position, AlignmentType a);
+    /**
+     * Return the char sequence in the SharedEditor from its internal
+     * representation.
+     */
+    std::wstring to_string();
+    void setSiteId(int siteId);
 
 signals:
     /**
@@ -160,12 +167,6 @@ private:
      * @param m
      */
     void process(const Message &m);
-    /**
-     * Return the char sequence in the SharedEditor from its internal
-     * representation.
-     */
-    std::wstring to_string();
-    void setSiteId(int siteId);
     /**
      * Erase twin tags that have no content symbol between them. When a symbol
      * erasure happens, if that was the only content symbol between two twin

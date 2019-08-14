@@ -52,7 +52,7 @@ void SharedEditor::keyPressEvent(QKeyEvent * e){
     }
     if(e->key() == Qt::Key_8){
         qDebug() << "++++++++++++++++++++++++++++";
-        qDebug() << "Tesing serialization...";
+        qDebug() << "Testing serialization...";
         qDebug() << "++++++++++++++++++++++++++++";
         for(Symbol s : _symbols){
             qDebug() << "SER  " << QString::fromStdString(s.toString());
@@ -60,6 +60,13 @@ void SharedEditor::keyPressEvent(QKeyEvent * e){
             qDebug() << "---";
         }
         qDebug() << "++++++++++++++++++++++++++++";
+        return;
+    }
+    if(e->key() == Qt::Key_7){
+        qDebug() << "++++++++++++++++++++++++++++";
+        qDebug() << "Performing clear with symbols...";
+        qDebug() << "++++++++++++++++++++++++++++";
+        clearWithSymbols();
         return;
     }
     qDebug() << "Keypress caught!";
@@ -333,6 +340,11 @@ void SharedEditor::localSetAlignment(int position, AlignmentType a){
 void SharedEditor::clear(){
     _symbols.clear();
     QTextEdit::clear();
+}
+
+void SharedEditor::clearWithSymbols(){
+    _symbols.clear();
+    QTextEdit::clear();
     _counter = 0;
     localInsertStyle(0, Symbol(StyleType::Paragraph, AlignmentType::AlignLeft, _siteId, _counter, std::vector<int>()));
     localInsertStyle(1, Symbol(StyleType::Font, "Arial", _siteId, _counter, std::vector<int>()));
@@ -358,7 +370,7 @@ void SharedEditor::localErase(int index) {
 }
 
 void SharedEditor::incomingPacket(Message m){
-    qDebug() << "A new packet arrived! Message is the following.";
+    qDebug() << "[SharedEditor] New Message arrived.";
     qDebug() << QString::fromStdString(m.toString());
     process(m);
 }

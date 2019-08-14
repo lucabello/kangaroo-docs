@@ -104,21 +104,11 @@ TextEdit::TextEdit(QWidget *parent)
     //textEdit = new QTextEdit(this);
     textEdit = new SharedEditor(this);
     textEdit->setExampleSiteId();
-    tcpSocket = new ClientSocket("127.0.0.1", 1501);
-    tcpSocket->doConnect();
 
     connect(textEdit, &QTextEdit::currentCharFormatChanged,
             this, &TextEdit::currentCharFormatChanged);
     connect(textEdit, &QTextEdit::cursorPositionChanged,
             this, &TextEdit::cursorPositionChanged);
-    connect(textEdit, &SharedEditor::packetReady,
-            tcpSocket, &ClientSocket::writeMessage);
-    connect(tcpSocket, &ClientSocket::signalMessage,
-            textEdit, &SharedEditor::incomingPacket);
-    //temporary, REMOVE THIS AFTER TESTING
-    //connection should happen by proper menu interaction
-    connect(textEdit, &SharedEditor::connectToServer,
-            this, &TextEdit::connectToServer);
 
     setCentralWidget(textEdit);
 
@@ -189,7 +179,7 @@ void TextEdit::setupFileActions()
     QMenu *menu = menuBar()->addMenu(tr("&File"));
 
     const QIcon newIcon = QIcon::fromTheme("document-new", QIcon(rsrcPath + "/filenew.png"));
-    QAction *a = menu->addAction(newIcon,  tr("&New"), this, &TextEdit::fileNew);
+    QAction *a = menu->addAction(newIcon,  tr("&New"), this, &TextEdit::logout);
     tb->addAction(a);
     a->setPriority(QAction::LowPriority);
     a->setShortcut(QKeySequence::New);
@@ -426,6 +416,9 @@ bool TextEdit::load(const QString &f)
 
 bool TextEdit::maybeSave()
 {
+    //modified
+    return true;
+
     if (!textEdit->document()->isModified())
         return true;
 
@@ -464,8 +457,42 @@ void TextEdit::fileNew()
     }
 }
 
+void TextEdit::logout(){
+    tcpSocket->disconnect();
+    hideWindow();
+    showLoginWindow();
+}
+
+void TextEdit::showTextEdit(ClientSocket* s){
+    tcpSocket = s;
+    connect(textEdit, &SharedEditor::packetReady,
+            tcpSocket, &ClientSocket::writeMessage);
+    connect(tcpSocket, &ClientSocket::signalMessage,
+            textEdit, &SharedEditor::incomingPacket);
+    this->fileNew();
+    this->show();
+}
+
+void TextEdit::siteIdReceived(int site){
+    textEdit->setSiteId(site);
+}
+
+void TextEdit::changeFileName(QString filename){
+    setCurrentFileName(filename);
+}
+
+void TextEdit::hideWindow(){
+    disconnect(textEdit, &SharedEditor::packetReady,
+            tcpSocket, &ClientSocket::writeMessage);
+    disconnect(tcpSocket, &ClientSocket::signalMessage,
+            textEdit, &SharedEditor::incomingPacket);
+    this->hide();
+}
+
 void TextEdit::fileOpen()
 {
+    newFileListWindow(tcpSocket);
+    /*
     QFileDialog fileDialog(this, tr("Open File..."));
     fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
     fileDialog.setFileMode(QFileDialog::ExistingFile);
@@ -477,6 +504,7 @@ void TextEdit::fileOpen()
         statusBar()->showMessage(tr("Opened \"%1\"").arg(QDir::toNativeSeparators(fn)));
     else
         statusBar()->showMessage(tr("Could not open \"%1\"").arg(QDir::toNativeSeparators(fn)));
+    */
 }
 
 bool TextEdit::fileSave()

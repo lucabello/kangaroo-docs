@@ -10,8 +10,10 @@ class FileListWindow : public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit FileListWindow(QWidget *parent = nullptr,ClientSocket *tcpSocket=nullptr,
-                            std::vector<std::string> fileList=std::vector<std::string>());
+    explicit FileListWindow(QWidget *parent = nullptr);
+signals:
+    void showTextEdit(ClientSocket*);
+    void changeFileName(QString);
 
 private slots:
     void openFileClicked();
@@ -19,14 +21,14 @@ private slots:
 
 public slots:
     void incomingMessage(Message message);
-
-private slots:
+    void showFileList(ClientSocket*, std::vector<std::string>);
+    void newFileListWindow(ClientSocket*);
+    void hideWindow();
 
 private:
     ClientSocket *tcpSocket;
     QListWidget *qFileList;
     std::vector<std::string> fileList;
-    void openEditorWindow(QString fileName);
 };
 
 #endif // FILELISTWINDOW_H

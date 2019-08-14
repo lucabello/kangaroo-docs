@@ -78,8 +78,17 @@ public:
 
     bool load(const QString &f);
 
+signals:
+    void newFileListWindow(ClientSocket*);
+    void showLoginWindow();
+
 public slots:
     void fileNew();
+    void logout();
+    void showTextEdit(ClientSocket*);
+    void siteIdReceived(int);
+    void changeFileName(QString);
+    void hideWindow();
 
 protected:
     void closeEvent(QCloseEvent *e) override;
@@ -194,8 +203,6 @@ private:
     QString fileName;
     SharedEditor *textEdit;
     ClientSocket *tcpSocket;
-    //temporary, REMOVE THIS AFTER TESTING/DEBUGGING
-    void connectToServer(){tcpSocket->doConnect();}
 };
 
 #endif // TEXTEDIT_H

@@ -13,6 +13,8 @@ public:
     explicit LoginWindow(QWidget *parent = nullptr);
 
 signals:
+    void showFileList(ClientSocket*, std::vector<std::string>);
+    void siteIdReceived(int);
 
 public slots:
     void incomingMessage(Message message);
@@ -20,6 +22,7 @@ public slots:
 private slots:
     void loginClicked();
     void registerClicked();
+    void hideWindow();
 
 private:
     QLineEdit *usernameLine;
@@ -27,6 +30,7 @@ private:
     QLineEdit *ipLine;
     ClientSocket *tcpSocket;
     void showResult(Message message);
+    void showResult(std::string result);
     void openFileListWindow(Message message);
 };
 

@@ -39,7 +39,7 @@ LoginWindow::LoginWindow(QWidget *parent) : QMainWindow(parent)
     ipLabel->move(0,passwordLabel->y()+passwordLabel->height());
 
     ipLine=new QLineEdit(this);
-    ipLine->setText("127.0.0.1");
+    ipLine->setText("127.0.0.1:1501");
     ipLine->move(ipLabel->width(),ipLabel->y());
 
     QPushButton *buttonLogin=new QPushButton(this);
@@ -67,20 +67,26 @@ LoginWindow::LoginWindow(QWidget *parent) : QMainWindow(parent)
 
     connect(buttonLogin, SIGNAL (released()), this, SLOT (loginClicked()));
     connect(buttonRegister, SIGNAL (released()), this, SLOT (registerClicked()));
+
 }
 
 void LoginWindow::loginClicked(){
     QString username=usernameLine->text();
     QString password=passwordLine->text();
-    QString ip=ipLine->text();
+    QString ip=ipLine->text().split(":").at(0);
+    QString port=ipLine->text().split(":").at(1);
 
-    tcpSocket = new ClientSocket(ip.toStdString(), 1501);
+    //sanitize username and password to prevent errors
+    //only alphanumeric characters are allowed
+    username.remove(QRegExp("[^0-9a-zA-Z]"));
+    password.remove(QRegExp("[^0-9a-zA-Z]"));
+
+    tcpSocket = new ClientSocket(ip.toStdString(), port.toInt());
     connect(tcpSocket, &ClientSocket::signalMessage,
             this, &LoginWindow::incomingMessage);
-
     tcpSocket->doConnect();
 
-    Message m {MessageType::Login,"username:"+username.toStdString()+",password:"+password.toStdString()}; //prepare and send message
+    Message m {MessageType::Login,username.toStdString()+","+password.toStdString()}; //prepare and send message
     //char *serM = Message::serialize(m);
     tcpSocket->writeMessage(m);//serM,Symbol::peekIntFromByteArray(serM+4)+8);
 }
@@ -88,26 +94,39 @@ void LoginWindow::loginClicked(){
 void LoginWindow::registerClicked(){
     QString username=usernameLine->text();
     QString password=passwordLine->text();
-    QString ip=ipLine->text();
+    QString ip=ipLine->text().split(":").at(0);
+    QString port=ipLine->text().split(":").at(1);
 
-    tcpSocket = new ClientSocket(ip.toStdString(), 1501);
-    tcpSocket->doConnect();
+    tcpSocket = new ClientSocket(ip.toStdString(), port.toInt());
     connect(tcpSocket, &ClientSocket::signalMessage,
             this, &LoginWindow::incomingMessage);
+    tcpSocket->doConnect();
 
-    Message m {MessageType::Register,"username:"+username.toStdString()+",password:"+password.toStdString()};
+    Message m {MessageType::Register,username.toStdString()+","+password.toStdString()};
     tcpSocket->writeMessage(m);
+}
+
+void LoginWindow::hideWindow(){
+    disconnect(tcpSocket, &ClientSocket::signalMessage,
+            this, &LoginWindow::incomingMessage);
+    this->hide();
 }
 
 void LoginWindow::incomingMessage(Message message){
     qDebug()<<QString::fromStdString(message.getCommand());
     switch(message.getType()){
         case MessageType::Login:
+            siteIdReceived(std::stoi(message.getCommand()));
+            showResult("Login successful.");
+            break;
         case MessageType::Register:
-            showResult(message);
+            showResult("Registration successful.");
             break;
         case MessageType::FileList:
             openFileListWindow(message);
+            break;
+        case MessageType::Error:
+            showResult(message);
             break;
         default:
             break;
@@ -118,12 +137,15 @@ void LoginWindow::showResult(Message message){
     QMessageBox::information(this,"Result",QString::fromStdString(message.getCommand()));
 }
 
+void LoginWindow::showResult(std::string result){
+    QMessageBox::information(this,"Result",QString::fromStdString(result));
+}
+
 void LoginWindow::openFileListWindow(Message message){
-    this->hide();
-    std::vector<std::string> fileList=Message::split(message.getCommand(),",");
-
-    FileListWindow *fileListWindow=new FileListWindow(this,tcpSocket,fileList);
-
-    fileListWindow->show();
+    QStringList qlist = QString::fromStdString(message.getCommand()).split(",");
+    std::vector<std::string> fileList;
+    for(QString s : qlist)
+        fileList.push_back(s.toStdString());
+    showFileList(tcpSocket, fileList);
 }
 

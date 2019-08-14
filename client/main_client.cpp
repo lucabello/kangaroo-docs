@@ -50,9 +50,11 @@
 
 #include "TextEdit.h"
 #include "LoginWindow.h"
+#include "FileListWindow.h"
 
 #include <QApplication>
 #include <QCommandLineParser>
+#include <QDebug>
 
 int main(int argc, char *argv[])
 {
@@ -69,8 +71,32 @@ int main(int argc, char *argv[])
     parser.addPositionalArgument("file", "The file to open.");
     parser.process(a);
 
-    LoginWindow mw{};
 
-    mw.show();
+
+    LoginWindow lw{};
+    FileListWindow flw{};
+    TextEdit te{};
+
+
+    QObject::connect(&lw, SIGNAL(showFileList(ClientSocket*, std::vector<std::string>)),
+                     &flw, SLOT(showFileList(ClientSocket*, std::vector<std::string>)));
+    QObject::connect(&lw, SIGNAL(showFileList(ClientSocket*, std::vector<std::string>)),
+                     &lw, SLOT(hideWindow()));
+    QObject::connect(&flw, SIGNAL(showTextEdit(ClientSocket*)),
+                     &te, SLOT(showTextEdit(ClientSocket*)));
+    QObject::connect(&flw, SIGNAL(showTextEdit(ClientSocket*)),
+                     &flw, SLOT(hideWindow()));
+    QObject::connect(&lw, SIGNAL(siteIdReceived(int)),
+                     &te, SLOT(siteIdReceived(int)));
+    QObject::connect(&flw, SIGNAL(changeFileName(QString)),
+                     &te, SLOT(changeFileName(QString)));
+    QObject::connect(&te, SIGNAL(newFileListWindow(ClientSocket*)),
+                     &flw, SLOT(newFileListWindow(ClientSocket*)));
+    QObject::connect(&te, SIGNAL(newFileListWindow(ClientSocket*)),
+                     &te, SLOT(hideWindow()));
+    QObject::connect(&te, SIGNAL(showLoginWindow()),
+                     &lw, SLOT(show()));
+
+    lw.show();
     return a.exec();
 }
