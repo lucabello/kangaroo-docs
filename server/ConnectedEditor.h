@@ -15,15 +15,15 @@ public:
     ConnectedEditor(ServerSocket *s);
     int getDescriptor();
     ServerSocket* getSocket();
-    std::string getWorkingFile();
+    QString getWorkingFile();
     void setSiteId(int id);
-    void setWorkingFile(std::string filename);
+    void setWorkingFile(QString filename);
 
 private:
     ServerSocket *mySocket;
     int descriptor;
     int siteId;
-    std::string workingFile;
+    QString workingFile;
 };
 
 #endif // CONNECTEDEDITOR_H

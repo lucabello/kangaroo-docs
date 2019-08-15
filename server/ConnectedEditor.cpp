@@ -14,7 +14,7 @@ ServerSocket* ConnectedEditor::getSocket(){
     return mySocket;
 }
 
-std::string ConnectedEditor::getWorkingFile(){
+QString ConnectedEditor::getWorkingFile(){
     return workingFile;
 }
 
@@ -22,6 +22,6 @@ void ConnectedEditor::setSiteId(int id){
     siteId = id;
 }
 
-void ConnectedEditor::setWorkingFile(std::string filename){
+void ConnectedEditor::setWorkingFile(QString filename){
     workingFile = filename;
 }

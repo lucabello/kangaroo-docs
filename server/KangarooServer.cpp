@@ -69,7 +69,7 @@ void KangarooServer::incomingMessage(int descriptor,Message message){
         case MessageType::Erase:
         case MessageType::Insert:
         {
-            std::string filename = descriptorToEditor.at(descriptor).getWorkingFile();
+            QString filename = descriptorToEditor.at(descriptor).getWorkingFile();
             modifyFileVector(message, filenameToSymbols.at(filename));
             propagate(descriptor,message);
             break;
@@ -98,54 +98,32 @@ void KangarooServer::incomingMessage(int descriptor,Message message){
 //COPY&PASTE OF SharedEditor::process
 //TODO: FIX THIS ASAP AND TEST IT WITH MULTIPLE EDITORS
 void KangarooServer::modifyFileVector(const Message &m, std::vector<Symbol>& _symbols) {
-    int l=0, r=_symbols.size()-1, middle=-1;
     if(m.getType() == MessageType::Insert){
-        /*
-         * After this binary search, the variable middle can be:
-         * - -1 if the vector is empty
-         * - index of the first element bigger than s
-         * - index of the first element smaller than s
-         * If the symbol is found, the function will return.
-         */
-        while(l<=r){
-            middle = (l+r)/2;
-            if(_symbols.at(middle) < m.getSymbol())
-                l = middle+1;
-            else if(m.getSymbol() < _symbols.at(middle))
-                r = middle-1;
-            else
-                break;
-        }
-        if(l<=r) //Symbol found (already inserted, idempotency)
-            return;
-        if(middle == -1){ //empty vector, never entered while cycle
+        Symbol sym = m.getSymbol();
+        if(_symbols.size() == 0){
             _symbols.insert(_symbols.begin(), m.getSymbol());
+            return;
         }
-        else if (m.getSymbol() < _symbols.at(middle)){
-            _symbols.insert(_symbols.begin()+middle, m.getSymbol());
-        } else {
-            _symbols.insert(_symbols.begin()+middle+1, m.getSymbol());
-        }
-    } else if (m.getType() == MessageType::Erase) {
-        //middle variable is modified or the function returns
-        while(l<=r){
-            middle = (l+r)/2;
-            if(_symbols.at(middle) < m.getSymbol())
-                l = middle+1;
-            else if(m.getSymbol() < _symbols.at(middle))
-                r = middle-1;
-            else
+        if(std::find(_symbols.begin(), _symbols.end(), m.getSymbol()) != _symbols.end())
+            return;
+        auto it = _symbols.begin();
+        for(; it != _symbols.end(); ++it){
+            if(sym < *it)
                 break;
         }
-        if(l > r) //Symbol not found (already deleted or empty vector)
+        _symbols.insert(it, m.getSymbol());
+    } else if (m.getType() == MessageType::Erase) {
+        auto it = std::find(_symbols.begin(), _symbols.end(), m.getSymbol());
+        if(it == _symbols.end()) //Symbol not found (already deleted or empty vector)
             return;
-        _symbols.erase(_symbols.begin()+middle);
+        _symbols.erase(it);
+        return;
     }
 }
 
 void KangarooServer::propagate(int descriptor, Message message){
     qDebug() << "A: " << QString::fromStdString(message.toString());
-    std::string filename = descriptorToEditor.at(descriptor).getWorkingFile();
+    QString filename = descriptorToEditor.at(descriptor).getWorkingFile();
     for(int d : filenameToDescriptors.at(filename)){
         if(d != descriptor){
             descriptorToEditor.at(d).getSocket()->writeMessage(message);
@@ -154,37 +132,37 @@ void KangarooServer::propagate(int descriptor, Message message){
 }
 
 void KangarooServer::doLogin(int descriptor, Message message){
-    QString loginString = QString::fromStdString(message.getCommand());
+    QString loginString = message.getCommand();
     QFile inputFile("users.txt");
     bool result = false;
-    std::string siteId = "-1";
+    QString siteId = "-1";
     if(inputFile.open(QIODevice::ReadOnly)){
         QTextStream in(&inputFile);
         while(!in.atEnd() && !result){
             QString line = in.readLine();
             if(line.startsWith(loginString)){
                 result = true;
-                siteId = line.split(",").at(2).toStdString();
+                siteId = line.split(",").at(2);
             }
         }
         inputFile.close();
     }
     Message m;
     if(result == true){
-        descriptorToEditor.at(descriptor).setSiteId(std::stoi(siteId));
+        descriptorToEditor.at(descriptor).setSiteId(siteId.toUInt());
         m = Message{MessageType::Login, siteId};
         descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
         sendFileList(descriptor);
     }
     else {
-        std::string content = "Error. Username and password are not correct. Try again.";
+        QString content = "Error. Username and password are not correct. Try again.";
         m = Message{MessageType::Error, content};
         descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
     }
 }
 
 void KangarooServer::doRegister(int descriptor, Message message){
-    QString registerString = QString::fromStdString(message.getCommand());
+    QString registerString = message.getCommand();
     QFile userFile("users.txt");
     bool result = true;
     int newSiteId = 1;
@@ -212,7 +190,7 @@ void KangarooServer::doRegister(int descriptor, Message message){
         sendFileList(descriptor);
     }
     else {
-        std::string content = "Error. User already exists.";
+        QString content = "Error. User already exists.";
         m = Message{MessageType::Error, content};
         descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
     }
@@ -220,13 +198,14 @@ void KangarooServer::doRegister(int descriptor, Message message){
 
 void KangarooServer::doCreate(int descriptor, Message message){
     Message m;
-    std::string pathname = std::string(FILES_DIRNAME) + "/" + message.getCommand() + ".kangaroo";
-    std::string filename = message.getCommand();
-    if(QDir().exists(QString::fromStdString(pathname))){
+    QString pathname = QString(FILES_DIRNAME) + "/" + message.getCommand() + ".kangaroo";
+    QString filename = message.getCommand();
+    if(QDir().exists(pathname)){
         m = Message{MessageType::Error, "Error while creating file. A file with name "+filename+" already exists."};
+        descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
     }
     else {
-        QFile(QString::fromStdString(pathname)).open(QIODevice::WriteOnly);
+        QFile(pathname).open(QIODevice::WriteOnly);
         descriptorToEditor.at(descriptor).setWorkingFile(filename);
         if(filenameToDescriptors.count(filename) == 0)
             filenameToDescriptors.insert({filename, std::vector<int>()});
@@ -235,15 +214,17 @@ void KangarooServer::doCreate(int descriptor, Message message){
         if(filenameToSymbols.count(filename) == 0)
             filenameToSymbols.insert({filename, std::vector<Symbol>()});
         m = Message{MessageType::Create, ""};
+        descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
+        insertControlSymbols(descriptor, filename);
     }
-    descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
+
 }
 
 void KangarooServer::doOpen(int descriptor, Message message){
     Message m;
-    std::string pathname = std::string(FILES_DIRNAME) + "/" + message.getCommand() + ".kangaroo";
-    std::string filename = message.getCommand();
-    if(!QDir().exists(QString::fromStdString(pathname))){
+    QString pathname = QString(FILES_DIRNAME) + "/" + message.getCommand() + ".kangaroo";
+    QString filename = message.getCommand();
+    if(!QDir().exists(pathname)){
         m = Message{MessageType::Error, "Error while opening file. A file with name "+filename+" does not exist."};
     }
     else {
@@ -256,10 +237,10 @@ void KangarooServer::doOpen(int descriptor, Message message){
             filenameToSymbols.insert({filename, std::vector<Symbol>()});
             alreadyInMemory = false;
         }
-        sendFile(descriptor, filename, alreadyInMemory);
         m = Message{MessageType::Open, ""};
+        descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
+        sendFile(descriptor, filename, alreadyInMemory);
     }
-    descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
 }
 
 void KangarooServer::sendFileList(int descriptor){
@@ -277,15 +258,29 @@ void KangarooServer::sendFileList(int descriptor){
     }
     fileList=fileList.substr(0, fileList.size()-1);
 
-    Message m{MessageType::FileList,fileList};
+    QString result = QString::fromStdString(fileList);
+    Message m{MessageType::FileList,result};
     descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
 }
 
-void KangarooServer::saveFile(std::string filename){
-    std::string pathname = std::string(FILES_DIRNAME) + "/" + filename + "_temp";
-    std::string pathnamePlain = std::string(FILES_DIRNAME) + "/" + filename + "_tempPlain";
-    QFile file(QString::fromStdString(pathname));
-    QFile filePlain(QString::fromStdString(pathnamePlain));
+void KangarooServer::saveFile(QString filename){
+    QString pathname = QString(FILES_DIRNAME) + "/" + filename + "_temp";
+    QString pathnamePlain = QString(FILES_DIRNAME) + "/" + filename + "_tempPlain";
+    QFile file(pathname);
+    QFile filePlain(pathnamePlain);
+    if(file.open(QIODevice::WriteOnly) && filePlain.open(QIODevice::WriteOnly)){
+        std::vector<Symbol>& symbols = filenameToSymbols.at(filename);
+        QDataStream stream(&file);
+        QDataStream streamPlain(&filePlain);
+        for(Symbol sym : symbols){
+            stream << sym;
+            if(sym.isContent() && !sym.isFake())
+                streamPlain << sym.getPlaintext().at(0);
+        }
+        file.close();
+        filePlain.close();
+    }
+    /*
     if(file.open(QIODevice::WriteOnly) && filePlain.open(QIODevice::WriteOnly)){
         //Always present since this function is called when the last editor on that file disconnects
         std::vector<Symbol>& symbols = filenameToSymbols.at(filename);
@@ -306,53 +301,111 @@ void KangarooServer::saveFile(std::string filename){
         filePlain.close();
 
     }
-    std::string newPath = std::string(FILES_DIRNAME) + "/" + filename + ".kangaroo";
-    std::string newPathPlain = std::string(FILES_DIRNAME) + "/" + filename + ".txt";
-    QFile::remove(QString::fromStdString(newPath));
-    QFile::remove(QString::fromStdString(newPathPlain));
-    QFile::rename(QString::fromStdString(pathname), QString::fromStdString(newPath));
-    QFile::rename(QString::fromStdString(pathnamePlain), QString::fromStdString(newPathPlain));
+    */
+    QString newPath = QString(FILES_DIRNAME) + "/" + filename + ".kangaroo";
+    QString newPathPlain = QString(FILES_DIRNAME) + "/" + filename + ".txt";
+    QFile::remove(newPath);
+    QFile::remove(newPathPlain);
+    QFile::rename(pathname, newPath);
+    QFile::rename(pathnamePlain, newPathPlain);
+    qDebug() << "[SERVER] File saved.";
 }
 
-void KangarooServer::sendFile(int descriptor, std::string filename, bool alreadyInMemory){
-    /*
+void KangarooServer::sendFile(int descriptor, QString filename, bool alreadyInMemory){
     ServerSocket* socket = descriptorToEditor.at(descriptor).getSocket();
-    std::string pathname = std::string(FILES_DIRNAME) + "/" + filename + ".kangaroo";
     std::vector<Symbol>& symbols = filenameToSymbols.at(filename);
-    QFile f(QString::fromStdString(pathname));
-    if(f.open(QIODevice::ReadOnly)){
-        char serS[100];
-        char payloadLen[4];
-        int len = -1;
-        while(f.read(payloadLen, 4) == 4){
-            qDebug() << "Inside while...";
-            len = Symbol::peekIntFromByteArray(payloadLen);
-            qDebug() << "1";
-            f.read(serS, len);
-            qDebug() << "2";
-            Symbol s = Symbol::unserialize(serS);
-            qDebug() << "3";
-            Message m {MessageType::Insert, s};
-            qDebug() << "4";
-            if(!alreadyInMemory)
-                modifyFileVector(m, symbols);
-            qDebug() << "5";
-            socket->writeMessage(m);
-            qDebug() << "6";
+    if(!alreadyInMemory){
+        QString pathname = QString(FILES_DIRNAME) + "/" + filename + ".kangaroo";
+        QFile f(pathname);
+        if(f.open(QIODevice::ReadOnly)){
+            QDataStream in(&f);
+            Symbol sym;
+            Message msg;
+            while(!f.atEnd()){
+                in >> sym;
+                msg = Message{MessageType::Insert, sym};
+                //qDebug() << "[sendFile] " << QString::fromStdString(msg.toString());
+                modifyFileVector(msg, symbols);
+                socket->writeMessage(msg);
+            }
+            f.close();
         }
-        f.close();
     }
-    */
+    else {
+        Message m;
+        for(auto it = symbols.begin(); it != symbols.end(); ++it){
+            m = Message{MessageType::Insert, *it};
+            socket->writeMessage(m);
+        }
+    }
 }
 
 void KangarooServer::hostDisconnected(int descriptor){
-    std::string filename = descriptorToEditor.at(descriptor).getWorkingFile();
+    QString filename = descriptorToEditor.at(descriptor).getWorkingFile();
+    if(filename.isNull()) //editor did not open anything yet
+        return;
     std::vector<int>& v = filenameToDescriptors.at(filename);
     //remove descriptor from map
     v.erase(std::remove(v.begin(), v.end(), descriptor), v.end());
-    if(v.size() == 0)
+    if(v.size() == 0){
         saveFile(filename);
-    filenameToDescriptors.erase(filename);
-    filenameToSymbols.erase(filename);
+        filenameToDescriptors.erase(filename);
+        filenameToSymbols.erase(filename);
+    }
     descriptorToEditor.erase(descriptor);
+}
+
+void KangarooServer::insertControlSymbols(int descriptor, QString filename){
+    Symbol s;
+    Message m;
+    std::vector<Symbol>& symbols = filenameToSymbols.at(filename);
+    std::vector<int> position;
+    //paragraph
+    position = {1, 0};
+    s = Symbol{StyleType::Paragraph, AlignmentType::AlignLeft, 0, 1, position};
+    m = Message{MessageType::Insert, s};
+    modifyFileVector(m, symbols);
+    descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
+    //font
+    position = {2, 0};
+    s = Symbol{StyleType::Font, "Arial", 0, 1, position};
+    m = Message{MessageType::Insert, s};
+    modifyFileVector(m, symbols);
+    descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
+    //fontsize
+    position = {3, 0};
+    s = Symbol{StyleType::FontSize, 8, 0, 1, position};
+    m = Message{MessageType::Insert, s};
+    modifyFileVector(m, symbols);
+    descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
+    //color
+    position = {4, 0};
+    s = Symbol{StyleType::Color, "#000000", 0, 1, position};
+    m = Message{MessageType::Insert, s};
+    modifyFileVector(m, symbols);
+    descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
+    //empty symbol
+    position = {5, 0};
+    s = Symbol{'\u0000', 0, 0, position};
+    m = Message{MessageType::Insert, s};
+    modifyFileVector(m, symbols);
+    descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
+    //fontEnd
+    position = {6, 0};
+    s = Symbol{StyleType::FontEnd, "Arial", 0, 1, position};
+    m = Message{MessageType::Insert, s};
+    modifyFileVector(m, symbols);
+    descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
+    //fontsizeEnd
+    position = {7, 0};
+    s = Symbol{StyleType::FontSizeEnd, 8, 0, 1, position};
+    m = Message{MessageType::Insert, s};
+    modifyFileVector(m, symbols);
+    descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
+    //colorEnd
+    position = {8, 0};
+    s = Symbol{StyleType::ColorEnd, "#000000", 0, 1, position};
+    m = Message{MessageType::Insert, s};
+    modifyFileVector(m, symbols);
+    descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
 }
