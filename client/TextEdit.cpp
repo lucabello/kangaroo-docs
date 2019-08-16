@@ -131,8 +131,10 @@ TextEdit::TextEdit(QWidget *parent)
     colorChanged(textEdit->textColor());
     alignmentChanged(textEdit->alignment());
 
-    connect(textEdit->document(), &QTextDocument::modificationChanged,
-            actionSave, &QAction::setEnabled);
+    connect(textEdit, &SharedEditor::setEditorList,
+            this, &TextEdit::setEditorList);
+    //connect(textEdit->document(), &QTextDocument::modificationChanged,
+    //        actionSave, &QAction::setEnabled);
     connect(textEdit->document(), &QTextDocument::modificationChanged,
             this, &QWidget::setWindowModified);
     //connect(textEdit->document(), &QTextDocument::undoAvailable,
@@ -141,7 +143,7 @@ TextEdit::TextEdit(QWidget *parent)
     //        actionRedo, &QAction::setEnabled);
 
     setWindowModified(textEdit->document()->isModified());
-    actionSave->setEnabled(textEdit->document()->isModified());
+    //actionSave->setEnabled(textEdit->document()->isModified());
     //actionUndo->setEnabled(textEdit->document()->isUndoAvailable());
     //actionRedo->setEnabled(textEdit->document()->isRedoAvailable());
 
@@ -181,9 +183,9 @@ void TextEdit::setupFileActions()
 
     const QIcon logoutIcon = QIcon::fromTheme("document-logout", QIcon(rsrcPath + "/logout.png"));
     QAction *a = menu->addAction(logoutIcon,  tr("&Logout"), this, &TextEdit::logout);
-    tb->addAction(a);
     a->setPriority(QAction::LowPriority);
     a->setShortcut(Qt::CTRL + Qt::Key_L);
+    tb->addAction(a);
 
     const QIcon openIcon = QIcon::fromTheme("document-open", QIcon(rsrcPath + "/fileopen.png"));
     a = menu->addAction(openIcon, tr("&Open..."), this, &TextEdit::fileOpen);
@@ -192,6 +194,10 @@ void TextEdit::setupFileActions()
 
     menu->addSeparator();
 
+    const QIcon infoIcon = QIcon::fromTheme("document-info", QIcon(rsrcPath + "/editcopy.png"));
+    a = menu->addAction(infoIcon, tr("&Show connected users..."), this, &TextEdit::showConnectedUsers);
+    tb->addAction(a);
+/*
     const QIcon saveIcon = QIcon::fromTheme("document-save", QIcon(rsrcPath + "/filesave.png"));
     actionSave = menu->addAction(saveIcon, tr("&Save"), this, &TextEdit::fileSave);
     actionSave->setShortcut(QKeySequence::Save);
@@ -201,7 +207,7 @@ void TextEdit::setupFileActions()
     a = menu->addAction(tr("Save &As..."), this, &TextEdit::fileSaveAs);
     a->setPriority(QAction::LowPriority);
     menu->addSeparator();
-
+*/
 #ifndef QT_NO_PRINTER
 
     const QIcon printIcon = QIcon::fromTheme("document-print", QIcon(rsrcPath + "/fileprint.png"));
@@ -492,6 +498,17 @@ void TextEdit::hideWindow(){
     this->hide();
 }
 
+void TextEdit::setEditorList(QString userlist){
+    usernameToSiteId.clear();
+    QStringList qlist = userlist.split(",");
+    for(QString s : qlist){
+        QString username = s.split(":").at(0);
+        QString siteId = s.split(":").at(1);
+        int site = siteId.toInt();
+        usernameToSiteId.insert({username, site});
+    }
+}
+
 void TextEdit::fileOpen()
 {
     newFileListWindow(tcpSocket);
@@ -566,6 +583,15 @@ void TextEdit::filePrintPreview()
     connect(&preview, &QPrintPreviewDialog::paintRequested, this, &TextEdit::printPreview);
     preview.exec();
 #endif
+}
+
+void TextEdit::showConnectedUsers(){
+    QString infotext = "Users connected to the current file are:\n";
+    for(auto pair : usernameToSiteId){
+        infotext.append(pair.first);
+        infotext.append('\n');
+    }
+    QMessageBox::information(this, "Connected Users", infotext);
 }
 
 void TextEdit::printPreview(QPrinter *printer)

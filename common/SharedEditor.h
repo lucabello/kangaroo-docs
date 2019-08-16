@@ -108,6 +108,7 @@ public:
      * representation.
      */
     std::wstring to_string();
+    int getSiteId();
     void setSiteId(int siteId);
 
 signals:
@@ -123,6 +124,7 @@ signals:
      * purposes.
      */
     void connectToServer();
+    void setEditorList(QString);
 
 public slots:
     /**

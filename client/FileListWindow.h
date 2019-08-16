@@ -14,6 +14,7 @@ public:
 signals:
     void showTextEdit(ClientSocket*);
     void changeFileName(QString);
+    void setEditorList(QString);
 
 private slots:
     void openFileClicked();

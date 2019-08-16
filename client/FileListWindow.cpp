@@ -84,6 +84,11 @@ void FileListWindow::incomingMessage(Message message){
             showFileList(tcpSocket, fileList);
             break;
         }
+        case MessageType::EditorList:
+        {
+            emit setEditorList(message.getCommand());
+            break;
+        }
         case MessageType::Error:
             qDebug() << "Error!" << message.getCommand();
             break;

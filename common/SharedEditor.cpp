@@ -64,6 +64,8 @@ void SharedEditor::keyPressEvent(QKeyEvent * e){
         localInsert(this->textCursor().position(), c[0]);
     } else if(e->key() == Qt::Key_Backspace || e->key() == Qt::Key_Delete){
         eraseSelectedText(e);
+    } else if(e->text().unicode()[0].category() == 9){
+        return;
     }
     else if(isKeyPaste(e)){
         //qDebug() << "- You pasted: " << QApplication::clipboard()->mimeData()->html();
@@ -359,7 +361,12 @@ void SharedEditor::localErase(int index) {
 void SharedEditor::incomingPacket(Message m){
     //qDebug() << "[SharedEditor] New Message arrived.";
     //qDebug() << QString::fromStdString(m.toString());
-    process(m);
+    if(m.getType() == MessageType::Insert ||
+            m.getType() == MessageType::Erase)
+        process(m);
+    else if(m.getType() == MessageType::EditorList){
+        emit setEditorList(m.getCommand());
+    }
 }
 
 
@@ -431,6 +438,10 @@ std::wstring SharedEditor::to_string() {
         }
     }
     return result;
+}
+
+int SharedEditor::getSiteId(){
+    return _siteId;
 }
 
 void SharedEditor::setSiteId(int id) {

@@ -89,6 +89,7 @@ public slots:
     void siteIdReceived(int);
     void changeFileName(QString);
     void hideWindow();
+    void setEditorList(QString);
 
 protected:
     void closeEvent(QCloseEvent *e) override;
@@ -177,6 +178,7 @@ private:
     void fontChanged(const QFont &f);
     void colorChanged(const QColor &c);
     void alignmentChanged(Qt::Alignment a);
+    void showConnectedUsers();
 
     QAction *actionSave;
     QAction *actionTextBold;
@@ -203,6 +205,8 @@ private:
     QString fileName;
     SharedEditor *textEdit;
     ClientSocket *tcpSocket;
+
+    std::map<QString,int> usernameToSiteId;
 };
 
 #endif // TEXTEDIT_H

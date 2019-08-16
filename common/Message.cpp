@@ -36,6 +36,8 @@ std::string Message::toString(){
         result += "FileList";
     else if(this->type == MessageType::Register)
         result += "Register";
+    else if(this->type == MessageType::EditorList)
+        result += "Editor List";
     else
         result += "Unknown";
     result += " - Content: ";

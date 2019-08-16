@@ -96,6 +96,8 @@ int main(int argc, char *argv[])
                      &te, SLOT(hideWindow()));
     QObject::connect(&te, SIGNAL(showLoginWindow()),
                      &lw, SLOT(show()));
+    QObject::connect(&flw, SIGNAL(setEditorList(QString)),
+                     &te, SLOT(setEditorList(QString)));
 
     lw.show();
     return a.exec();
