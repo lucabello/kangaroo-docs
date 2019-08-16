@@ -142,6 +142,7 @@ private:
     std::vector<Symbol> _symbols;
     //TODO: substitute with MessageQueue
     std::queue<Message> _mqIn, _mqOut;
+    std::vector<Symbol> _clipboard;
     /**
      * Insert a character locally and send a Message to the server.
      *

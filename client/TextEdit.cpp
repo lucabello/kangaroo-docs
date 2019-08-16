@@ -681,14 +681,15 @@ void TextEdit::textItalic()
 
 void TextEdit::textFamily(const QString &f)
 {
+    QString familyName = QFont(f).family();
     QTextCursor cursor = textEdit->textCursor();
     if(!cursor.hasSelection())
         cursor.select(QTextCursor::WordUnderCursor);
     int start = cursor.selectionStart();
     int end = cursor.selectionEnd();
-    textEdit->localSetStyle(start, end, Symbol(StyleType::Font, f, -1, -1, std::vector<int>()));
+    textEdit->localSetStyle(start, end, Symbol(StyleType::Font, familyName, -1, -1, std::vector<int>()));
     QTextCharFormat fmt;
-    fmt.setFontFamily(f);
+    fmt.setFontFamily(familyName);
     mergeFormatOnWordOrSelection(fmt);
 
 }
@@ -700,9 +701,10 @@ void TextEdit::textSize(const QString &p)
         cursor.select(QTextCursor::WordUnderCursor);
     int start = cursor.selectionStart();
     int end = cursor.selectionEnd();
-    textEdit->localSetStyle(start, end, Symbol(StyleType::FontSize, p.toFloat(), -1, -1, std::vector<int>()));
+
     qreal pointSize = p.toFloat();
     if (p.toFloat() > 0) {
+        textEdit->localSetStyle(start, end, Symbol(StyleType::FontSize, p.toFloat(), -1, -1, std::vector<int>()));
         QTextCharFormat fmt;
         fmt.setFontPointSize(pointSize);
         mergeFormatOnWordOrSelection(fmt);

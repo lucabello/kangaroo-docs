@@ -24,6 +24,15 @@ bool isKeyPrintable(QKeyEvent * e){
         return false;
 }
 
+bool isKeyCopy(QKeyEvent * e){
+    //copy is in QChar category 9! change this function and test it
+    int k = e->key();
+    int modifiers = e->modifiers();
+    if(modifiers == Qt::ControlModifier && k == Qt::Key_C)
+        return true;
+    return false;
+}
+
 bool isKeyPaste(QKeyEvent * e){
     //paste is in QChar category 9! change this function and test it
     int k = e->key();
@@ -64,11 +73,125 @@ void SharedEditor::keyPressEvent(QKeyEvent * e){
         localInsert(this->textCursor().position(), c[0]);
     } else if(e->key() == Qt::Key_Backspace || e->key() == Qt::Key_Delete){
         eraseSelectedText(e);
-    } else if(e->text().unicode()[0].category() == 9){
+    }/*
+    else if(isKeyCopy(e)){
+        QTextCursor cursor(this->textCursor());
+        if(!cursor.hasSelection())
+            return;
+        _clipboard.clear();
+        int start = editorToVectorIndex(cursor.selectionStart());
+        int end = editorToVectorIndex(cursor.selectionEnd());
+        bool font=true, fontsize=true, color=true, bold=true, italic=true, underlined=true;
+        for(int i=start-1; i>=0; i--){
+            Symbol s = _symbols.at(i);
+            if(s.isContent())
+                continue;
+            if(s.getStyleType() == StyleType::Paragraph)
+                continue;
+            if(s.getStyleType() == StyleType::Bold && bold == true)
+                _clipboard.push_back(s);
+            else if(s.getStyleType() == StyleType::BoldEnd)
+                bold = false;
+            else if(s.getStyleType() == StyleType::Italic && italic == true)
+                _clipboard.push_back(s);
+            else if(s.getStyleType() == StyleType::ItalicEnd)
+                italic = false;
+            else if(s.getStyleType() == StyleType::Underlined && underlined == true)
+                _clipboard.push_back(s);
+            else if(s.getStyleType() == StyleType::UnderlinedEnd)
+                underlined = false;
+            else if(s.getStyleType() == StyleType::Font && font == true)
+                _clipboard.push_back(s);
+            else if(s.getStyleType() == StyleType::FontEnd)
+                font = false;
+            else if(s.getStyleType() == StyleType::FontSize && fontsize == true)
+                _clipboard.push_back(s);
+            else if(s.getStyleType() == StyleType::FontSizeEnd)
+                fontsize = false;
+            else if(s.getStyleType() == StyleType::Color)
+                _clipboard.push_back(s);
+            else if(s.getStyleType() == StyleType::ColorEnd)
+                color = false;
+        }
+        for(int i=start; i<end; i++)
+            _clipboard.push_back(_symbols.at(i));
+        font=true, fontsize=true, color=true, bold=true, italic=true, underlined=true;
+        for(int i=end; i<_symbols.size(); i++){
+            Symbol s = _symbols.at(i);
+            if(s.isContent())
+                continue;
+            if(s.getStyleType() == StyleType::Paragraph)
+                continue;
+            if(s.getStyleType() == StyleType::BoldEnd && bold == true)
+                _clipboard.push_back(s);
+            else if(s.getStyleType() == StyleType::Bold)
+                bold = false;
+            else if(s.getStyleType() == StyleType::ItalicEnd && italic == true)
+                _clipboard.push_back(s);
+            else if(s.getStyleType() == StyleType::Italic)
+                italic = false;
+            else if(s.getStyleType() == StyleType::UnderlinedEnd && underlined == true)
+                _clipboard.push_back(s);
+            else if(s.getStyleType() == StyleType::Underlined)
+                underlined = false;
+            else if(s.getStyleType() == StyleType::FontEnd && font == true)
+                _clipboard.push_back(s);
+            else if(s.getStyleType() == StyleType::Font)
+                font = false;
+            else if(s.getStyleType() == StyleType::FontSizeEnd && fontsize == true)
+                _clipboard.push_back(s);
+            else if(s.getStyleType() == StyleType::FontSize)
+                fontsize = false;
+            else if(s.getStyleType() == StyleType::ColorEnd)
+                _clipboard.push_back(s);
+            else if(s.getStyleType() == StyleType::Color)
+                color = false;
+        }
         return;
     }
     else if(isKeyPaste(e)){
         //qDebug() << "- You pasted: " << QApplication::clipboard()->mimeData()->html();
+        qDebug() << "[SharedEditor] Clipboard: ";
+        int editorPosition = this->textCursor().position();
+        int editorStartPosition = editorPosition;
+        int position = editorToVectorIndex(this->textCursor().position());
+        int startPosition = position;
+        wchar_t content[1];
+        for(Symbol s : _clipboard){
+            qDebug() << "[clip]" << QString::fromStdString(s.toString());
+            if(s.isContent()){
+                content[0] = s.getContent();
+                localInsert(position, s.getContent());
+                this->insertPlainText(QString::fromWCharArray(content));
+                position++;
+                editorPosition++;
+            }
+        }
+        int count = 0;
+        int internalCount = 0;
+        for(int i=0; i<_clipboard.size(); i++){
+            internalCount=0;
+            Symbol open = _clipboard.at(i);
+            if(open.isContent())
+                count++;
+            if(!open.isStyle() || !open.isOpenTag())
+                continue;
+            for(int j=i+1; j<_clipboard.size(); j++){
+                Symbol close = _clipboard.at(j);
+                if(close.isContent()){
+                    internalCount++;
+                    continue;
+                }
+                if(open.isOpeningOf(close)){
+                    localSetStyle(editorStartPosition+count, editorStartPosition+internalCount, open);
+                    break;
+                }
+            }
+        }
+        applyStylesToEditor();
+        return;
+    }*/
+    else if(e->text().unicode()[0].category() == 9){
         return;
     }
     QTextEdit::keyPressEvent(e);
@@ -378,7 +501,6 @@ void SharedEditor::process(const Message &m) {
         QTextCursor cursor(this->textCursor());
         if(_symbols.size() == 0){
             _symbols.insert(_symbols.begin(), m.getSymbol());
-            cursor.atStart();
             return;
         }
         //if symbol found (already inserted) return
