@@ -73,15 +73,27 @@ Symbol::Symbol(Symbol& s, int site, int counter, std::vector<int> pos){
 
 //General methods
 
+//Compare only even elements first; if equal, also use siteIds to establish relative order
 bool Symbol::operator<(const Symbol &other) const {
     int depth=0, p=-1, q=-1;
     int pSize=this->position.size(), qSize = other.position.size();
     if(pSize == 0 && qSize == 0) //both vectors are empty
         return false;
+    //compare only even elements
     do {
         p = (depth < pSize)? this->position.at(depth) : -1;
         q = (depth < qSize)? other.position.at(depth) : -1;
-        depth++;
+        depth += 2; //only check even elements; odds are siteIds
+    } while (p == q && p != -1);
+    if(p < q)
+        return true;
+    if(p > q)
+        return false;
+    //p == q and so they are both equal to -1
+    do {
+        p = (depth < pSize)? this->position.at(depth) : -1;
+        q = (depth < qSize)? other.position.at(depth) : -1;
+        depth++; //check all elements
     } while (p == q && p != -1);
     if(p < q)
         return true;
