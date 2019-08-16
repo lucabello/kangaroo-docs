@@ -3,10 +3,10 @@
 //
 
 #include "Symbol.h"
-
+#include <QDebug>
 //Constructors
 
-Symbol::Symbol() : c(0), siteId(-1), siteCounter(-1) {};
+Symbol::Symbol() : c(0), siteId(-1), siteCounter(-1){};
 
 Symbol::Symbol(const Symbol& old) : type(old.type), position(old.position),
     siteId(old.siteId), siteCounter(old.siteCounter){
@@ -39,7 +39,7 @@ Symbol::Symbol(StyleType style, AlignmentType alignment, int site, int counter, 
     setProperTag();
 };
 
-Symbol::Symbol(StyleType style, std::string param, int site, int counter, std::vector<int> pos) : style(style),
+Symbol::Symbol(StyleType style, QString param, int site, int counter, std::vector<int> pos) : style(style),
     siteId(site), siteCounter(counter), position(pos), type(SymbolType::Style){
     if(style == StyleType::Color)
         color = param;
@@ -88,12 +88,21 @@ bool Symbol::operator<(const Symbol &other) const {
     return false;
 }
 
-bool Symbol::isContent(){
+bool Symbol::operator==(const Symbol &other) const {
+    bool result = ( (!(*this < other)) && (!(other < *this)) );
+    return result;
+}
+
+bool Symbol::isContent() const{
     return (type == SymbolType::Content);
 }
 
-bool Symbol::isStyle(){
+bool Symbol::isStyle() const{
     return (type == SymbolType::Style);
+}
+
+bool Symbol::isFake() const{
+    return ((siteId==0)&&(siteCounter==0));
 }
 
 std::vector<int> Symbol::getPosition() {
@@ -103,7 +112,7 @@ std::vector<int> Symbol::getPosition() {
 std::string Symbol::toString(){
     std::string result = "Symbol("+std::to_string(siteId)+","+std::to_string(siteCounter)+"): ";
     if(this->type == SymbolType::Style)
-        result += this->tag;
+        result += this->tag.toStdString();
     else if(this->type == SymbolType::Content)
         result += this->c;
     result += " Position: ";
@@ -114,32 +123,56 @@ std::string Symbol::toString(){
 
 //Getters
 
-wchar_t Symbol::getContent() {
+SymbolType Symbol::getType() const{
+    return type;
+}
+
+qint32 Symbol::getSiteId() const{
+    return siteId;
+}
+
+qint32 Symbol::getSiteCounter() const{
+    return siteCounter;
+}
+
+std::vector<qint32> Symbol::getPosition() const{
+    return position;
+}
+
+wchar_t Symbol::getContent() const{
     return c;
 }
 
-StyleType Symbol::getStyleType(){
+StyleType Symbol::getStyleType() const{
     return style;
 }
 
-std::string Symbol::getTag() {
+QString Symbol::getTag() const{
     return tag;
 }
 
-AlignmentType Symbol::getAlignment(){
+AlignmentType Symbol::getAlignment() const{
     return alignment;
 }
 
-std::string Symbol::getColor(){
+QString Symbol::getColor() const{
     return color;
 }
 
-std::string Symbol::getFontName(){
+QString Symbol::getFontName() const{
     return fontname;
 }
 
-int Symbol::getFontSize(){
+qint32 Symbol::getFontSize() const{
     return fontsize;
+}
+
+
+
+QString Symbol::getPlaintext() const{
+    char16_t ch = c;
+    QString result = QString::fromUtf16(&ch, 1);
+    return result;
 }
 
 //Utilities
@@ -320,9 +353,9 @@ void Symbol::setProperTag(){
     else if(style == FontEnd)
         tag = "</font:"+fontname+">";
     else if(style == FontSize)
-        tag = "<font-size:"+std::to_string(fontsize)+"pt>";
+        tag = "<font-size:"+QString::fromStdString(std::to_string(fontsize))+"pt>";
     else if(style == FontSizeEnd)
-        tag = "</font-size:"+std::to_string(fontsize)+"pt>";
+        tag = "</font-size:"+QString::fromStdString(std::to_string(fontsize))+"pt>";
 
 }
 
@@ -344,147 +377,109 @@ bool Symbol::isComplexStyle(){
     return !isSimpleStyle();
 }
 
-//Network
-
-void Symbol::pushIntToByteArray(uint32_t i, char *bytes, int *offset){
-    bytes[0+*offset] = ((i & 0xFF000000) >> 24) & 0x000000FF;
-    bytes[1+*offset] = ((i & 0x00FF0000) >> 16) & 0x000000FF;
-    bytes[2+*offset] = ((i & 0x0000FF00) >> 8) & 0x000000FF;
-    bytes[3+*offset] = (i & 0x000000FF);
-    *offset = *offset + 4;
-}
-
-void Symbol::pushWCharToByteArray(wchar_t c, char *bytes, int *offset){
-    bytes[0+*offset] = (c & 0xFF00) >> 8;
-    bytes[1+*offset] = (c & 0x00FF);
-    *offset = *offset + 2;
-}
-
-uint32_t Symbol::peekIntFromByteArray(const char *bytes){
-    uint32_t i = (bytes[0]<<24&0xFF00000) | (bytes[1]<<16&0x00FF0000) | (bytes[2]<<8&0x0000FF00) | (bytes[3]&0x000000FF);
-    //uint32_t i = (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | (bytes[3]);
-    return i;
-}
-
-uint32_t Symbol::popIntFromByteArray(const char *bytes, int *offset){
-    uint32_t i = peekIntFromByteArray(bytes+*offset);
-    *offset = *offset + 4;
-    return i;
-}
-
-wchar_t Symbol::popWCharFromByteArray(const char *bytes, int *offset){
-    wchar_t c = (bytes[0+*offset] << 8) | (bytes[1+*offset]);
-    *offset = *offset + 2;
-    return c;
-}
-
-char* Symbol::serialize(Symbol s){
-    char *bytes = new char[100]; //only for testing, REMEMBER TO DELETE CORRECTLY
-    int offset=4;
-    pushIntToByteArray(s.type, bytes, &offset);
-    pushIntToByteArray(s.siteId, bytes, &offset);
-    pushIntToByteArray(s.siteCounter, bytes, &offset);
-    pushIntToByteArray(s.position.size(), bytes, &offset);
-    for(int i=0; i<s.position.size(); i++)
-        pushIntToByteArray(s.position.at(i), bytes, &offset);
-    if(s.isContent())
-        pushWCharToByteArray(s.c, bytes, &offset);
-    else if(s.isStyle()){
-        pushIntToByteArray(s.style, bytes, &offset);
-        if(s.style == StyleType::Paragraph)
-            pushIntToByteArray(s.alignment, bytes, &offset);
-        else if(s.style == StyleType::Color){
-            pushIntToByteArray(s.color.length(), bytes, &offset);
-            for(int i=0; i<s.color.length(); i++)
-                bytes[offset++] = s.color.at(i);
+QDataStream &operator<<(QDataStream &out, const Symbol &item)
+{
+    out << item.getType()
+        << item.getSiteId()
+        << item.getSiteCounter()
+        << static_cast<qint32>(item.getPosition().size());
+    for(qint32 i:item.getPosition())
+        out << i;
+    if(item.isContent()){
+        wchar_t content[1]={item.getContent()};
+        out << QString::fromWCharArray(content);
+    }else if(item.isStyle()){
+        out << item.getStyleType();
+        switch(item.getStyleType()){
+            case StyleType::Paragraph:
+                out << item.getAlignment();
+                break;
+            case StyleType::Color:
+            case StyleType::ColorEnd:
+                out << item.getColor();
+                break;
+            case StyleType::Font:
+            case StyleType::FontEnd:
+                out << item.getFontName();
+                break;
+            case StyleType::FontSize:
+            case StyleType::FontSizeEnd:
+                out << item.getFontSize();
+                break;
+            default:
+                break;
         }
-        else if(s.style == StyleType::ColorEnd){
-            pushIntToByteArray(s.color.length(), bytes, &offset);
-            for(int i=0; i<s.color.length(); i++)
-                bytes[offset++] = s.color.at(i);
-        }
-        else if(s.style == StyleType::Font){
-            pushIntToByteArray(s.fontname.length(), bytes, &offset);
-            for(int i=0; i<s.fontname.length(); i++)
-                bytes[offset++] = s.fontname.at(i);
-        }
-        else if(s.style == StyleType::FontEnd){
-            pushIntToByteArray(s.fontname.length(), bytes, &offset);
-            for(int i=0; i<s.fontname.length(); i++)
-                bytes[offset++] = s.fontname.at(i);
-        }
-        else if(s.style == StyleType::FontSize){
-            pushIntToByteArray(s.fontsize, bytes, &offset);
-        }
-        else if(s.style == StyleType::FontSizeEnd){
-            pushIntToByteArray(s.fontsize, bytes, &offset);
-        }
+
     }
-    int payloadLen = offset-4;
+    return out;
+    /* int payloadLen = offset-4;
     int tmp = 0;
-    pushIntToByteArray(payloadLen, bytes, &tmp);
-    return bytes;
+    pushIntToByteArray(payloadLen, bytes, &tmp);*/
 }
 
-Symbol Symbol::unserialize(const char *bytes){
-    Symbol s;
-    int offset=0;
-    int payloadLen = popIntFromByteArray(bytes, &offset); //payload length
-    s.type = (SymbolType)popIntFromByteArray(bytes, &offset);
-    s.siteId = popIntFromByteArray(bytes, &offset);
-    s.siteCounter = popIntFromByteArray(bytes, &offset);
-    int posLen = popIntFromByteArray(bytes, &offset);
-    for(int i=0; i<posLen; i++)
-        s.position.push_back((unsigned int)popIntFromByteArray(bytes, &offset));
-    if(s.isContent())
-        s.c = popWCharFromByteArray(bytes, &offset);
-    else if(s.isStyle()){
-        s.style = (StyleType)popIntFromByteArray(bytes, &offset);
-        if(s.style == StyleType::Paragraph)
-            s.alignment = (AlignmentType)popIntFromByteArray(bytes, &offset);
-        else if(s.style == StyleType::Color){
-            int colLen = popIntFromByteArray(bytes, &offset);
-            for(int i=0; i<colLen; i++)
-                s.color.push_back(bytes[offset++]);
-        }
-        else if(s.style == StyleType::ColorEnd){
-            int colLen = popIntFromByteArray(bytes, &offset);
-            for(int i=0; i<colLen; i++)
-                s.color.push_back(bytes[offset++]);
-        }
-        else if(s.style == StyleType::Font){
-            int fontLen = popIntFromByteArray(bytes, &offset);
-            for(int i=0; i<fontLen; i++)
-                s.color.push_back(bytes[offset++]);
-        }
-        else if(s.style == StyleType::FontEnd){
-            int fontLen = popIntFromByteArray(bytes, &offset);
-            for(int i=0; i<fontLen; i++)
-                s.color.push_back(bytes[offset++]);
-        }
-        else if(s.style == StyleType::FontSize){
-            s.fontsize = popIntFromByteArray(bytes, &offset);
-        }
-        else if(s.style == StyleType::FontSizeEnd){
-            s.fontsize = popIntFromByteArray(bytes, &offset);
+QDataStream &operator>>(QDataStream &in, Symbol &item){
+    qint32 type;
+    qint32 siteId;
+    qint32 siteCounter;
+    std::vector<qint32> position;
+    wchar_t c;
+    qint32 style;
+    QString tag;
+    qint32 alignment;
+    QString color;
+    QString fontname;
+    qint32 fontsize;
+
+    in >> type;
+    in >> siteId;
+    in >> siteCounter;
+    qint32 positionSize;
+    in >> positionSize;
+    for(qint32 i;i<positionSize;i++){
+        qint32 positionElement;
+        in >> positionElement;
+        position.push_back(positionElement);
+    }
+    if(type == SymbolType::Content){
+        wchar_t cArray[1];
+        QString c0;
+        in >> c0;
+        c0.toWCharArray(cArray);
+        c=cArray[0];
+        item = Symbol{c, siteId, siteCounter, position};
+    }else if(type == SymbolType::Style){
+        in >> style;
+        switch (style) {
+            case StyleType::Paragraph:
+                in >> alignment;
+                item = Symbol{static_cast<StyleType>(style), static_cast<AlignmentType>(alignment), siteId, siteCounter, position};
+                break;
+            case StyleType::Bold:
+            case StyleType::BoldEnd:
+            case StyleType::Italic:
+            case StyleType::ItalicEnd:
+            case StyleType::Underlined:
+            case StyleType::UnderlinedEnd:
+                item = Symbol{static_cast<StyleType>(style), siteId, siteCounter, position};
+                break;
+            case StyleType::Color:
+            case StyleType::ColorEnd:
+                in >> color;
+                item = Symbol{static_cast<StyleType>(style), color, siteId, siteCounter, position};
+                break;
+            case StyleType::Font:
+            case StyleType::FontEnd:
+                in >> fontname;
+                item = Symbol{static_cast<StyleType>(style), fontname, siteId, siteCounter, position};
+                break;
+            case StyleType::FontSize:
+            case StyleType::FontSizeEnd:
+                in >> fontsize;
+                item = Symbol{static_cast<StyleType>(style), fontsize, siteId, siteCounter, position};
+                break;
+            default:
+                break;
         }
     }
-    s.setProperTag();
-    return s;
-}
-
-void Symbol::pushObjectIntoArray(Symbol obj, char *bytes, int *offset){
-    char *serializedObject = Symbol::serialize(obj);
-    int payloadLen = peekIntFromByteArray(serializedObject);
-    for(int i=0; i<payloadLen+4; i++){
-        bytes[*offset] = serializedObject[i];
-        *offset = *offset+1;
-    }
-    delete[] serializedObject;
-    return;
-}
-
-Symbol Symbol::popObjectFromArray(const char *bytes, int *offset){
-    Symbol obj = Symbol::unserialize(bytes+*offset);
-    return obj;
+    return in;
 }

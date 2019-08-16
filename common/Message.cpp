@@ -8,7 +8,7 @@ Message::Message() {};
 
 Message::Message(MessageType t, Symbol s) : type(t), value(s) {};
 
-Message::Message(MessageType t, std::string cmd) : type(t), command(cmd) {};
+Message::Message(MessageType t, QString cmd) : type(t), command(cmd) {};
 
 MessageType Message::getType() const {
     return type;
@@ -40,47 +40,41 @@ std::string Message::toString(){
         result += "Unknown";
     result += " - Content: ";
     if(this->type != MessageType::Erase &&this->type!=MessageType::Insert)
-        result += this->command;
+        result += this->command.toStdString();
     else
         result += this->value.toString();
     return result;
 }
 
-std::string Message::getCommand() const {
+QString Message::getCommand() const {
     return command;
 }
 
-char* Message::serialize(Message m){
-    char *bytes = new char[100];
-    int offset = 0;
-    Symbol::pushIntToByteArray(m.type, bytes, &offset);
-    if(m.type == MessageType::Erase||m.type==MessageType::Insert)
-        Symbol::pushObjectIntoArray(m.value, bytes, &offset);
-    else {
-        Symbol::pushIntToByteArray(m.command.length(), bytes, &offset);
-        const char *cstring = m.command.c_str();
-        for(int i=0; i<m.command.length(); i++){
-            bytes[offset] = cstring[i];
-            offset++;
-        }
-    }
-    return bytes;
+QDataStream& operator<<(QDataStream &out, const Message &item){
+    if(item.type==MessageType::Insert||item.type==MessageType::Erase)
+        out << item.type << item.value;
+    else
+        out << item.type << item.command;
+    return out;
 }
+QDataStream &operator>>(QDataStream &in, Message &item){
+    qint32 messageType;
+    Symbol symbol;
 
-Message Message::unserialize(const char *bytes){
-    Message m;
-    int offset = 0;
-    m.type = (MessageType)Symbol::popIntFromByteArray(bytes, &offset);
-    if(m.type == MessageType::Erase||m.type==MessageType::Insert)
-        m.value = Symbol::popObjectFromArray(bytes, &offset);
-    else {
-        char cstring[100];
-        int length = Symbol::popIntFromByteArray(bytes, &offset);
-        int i;
-        for(i=0; i<length; i++)
-            cstring[i] = bytes[i+offset];
-        cstring[i] = '\0';
-        m.command = std::string(cstring);
+    in >> messageType;
+    switch(messageType){
+        case MessageType::Erase:
+        case MessageType::Insert:
+        {
+            in >> symbol;
+            item = Message{static_cast<MessageType>(messageType),symbol};
+            break;
+        }
+        default:
+            QString command;
+            in >> command;
+            item = Message{static_cast<MessageType>(messageType),command};
+            break;
     }
-    return m;
+    return in;
 }

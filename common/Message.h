@@ -6,6 +6,8 @@
 #define KANGAROO_DOCS_MESSAGE_H
 
 #include "Symbol.h"
+#include <QDataStream>
+
 enum MessageType {Insert, Erase, Login, Register, FileList, Create, Open, Error};
 
 /**
@@ -14,14 +16,14 @@ enum MessageType {Insert, Erase, Login, Register, FileList, Create, Open, Error}
 class Message {
     MessageType type;
     Symbol value;
-    std::string command;
+    QString command;
 public:
     //Default constructor
     Message();
     //Constructor for Insert or Erase, specifying the symbol
     Message(MessageType t, Symbol s);
     //Constructor for Command, specifying the command string
-    Message(MessageType t, std::string cmd);
+    Message(MessageType t, QString cmd);
 
     MessageType getType() const;
     Symbol getSymbol() const;
@@ -32,11 +34,11 @@ public:
      * @return a readable digest of the symbol
      */
     std::string toString();
-    std::string getCommand() const;
+    QString getCommand() const;
 
-    //first 4 bytes: message type - second 4 bytes: remaining length
-    static char* serialize(Message m);
-    static Message unserialize(const char *bytes);
+    friend QDataStream &operator<<(QDataStream &out, const Message &item);
+    friend QDataStream &operator>>(QDataStream &in, Message &item);
+
 };
 
 

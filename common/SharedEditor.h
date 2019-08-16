@@ -186,6 +186,17 @@ private:
      * @return number of empty tags removed
      */
     int eraseTwinTags();
+
+    /**
+     * propagateStyleToEditor
+     *
+     * @param index the position of the newly inserted style symbol
+     */
+    void propagateStyleToEditor(int index);
+
+    void applyStylesToEditor();
+
+
     /**
      * In the Symbol vector there are both Content and Style symbols.
      * However, in the text box there are only characters.

@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <string>
+#include <QDataStream>
 
 enum SymbolType {Content = 0, Style = 1};
 enum StyleType {Paragraph,
@@ -46,9 +47,9 @@ enum AlignmentType {AlignLeft, AlignCenter, AlignRight, AlignJustified};
  */
 class Symbol {
     SymbolType type;
-    int siteId;
-    int siteCounter;
-    std::vector<int> position;
+    qint32 siteId;
+    qint32 siteCounter;
+    std::vector<qint32> position;
 
     wchar_t c;
     StyleType style;
@@ -56,11 +57,11 @@ class Symbol {
      * Tag is used to represent a human-readable form of a style symbol.
      * It is only used to check for correctness in debug prints.
      */
-    std::string tag;
+    QString tag;
     //Alignment is specific to a Paragraph style
     AlignmentType alignment;
-    std::string color;
-    std::string fontname;
+    QString color;
+    QString fontname;
     int fontsize;
 
 public:
@@ -77,7 +78,7 @@ public:
     //Style constructor for Paragraph
     Symbol(StyleType style, AlignmentType alignment, int site, int counter, std::vector<int> pos);
     //Style constructor for Color or Font
-    Symbol(StyleType style, std::string param, int site, int counter, std::vector<int> pos);
+    Symbol(StyleType style, QString param, int site, int counter, std::vector<int> pos);
     //Style constructor for FontSize
     Symbol(StyleType style, int fontsize, int site, int counter, std::vector<int> pos);
     //Style constructor for copy
@@ -85,8 +86,10 @@ public:
 
     //general methods
     bool operator<(const Symbol &other) const;
-    bool isContent();
-    bool isStyle();
+    bool operator==(const Symbol &other) const;
+    bool isContent() const;
+    bool isStyle() const;
+    bool isFake() const;
     std::vector<int> getPosition();
     /**
      * Returns a human-readable string with all symbol relevant properties,
@@ -97,13 +100,19 @@ public:
     std::string toString();
 
     //getters
-    wchar_t getContent();
-    StyleType getStyleType();
-    std::string getTag();
-    AlignmentType getAlignment();
-    std::string getColor();
-    std::string getFontName();
-    int getFontSize();
+    SymbolType getType() const;
+    qint32 getSiteId() const;
+    qint32 getSiteCounter() const;
+    std::vector<qint32> getPosition() const;
+    wchar_t getContent() const;
+    StyleType getStyleType() const;
+    QString getTag() const;
+    AlignmentType getAlignment() const;
+    QString getColor() const;
+    QString getFontName() const;
+    qint32 getFontSize() const;
+
+    QString getPlaintext() const;
 
     //utilites
     /**
@@ -204,20 +213,8 @@ public:
      */
     bool isComplexStyle();
 
-    //network
-    //quick and dirty: this serialization depends on the endiannes of the machine
-    //CHANGE IT TO BE INDEPENDENT FROM MACHINE'S ENDIANNES !!!
-    static char* serialize(Symbol s);
-    static Symbol unserialize(const char* bytes);
-    static void pushObjectIntoArray(Symbol obj, char *bytes, int *offset);
-    static Symbol popObjectFromArray(const char *bytes, int *offset);
-
-    static void pushIntToByteArray(uint32_t i, char *bytes, int *offset);
-    static void pushWCharToByteArray(wchar_t c, char *bytes, int *offset);
-    static void pushBytesToByteArray(char *dest, int *offset, char *source, int sourceOff, int len);
-    static uint32_t peekIntFromByteArray(const char *bytes);
-    static uint32_t popIntFromByteArray(const char *bytes, int *offset);
-    static wchar_t popWCharFromByteArray(const char *bytes, int *offset);
+    friend QDataStream &operator<<(QDataStream &out, const Symbol &item);
+    friend QDataStream &operator>>(QDataStream &in, Symbol &item);
 
 };
 
