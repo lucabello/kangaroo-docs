@@ -133,6 +133,7 @@ void KangarooServer::propagate(int descriptor, Message message){
 
 void KangarooServer::doLogin(int descriptor, Message message){
     QString loginString = message.getCommand();
+    QString username = loginString.split(",").at(0);
     QFile inputFile("users.txt");
     bool result = false;
     QString siteId = "-1";
@@ -149,7 +150,9 @@ void KangarooServer::doLogin(int descriptor, Message message){
     }
     Message m;
     if(result == true){
+        descriptorToEditor.at(descriptor).setDescriptor(descriptor);
         descriptorToEditor.at(descriptor).setSiteId(siteId.toUInt());
+        descriptorToEditor.at(descriptor).setUsername(username);
         m = Message{MessageType::Login, siteId};
         descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
         sendFileList(descriptor);
@@ -237,6 +240,9 @@ void KangarooServer::doOpen(int descriptor, Message message){
             filenameToSymbols.insert({filename, std::vector<Symbol>()});
             alreadyInMemory = false;
         }
+        for(int d : filenameToDescriptors.at(filename)){
+            sendEditorList(d, filename);
+        }
         m = Message{MessageType::Open, ""};
         descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
         sendFile(descriptor, filename, alreadyInMemory);
@@ -260,6 +266,25 @@ void KangarooServer::sendFileList(int descriptor){
 
     QString result = QString::fromStdString(fileList);
     Message m{MessageType::FileList,result};
+    descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
+}
+
+void KangarooServer::sendEditorList(int descriptor, QString filename){
+    std::string editorList;
+    if(filenameToDescriptors.count(filename) != 0){
+        for(int d : filenameToDescriptors.at(filename)){
+            ConnectedEditor& ce = descriptorToEditor.at(d);
+            QString username = ce.getUsername();
+            int site = ce.getSiteId();
+            editorList.append(username.toStdString());
+            editorList.append(":");
+            editorList.append(std::to_string(site));
+            editorList.append(",");
+        }
+        editorList = editorList.substr(0, editorList.size()-1);
+    }
+    Message m{MessageType::EditorList, QString::fromStdString(editorList)};
+    //send list (outside if should be empty
     descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
 }
 
@@ -347,12 +372,15 @@ void KangarooServer::hostDisconnected(int descriptor){
     std::vector<int>& v = filenameToDescriptors.at(filename);
     //remove descriptor from map
     v.erase(std::remove(v.begin(), v.end(), descriptor), v.end());
+    for(int d : v){
+        sendEditorList(d, filename);
+    }
     if(v.size() == 0){
         saveFile(filename);
         filenameToDescriptors.erase(filename);
         filenameToSymbols.erase(filename);
     }
-    descriptorToEditor.erase(descriptor);
+    //descriptorToEditor.erase(descriptor);
 }
 
 void KangarooServer::insertControlSymbols(int descriptor, QString filename){

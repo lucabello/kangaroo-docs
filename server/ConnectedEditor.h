@@ -13,15 +13,21 @@ class ConnectedEditor
 public:
     ConnectedEditor();
     ConnectedEditor(ServerSocket *s);
-    int getDescriptor();
     ServerSocket* getSocket();
+    int getDescriptor();
+    QString getUsername();
+    int getSiteId();
     QString getWorkingFile();
+
+    void setDescriptor(int descr);
+    void setUsername(QString user);
     void setSiteId(int id);
     void setWorkingFile(QString filename);
 
 private:
     ServerSocket *mySocket;
     int descriptor;
+    QString username;
     int siteId;
     QString workingFile;
 };

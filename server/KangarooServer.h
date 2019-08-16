@@ -37,6 +37,7 @@ private:
     void doCreate(int descriptor, Message message);
     void doOpen(int descriptor, Message message);
     void sendFileList(int descriptor);
+    void sendEditorList(int descriptor, QString filename);
     void saveFile(QString filename);
     void sendFile(int descriptor, QString filename, bool alreadyInMemory);
     void insertControlSymbols(int descriptor, QString filename);
