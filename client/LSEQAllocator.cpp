@@ -9,17 +9,16 @@
 /**
  * Generate a random boolean value.
  *
- * @return
+ * @return a random boolean value
  */
 bool getRandomBool();
 
 /**
  * Generate a random number in the interval [min, max].
  *
- *
  * @param min
  * @param max
- * @return
+ * @return a random int in [min,max]
  */
 int getRandomInt(int min, int max);
 

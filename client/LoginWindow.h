@@ -30,7 +30,7 @@ private:
     QLineEdit *ipLine;
     ClientSocket *tcpSocket;
     void showResult(Message message);
-    void showResult(std::string result);
+    void showResult(QString result);
     void openFileListWindow(Message message);
 };
 

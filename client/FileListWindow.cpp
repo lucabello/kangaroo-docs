@@ -49,7 +49,8 @@ void FileListWindow::openFileClicked(){
     if(qFileList->currentItem()==nullptr)
         QMessageBox::warning(this,"Warning","No file selected!");
     else{
-        std::string filename = qFileList->currentItem()->text().toStdString();
+        QString filename = qFileList->currentItem()->text();
+        changeFileName(filename);
         Message m {MessageType::Open, filename};
         tcpSocket->writeMessage(m);
     }
@@ -57,8 +58,12 @@ void FileListWindow::openFileClicked(){
 
 void FileListWindow::newFileClicked(){
     QString filename = QInputDialog::getText(this,"New File Name","Insert the name of new file:");
+    if(filename.isEmpty()){
+        QMessageBox::warning(this, "Error", "Please insert something as filename.");
+        return;
+    }
     changeFileName(filename);
-    Message m {MessageType::Create, filename.toStdString()};
+    Message m {MessageType::Create, filename};
     tcpSocket->writeMessage(m);
 }
 
@@ -72,7 +77,7 @@ void FileListWindow::incomingMessage(Message message){
             break;
         case MessageType::FileList:
         {
-            QStringList qlist = QString::fromStdString(message.getCommand()).split(",");
+            QStringList qlist = message.getCommand().split(",");
             std::vector<std::string> fileList;
             for(QString s : qlist)
                 fileList.push_back(s.toStdString());
@@ -80,7 +85,7 @@ void FileListWindow::incomingMessage(Message message){
             break;
         }
         case MessageType::Error:
-            qDebug() << "Error!" << QString::fromStdString(message.getCommand());
+            qDebug() << "Error!" << message.getCommand();
             break;
         default:
             break;
@@ -92,7 +97,7 @@ void FileListWindow::showFileList(ClientSocket* s, std::vector<std::string> file
     fileList = files;
     qFileList->clear();
     connect(tcpSocket, &ClientSocket::signalMessage,
-            this, &FileListWindow::incomingMessage);
+            this, &FileListWindow::incomingMessage, Qt::UniqueConnection);
     for (std::string& fileName: fileList){
          qFileList->addItem(QString::fromStdString(fileName));
     }
@@ -102,7 +107,7 @@ void FileListWindow::showFileList(ClientSocket* s, std::vector<std::string> file
 void FileListWindow::newFileListWindow(ClientSocket *s){
     tcpSocket = s;
     connect(tcpSocket, &ClientSocket::signalMessage,
-            this, &FileListWindow::incomingMessage);
+            this, &FileListWindow::incomingMessage, Qt::UniqueConnection);
     tcpSocket->writeMessage(Message{MessageType::FileList,""});
 }
 

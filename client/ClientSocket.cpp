@@ -30,6 +30,10 @@ void ClientSocket::doConnect()
     }
 }
 
+void ClientSocket::doDisconnect(){
+    socket->disconnectFromHost();
+}
+
 void ClientSocket::connected()
 {
     qDebug() << "connected...";
@@ -42,46 +46,44 @@ void ClientSocket::disconnected()
 
 void ClientSocket::bytesWritten(qint64 bytes)
 {
-    qDebug() << bytes << " bytes written...";
+    //qDebug() << bytes << " bytes written...";
 }
 
 void ClientSocket::readMessage()
 {
-    qDebug() << "reading...";
+    QDataStream clientReadStream(socket);
+    qint32 nextMessageSize=0;
+    Message message;
+    while(socket->bytesAvailable() > 0) {
+        while(socket->bytesAvailable()<4)
+            qDebug() << " >> Waiting for the next message size..";
+        clientReadStream >> nextMessageSize;
+        while(socket->bytesAvailable() < nextMessageSize)
+            qDebug() << " >> Waiting for the next message...";
 
-    while(socket->bytesAvailable() > 0){
-        while(socket->bytesAvailable() < 8)
-            qDebug() << " >> Waiting for more than 8 bytes...";
-        //qDebug() << "... more than 8 bytes available";
-        char *header = socket->read(8).data();
-        int payloadLength = Symbol::peekIntFromByteArray(header+4); //peek length, not message type
-        //qDebug() << "... payloadLength = " << payloadLength;
-        //qDebug() << "... bytesAvailable = " << socket->bytesAvailable();
-
-        while(socket->bytesAvailable() < payloadLength)
-            qDebug() << " >> Waiting for more than 8 bytes...";
-
-        char *payload = socket->read(payloadLength).data();
-        char bytes[100];
-        for(int i=0; i<8; i++)
-            bytes[i] = header[i];
-        for(int i=0; i<payloadLength; i++)
-            bytes[i+8] = payload[i];
-        Message m = Message::unserialize(bytes);
-        //qDebug() << "NEW MESSAGE";
-        //qDebug() << "->-> MessageType: " << m.getType();
-        //qDebug() << "->-> SymbolContent: " << m.getSymbol().getContent();
-        //qDebug() << "->-> processing message...";
-        emit signalMessage(m);
-        //qDebug() << "->-> message processed.";
+        clientReadStream >> message;
+        qDebug() << "[ClientSocket] I read this message: " << QString::fromStdString(message.toString());
+        signalMessage(message);
     }
-    //qDebug() << "-------------------------------- Now no more messages! Nice!";
 }
 
 void ClientSocket::writeMessage(Message message){
-    char *data = Message::serialize(message);
-    int len = Symbol::peekIntFromByteArray(data+4)+8;
-    qDebug() << "writing " << len << " bytes ...";
-    int written = socket->write(data, len);
-    qDebug() << written << " bytes written.";
+    //SERIALIZATION
+    QByteArray serializedMessage;
+    QDataStream serializedStream(&serializedMessage, QIODevice::ReadWrite);
+    serializedStream << message;
+
+    //NETWORK -- ADDING SIZE
+    QByteArray networkMessage;
+    qint32 size=serializedMessage.size();
+    QDataStream networkStream(&networkMessage, QIODevice::ReadWrite);
+    networkStream << size << message;
+/*
+    qDebug() << "[ClientSocket] Sending " << size << " bytes for this message:";
+    qDebug() << QString::fromStdString(message.toString());
+*/
+    //qDebug() << size << " + " << sizeof (size) << " = " << networkMessage.size() << "bytes sending";
+    qint64 written = socket->write(networkMessage);
+    socket->flush();
+    //qDebug() << written << " bytes written.";
 }

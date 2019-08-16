@@ -86,7 +86,7 @@ void LoginWindow::loginClicked(){
             this, &LoginWindow::incomingMessage);
     tcpSocket->doConnect();
 
-    Message m {MessageType::Login,username.toStdString()+","+password.toStdString()}; //prepare and send message
+    Message m {MessageType::Login,username+","+password}; //prepare and send message
     //char *serM = Message::serialize(m);
     tcpSocket->writeMessage(m);//serM,Symbol::peekIntFromByteArray(serM+4)+8);
 }
@@ -102,7 +102,7 @@ void LoginWindow::registerClicked(){
             this, &LoginWindow::incomingMessage);
     tcpSocket->doConnect();
 
-    Message m {MessageType::Register,username.toStdString()+","+password.toStdString()};
+    Message m {MessageType::Register,username+","+password};
     tcpSocket->writeMessage(m);
 }
 
@@ -113,10 +113,10 @@ void LoginWindow::hideWindow(){
 }
 
 void LoginWindow::incomingMessage(Message message){
-    qDebug()<<QString::fromStdString(message.getCommand());
+    qDebug()<<message.getCommand();
     switch(message.getType()){
         case MessageType::Login:
-            siteIdReceived(std::stoi(message.getCommand()));
+            siteIdReceived(message.getCommand().toUInt());
             showResult("Login successful.");
             break;
         case MessageType::Register:
@@ -134,15 +134,15 @@ void LoginWindow::incomingMessage(Message message){
 }
 
 void LoginWindow::showResult(Message message){
-    QMessageBox::information(this,"Result",QString::fromStdString(message.getCommand()));
+    QMessageBox::information(this,"Result",message.getCommand());
 }
 
-void LoginWindow::showResult(std::string result){
-    QMessageBox::information(this,"Result",QString::fromStdString(result));
+void LoginWindow::showResult(QString result){
+    QMessageBox::information(this,"Result",result);
 }
 
 void LoginWindow::openFileListWindow(Message message){
-    QStringList qlist = QString::fromStdString(message.getCommand()).split(",");
+    QStringList qlist = message.getCommand().split(",");
     std::vector<std::string> fileList;
     for(QString s : qlist)
         fileList.push_back(s.toStdString());

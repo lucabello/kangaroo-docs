@@ -86,6 +86,7 @@
 
 #include "TextEdit.h"
 #include "ClientSocket.h"
+#define QT_NO_CLIPBOARD
 
 #ifdef Q_OS_MAC
 const QString rsrcPath = ":/images/mac";
@@ -134,15 +135,15 @@ TextEdit::TextEdit(QWidget *parent)
             actionSave, &QAction::setEnabled);
     connect(textEdit->document(), &QTextDocument::modificationChanged,
             this, &QWidget::setWindowModified);
-    connect(textEdit->document(), &QTextDocument::undoAvailable,
-            actionUndo, &QAction::setEnabled);
-    connect(textEdit->document(), &QTextDocument::redoAvailable,
-            actionRedo, &QAction::setEnabled);
+    //connect(textEdit->document(), &QTextDocument::undoAvailable,
+    //        actionUndo, &QAction::setEnabled);
+    //connect(textEdit->document(), &QTextDocument::redoAvailable,
+    //        actionRedo, &QAction::setEnabled);
 
     setWindowModified(textEdit->document()->isModified());
     actionSave->setEnabled(textEdit->document()->isModified());
-    actionUndo->setEnabled(textEdit->document()->isUndoAvailable());
-    actionRedo->setEnabled(textEdit->document()->isRedoAvailable());
+    //actionUndo->setEnabled(textEdit->document()->isUndoAvailable());
+    //actionRedo->setEnabled(textEdit->document()->isRedoAvailable());
 
 #ifndef QT_NO_CLIPBOARD
     actionCut->setEnabled(false);
@@ -178,11 +179,11 @@ void TextEdit::setupFileActions()
     QToolBar *tb = addToolBar(tr("File Actions"));
     QMenu *menu = menuBar()->addMenu(tr("&File"));
 
-    const QIcon newIcon = QIcon::fromTheme("document-new", QIcon(rsrcPath + "/filenew.png"));
-    QAction *a = menu->addAction(newIcon,  tr("&New"), this, &TextEdit::logout);
+    const QIcon logoutIcon = QIcon::fromTheme("document-logout", QIcon(rsrcPath + "/logout.png"));
+    QAction *a = menu->addAction(logoutIcon,  tr("&Logout"), this, &TextEdit::logout);
     tb->addAction(a);
     a->setPriority(QAction::LowPriority);
-    a->setShortcut(QKeySequence::New);
+    a->setShortcut(Qt::CTRL + Qt::Key_L);
 
     const QIcon openIcon = QIcon::fromTheme("document-open", QIcon(rsrcPath + "/fileopen.png"));
     a = menu->addAction(openIcon, tr("&Open..."), this, &TextEdit::fileOpen);
@@ -202,6 +203,7 @@ void TextEdit::setupFileActions()
     menu->addSeparator();
 
 #ifndef QT_NO_PRINTER
+
     const QIcon printIcon = QIcon::fromTheme("document-print", QIcon(rsrcPath + "/fileprint.png"));
     a = menu->addAction(printIcon, tr("&Print..."), this, &TextEdit::filePrint);
     a->setPriority(QAction::LowPriority);
@@ -214,7 +216,7 @@ void TextEdit::setupFileActions()
     const QIcon exportPdfIcon = QIcon::fromTheme("exportpdf", QIcon(rsrcPath + "/exportpdf.png"));
     a = menu->addAction(exportPdfIcon, tr("&Export PDF..."), this, &TextEdit::filePrintPdf);
     a->setPriority(QAction::LowPriority);
-    a->setShortcut(Qt::CTRL + Qt::Key_D);
+    a->setShortcut(Qt::CTRL + Qt::Key_P);
     tb->addAction(a);
 
     menu->addSeparator();
@@ -226,6 +228,7 @@ void TextEdit::setupFileActions()
 
 void TextEdit::setupEditActions()
 {
+    /*
     QToolBar *tb = addToolBar(tr("Edit Actions"));
     QMenu *menu = menuBar()->addMenu(tr("&Edit"));
 
@@ -240,7 +243,7 @@ void TextEdit::setupEditActions()
     actionRedo->setShortcut(QKeySequence::Redo);
     tb->addAction(actionRedo);
     menu->addSeparator();
-
+*/
 #ifndef QT_NO_CLIPBOARD
     const QIcon cutIcon = QIcon::fromTheme("edit-cut", QIcon(rsrcPath + "/editcut.png"));
     actionCut = menu->addAction(cutIcon, tr("Cu&t"), textEdit, &QTextEdit::cut);
@@ -458,7 +461,7 @@ void TextEdit::fileNew()
 }
 
 void TextEdit::logout(){
-    tcpSocket->disconnect();
+    tcpSocket->doDisconnect();
     hideWindow();
     showLoginWindow();
 }
@@ -657,7 +660,7 @@ void TextEdit::textFamily(const QString &f)
         cursor.select(QTextCursor::WordUnderCursor);
     int start = cursor.selectionStart();
     int end = cursor.selectionEnd();
-    textEdit->localSetStyle(start, end, Symbol(StyleType::Font, f.toStdString(), -1, -1, std::vector<int>()));
+    textEdit->localSetStyle(start, end, Symbol(StyleType::Font, f, -1, -1, std::vector<int>()));
     QTextCharFormat fmt;
     fmt.setFontFamily(f);
     mergeFormatOnWordOrSelection(fmt);
@@ -759,7 +762,7 @@ void TextEdit::textColor()
         cursor.select(QTextCursor::WordUnderCursor);
     int start = cursor.selectionStart();
     int end = cursor.selectionEnd();
-    textEdit->localSetStyle(start, end, Symbol(StyleType::Color, col.name().toStdString(), -1, -1, std::vector<int>()));
+    textEdit->localSetStyle(start, end, Symbol(StyleType::Color, col.name(), -1, -1, std::vector<int>()));
     QTextCharFormat fmt;
     fmt.setForeground(col);
     mergeFormatOnWordOrSelection(fmt);

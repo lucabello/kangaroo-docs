@@ -35,6 +35,7 @@ public:
      * to proper signals.
      */
     void doConnect();
+    void doDisconnect();
 
 signals:
     /**
