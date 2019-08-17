@@ -145,8 +145,12 @@ private:
     //TODO: substitute with MessageQueue
     std::queue<Message> _mqIn, _mqOut;
 
+
     std::map<qint32,Symbol> siteIdToCursor;
     std::map<qint32,QColor> siteIdToColor;
+
+
+    std::vector<Symbol> _clipboard;
 
     /**
      * Insert a character locally and send a Message to the server.
