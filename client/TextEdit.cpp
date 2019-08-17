@@ -586,12 +586,23 @@ void TextEdit::filePrintPreview()
 }
 
 void TextEdit::showConnectedUsers(){
-    QString infotext = "Users connected to the current file are:\n";
+    QMessageBox* msgAbout=new QMessageBox(this);
+    msgAbout->setWindowTitle("Connected Users");
+    QString infotext = "<span style='text-align: center'><p>Users connected to the current file are:</p>";
+
     for(auto pair : usernameToSiteId){
+        qint32 siteId=pair.second;
+        if(textEdit->siteIdHasColor(siteId)){
+            qDebug()<<"<font color=\""+textEdit->getSiteIdColor(siteId).name(QColor::HexRgb)+"\">";
+            infotext+=("<p style='color: "+textEdit->getSiteIdColor(siteId).name(QColor::HexRgb)+";'>");
+        }
         infotext.append(pair.first);
-        infotext.append('\n');
+        if(textEdit->siteIdHasColor(siteId))
+            infotext+=("</p>");
     }
-    QMessageBox::information(this, "Connected Users", infotext);
+    infotext+=("</span>");
+    msgAbout->setInformativeText(infotext);
+    msgAbout->exec();
 }
 
 void TextEdit::printPreview(QPrinter *printer)

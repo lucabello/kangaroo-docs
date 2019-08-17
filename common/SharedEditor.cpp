@@ -375,12 +375,10 @@ void SharedEditor::incomingPacket(Message m){
 void SharedEditor::process(const Message &m) {
     if(m.getType() == MessageType::Insert){
         Symbol sym = m.getSymbol();
-        QTextCursor cursor(this->textCursor());
-        if(_symbols.size() == 0){
-            _symbols.insert(_symbols.begin(), m.getSymbol());
-            cursor.atStart();
-            return;
-        }
+        qint32 siteId=sym.getSiteId();
+        QTextCursor cursor=textCursor();
+
+
         //if symbol found (already inserted) return
         if(std::find(_symbols.begin(), _symbols.end(), m.getSymbol()) != _symbols.end())
             return;
@@ -400,7 +398,13 @@ void SharedEditor::process(const Message &m) {
             if(m.getSymbol().getSiteId() == 0 && m.getSymbol().isFake()){
                 return;
             }
+            int cursorStart=cursor.position();
             cursor.insertText(QString::fromWCharArray(arr));
+            int cursorEnd=cursor.position();
+
+            //MOVE USER CURSOR TODO:COLOR
+
+            moveUserCursor(cursorStart,cursorEnd,m);
         }
         else {
             applyStylesToEditor();
@@ -414,12 +418,77 @@ void SharedEditor::process(const Message &m) {
         if(m.getSymbol().isContent()){
             QTextCursor cursor(this->textCursor());
             cursor.setPosition(vectorToEditorIndex(index));
+
+            int cursorStart=cursor.position()-1;
             cursor.deleteChar();
+            int cursorEnd=cursor.position();
+
+            //MOVE USER CURSOR
+            moveUserCursor(cursorStart,cursorEnd,m);
         }
         else {
             applyStylesToEditor();
         }
     }
+}
+
+QColor SharedEditor::randomColor(){
+    //Between 0 and 240, to avoid black and white
+    return QColor(rand()%231+10,rand()%231+10,rand()%231+10);
+}
+
+bool SharedEditor::siteIdHasColor(qint32 siteId){
+    return siteIdToColor.find(siteId)!=siteIdToColor.end();
+}
+
+QColor SharedEditor::getSiteIdColor(qint32 siteId){
+    return siteIdToColor[siteId];
+}
+
+void SharedEditor::moveUserCursor(int cursorStart,int cursorEnd,Message m){
+    Symbol sym = m.getSymbol();
+    qint32 siteId=sym.getSiteId();
+    QTextCursor cursor=textCursor();
+
+    QTextCharFormat fmt=QTextCharFormat();
+    std::vector<Symbol>::iterator it;
+    if(siteIdToCursor.find(siteId)==siteIdToCursor.end()){
+        siteIdToCursor.insert(std::pair<qint32,Symbol>(siteId,sym));
+        if(!siteIdHasColor(siteId))
+            siteIdToColor.insert(std::pair<qint32,QColor>(siteId,randomColor()));
+    }
+    else if((it=std::find(_symbols.begin(), _symbols.end(), siteIdToCursor[siteId])) !=_symbols.end()){
+        int index = vectorToEditorIndex(std::distance(_symbols.begin(),it));
+        qDebug()<<"previous position:"<<index <<"-"<<index+1;
+        cursor.setPosition(index, QTextCursor::MoveAnchor);
+        cursor.setPosition(index+1, QTextCursor::KeepAnchor);
+        this->setTextCursor(cursor);
+        fmt.setBackground(QColor("#ffffff"));
+        mergeCurrentCharFormat(fmt);
+    }
+    if(m.getType()!=MessageType::Erase){
+        siteIdToCursor[siteId]=sym;
+        cursor.setPosition(cursorStart, QTextCursor::MoveAnchor);
+        cursor.setPosition(cursorEnd, QTextCursor::KeepAnchor);
+        this->setTextCursor(cursor);
+        fmt.setBackground(siteIdToColor[siteId]);
+        mergeCurrentCharFormat(fmt);
+    }else{
+        if(cursorEnd>0){
+            siteIdToCursor[siteId]=_symbols.at(editorToVectorIndex(cursorStart));
+            cursor.setPosition(cursorStart, QTextCursor::MoveAnchor);
+            cursor.setPosition(cursorEnd, QTextCursor::KeepAnchor);
+            this->setTextCursor(cursor);
+            fmt.setBackground(siteIdToColor[siteId]);
+            mergeCurrentCharFormat(fmt);
+        }else
+            siteIdToCursor.erase(siteId);
+    }
+
+    qDebug()<<"after cursor:"<< cursorStart << "-" <<cursorEnd;
+
+    cursor.setPosition(cursorEnd);
+    this->setTextCursor(cursor);
 }
 
 std::wstring SharedEditor::to_string() {

@@ -110,6 +110,8 @@ public:
     std::wstring to_string();
     int getSiteId();
     void setSiteId(int siteId);
+    bool siteIdHasColor(qint32 siteId);
+    QColor getSiteIdColor(qint32 siteId);
 
 signals:
     /**
@@ -142,6 +144,10 @@ private:
     std::vector<Symbol> _symbols;
     //TODO: substitute with MessageQueue
     std::queue<Message> _mqIn, _mqOut;
+
+    std::map<qint32,Symbol> siteIdToCursor;
+    std::map<qint32,QColor> siteIdToColor;
+
     /**
      * Insert a character locally and send a Message to the server.
      *
@@ -268,6 +274,10 @@ private:
      * @param e event that triggered the method
      */
     void eraseSelectedText(QKeyEvent* e);
+
+    void moveUserCursor(int cursorStart,int cursorEnd,Message m);
+
+    QColor randomColor();
 };
 
 #endif // SHAREDEDITOR_H
