@@ -211,7 +211,7 @@ void TextEdit::setupFileActions()
     a->setPriority(QAction::LowPriority);
     menu->addSeparator();
 */
-    const QIcon uriIcon =  QIcon::fromTheme("document-open", QIcon(rsrcPath + "/uri.png"));
+    const QIcon uriIcon =  QIcon::fromTheme("document-share", QIcon(rsrcPath + "/editpaste.png"));
     a = menu->addAction(uriIcon, tr("&Share URI..."), this, &TextEdit::shareURI);
     a->setShortcut(Qt::CTRL + Qt::Key_S);
     tb->addAction(a);

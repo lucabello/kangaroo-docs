@@ -234,10 +234,11 @@ void KangarooServer::doOpen(int descriptor, Message message){
     Message m;
     QString pathname;
     QString filename;
+    QString serverAddr = this->server->serverAddress().toString();
     QStringList uri = message.getCommand().split("/");
     qDebug() << "URI: " << uri << "Message content: " << message.getCommand();
     if(uri.size() > 1) {
-        if(uri.first() != "127.0.0.1"){
+        if(uri.first() != serverAddr){
             m = Message{MessageType::Error, "Wrong URI request. This server does not exist."};
             return;
         }
