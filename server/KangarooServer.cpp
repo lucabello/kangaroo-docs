@@ -166,6 +166,7 @@ void KangarooServer::doLogin(int descriptor, Message message){
 
 void KangarooServer::doRegister(int descriptor, Message message){
     QString registerString = message.getCommand();
+    QString username=registerString.split(",")[0];
     QFile userFile("users.txt");
     bool result = true;
     int newSiteId = 1;
@@ -173,7 +174,7 @@ void KangarooServer::doRegister(int descriptor, Message message){
         QTextStream in(&userFile);
         while(!in.atEnd() && result){
             QString line = in.readLine();
-            if(line.startsWith(registerString)){
+            if(line.startsWith(username)){
                 result = false;
             }
             newSiteId++;
@@ -188,6 +189,9 @@ void KangarooServer::doRegister(int descriptor, Message message){
             userFile.write(line.toUtf8());
             userFile.close();
         }
+        descriptorToEditor.at(descriptor).setDescriptor(descriptor);
+        descriptorToEditor.at(descriptor).setSiteId(newSiteId);
+        descriptorToEditor.at(descriptor).setUsername(username);
         m = Message{MessageType::Register, ""};
         descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
         sendFileList(descriptor);
@@ -216,6 +220,9 @@ void KangarooServer::doCreate(int descriptor, Message message){
         //should always be true, since the file does not exist yet
         if(filenameToSymbols.count(filename) == 0)
             filenameToSymbols.insert({filename, std::vector<Symbol>()});
+        for(int d : filenameToDescriptors.at(filename)){
+            sendEditorList(d, filename);
+        }
         m = Message{MessageType::Create, ""};
         descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
         insertControlSymbols(descriptor, filename);

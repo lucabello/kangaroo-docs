@@ -9,15 +9,15 @@
 #include <string>
 #include <QDataStream>
 
-enum SymbolType {Content = 0, Style = 1};
-enum StyleType {Paragraph,
+enum SymbolType:qint32 {Content = 0, Style = 1};
+enum StyleType:qint32 {Paragraph,
                 Bold, BoldEnd,
                 Italic, ItalicEnd,
                 Underlined, UnderlinedEnd,
                 Color, ColorEnd,
                 Font, FontEnd,
                 FontSize, FontSizeEnd};
-enum AlignmentType {AlignLeft, AlignCenter, AlignRight, AlignJustified};
+enum AlignmentType:qint32 {AlignLeft, AlignCenter, AlignRight, AlignJustified};
 
 /**
  * Symbol represented as a CRDT (Common Replicated Data Type).

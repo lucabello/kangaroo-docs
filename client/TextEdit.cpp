@@ -133,8 +133,8 @@ TextEdit::TextEdit(QWidget *parent)
     colorChanged(textEdit->textColor());
     alignmentChanged(textEdit->alignment());
 
-    connect(textEdit, &SharedEditor::setEditorList,
-            this, &TextEdit::setEditorList);
+    //connect(textEdit, &SharedEditor::setEditorList,
+    //        this, &TextEdit::setEditorList);
     //connect(textEdit->document(), &QTextDocument::modificationChanged,
     //        actionSave, &QAction::setEnabled);
     connect(textEdit->document(), &QTextDocument::modificationChanged,
@@ -479,6 +479,10 @@ void TextEdit::logout(){
     showLoginWindow();
 }
 
+void TextEdit::setEditorList(QString list){
+    textEdit->setEditorList(list);
+}
+
 void TextEdit::showTextEdit(ClientSocket* s){
     tcpSocket = s;
     connect(textEdit, &SharedEditor::packetReady,
@@ -503,17 +507,6 @@ void TextEdit::hideWindow(){
     disconnect(tcpSocket, &ClientSocket::signalMessage,
             textEdit, &SharedEditor::incomingPacket);
     this->hide();
-}
-
-void TextEdit::setEditorList(QString userlist){
-    usernameToSiteId.clear();
-    QStringList qlist = userlist.split(",");
-    for(QString s : qlist){
-        QString username = s.split(":").at(0);
-        QString siteId = s.split(":").at(1);
-        int site = siteId.toInt();
-        usernameToSiteId.insert({username, site});
-    }
 }
 
 void TextEdit::fileOpen()
@@ -594,12 +587,25 @@ void TextEdit::filePrintPreview()
 }
 
 void TextEdit::showConnectedUsers(){
-    QString infotext = "Users connected to the current file are:\n";
+    QMessageBox* msgAbout=new QMessageBox(this);
+    msgAbout->setWindowTitle("Connected Users");
+    QString infotext = "<span style='text-align: center'><p>Users connected to the current file are:</p>";
+
+    std::map<QString,int> usernameToSiteId=textEdit->getEditorList();
+
     for(auto pair : usernameToSiteId){
+        qint32 siteId=pair.second;
+        if(textEdit->siteIdHasColor(siteId)){
+            qDebug()<<"<font color=\""+textEdit->getSiteIdColor(siteId).name(QColor::HexRgb)+"\">";
+            infotext+=("<p style='color: "+textEdit->getSiteIdColor(siteId).name(QColor::HexRgb)+";'>");
+        }
         infotext.append(pair.first);
-        infotext.append('\n');
+        if(textEdit->siteIdHasColor(siteId))
+            infotext+=("</p>");
     }
-    QMessageBox::information(this, "Connected Users", infotext);
+    infotext+=("</span>");
+    msgAbout->setInformativeText(infotext);
+    msgAbout->exec();
 }
 
 void TextEdit::printPreview(QPrinter *printer)
@@ -709,14 +715,15 @@ void TextEdit::textItalic()
 
 void TextEdit::textFamily(const QString &f)
 {
+    QString familyName = QFont(f).family();
     QTextCursor cursor = textEdit->textCursor();
     if(!cursor.hasSelection())
         cursor.select(QTextCursor::WordUnderCursor);
     int start = cursor.selectionStart();
     int end = cursor.selectionEnd();
-    textEdit->localSetStyle(start, end, Symbol(StyleType::Font, f, -1, -1, std::vector<int>()));
+    textEdit->localSetStyle(start, end, Symbol(StyleType::Font, familyName, -1, -1, std::vector<int>()));
     QTextCharFormat fmt;
-    fmt.setFontFamily(f);
+    fmt.setFontFamily(familyName);
     mergeFormatOnWordOrSelection(fmt);
 
 }
@@ -728,9 +735,10 @@ void TextEdit::textSize(const QString &p)
         cursor.select(QTextCursor::WordUnderCursor);
     int start = cursor.selectionStart();
     int end = cursor.selectionEnd();
-    textEdit->localSetStyle(start, end, Symbol(StyleType::FontSize, p.toFloat(), -1, -1, std::vector<int>()));
+
     qreal pointSize = p.toFloat();
     if (p.toFloat() > 0) {
+        textEdit->localSetStyle(start, end, Symbol(StyleType::FontSize, p.toFloat(), -1, -1, std::vector<int>()));
         QTextCharFormat fmt;
         fmt.setFontPointSize(pointSize);
         mergeFormatOnWordOrSelection(fmt);
@@ -853,6 +861,9 @@ void TextEdit::currentCharFormatChanged(const QTextCharFormat &format)
 void TextEdit::cursorPositionChanged()
 {
     alignmentChanged(textEdit->alignment());
+
+
+
     /*
     QTextList *list = textEdit->textCursor().currentList();
     if (list) {
