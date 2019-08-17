@@ -113,10 +113,6 @@ public:
     bool siteIdHasColor(qint32 siteId);
     QColor getSiteIdColor(qint32 siteId);
 
-    void setEditorList(QString);
-
-    std::map<QString,int> getEditorList();
-
 signals:
     /**
      * Emitted when a packet is ready to be sent.
@@ -130,6 +126,7 @@ signals:
      * purposes.
      */
     void connectToServer();
+    void setEditorList(QString);
 
 public slots:
     /**
@@ -147,17 +144,14 @@ private:
     std::vector<Symbol> _symbols;
     //TODO: substitute with MessageQueue
     std::queue<Message> _mqIn, _mqOut;
-
+<<<<<<< HEAD
 
     std::map<qint32,Symbol> siteIdToCursor;
     std::map<qint32,QColor> siteIdToColor;
 
-
+=======
     std::vector<Symbol> _clipboard;
-
-
-    std::map<QString,int> usernameToSiteId;
-
+>>>>>>> 0f9ee75e228b1fbdc32775cc8f69a8187b7ae27a
     /**
      * Insert a character locally and send a Message to the server.
      *

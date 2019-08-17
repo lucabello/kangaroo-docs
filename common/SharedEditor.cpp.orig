@@ -198,6 +198,20 @@ void SharedEditor::keyPressEvent(QKeyEvent * e){
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 int SharedEditor::editorToVectorIndex(int i){
     int a=0, count=0;
     for(; a <= i+count && a < _symbols.size() && !_symbols.empty(); a++){
@@ -224,7 +238,6 @@ int SharedEditor::vectorToEditorIndex(int i){
 void SharedEditor::localInsert(int index, wchar_t value) {
     std::vector<int> prev, succ;
     //get prev and succ positions if present
-    int editorIndexSym=index-1;
     index = editorToVectorIndex(index); //sum number of tag symbols to index
     prev = (index-1 >= 0 && index-1 < _symbols.size())?
             _symbols.at(index-1).getPosition() : prev;
@@ -236,35 +249,6 @@ void SharedEditor::localInsert(int index, wchar_t value) {
     if(value == '\r'){
         localInsertStyle(index+1, Symbol(StyleType::Paragraph, AlignmentType::AlignLeft, -1, -1, std::vector<int>()));
     }
-
-    if(editorIndexSym>=0&&!siteIdToCursor.empty()){
-        int indexSym=editorToVectorIndex(editorIndexSym);
-        qDebug()<<indexSym<<"<"<<_symbols.size();
-        if(indexSym >= 0 && indexSym < _symbols.size()){
-            Symbol prevSym=_symbols.at(indexSym);
-            std::map<qint32,Symbol>::iterator mapIt;
-            for(mapIt=siteIdToCursor.begin();((!(mapIt->second==prevSym))||mapIt->first==_siteId)&&mapIt!=siteIdToCursor.end();mapIt++);
-            if(mapIt!=siteIdToCursor.end()){
-                qDebug()<<QString::fromStdString(mapIt->second.toString())<<"=="<<QString::fromStdString(prevSym.toString());
-                qDebug()<<QString::fromStdString(mapIt->second.toString())<<"=="<<QString::fromStdString(prevSym.toString());
-                qDebug()<<"No propagation position:"<<editorIndexSym+1 <<"-"<<editorIndexSym+2;
-                QTextCursor cursor=this->textCursor();
-                int tmp=cursor.position();
-                cursor.setPosition(editorIndexSym, QTextCursor::MoveAnchor);
-                cursor.setPosition(editorIndexSym+1, QTextCursor::KeepAnchor);
-                this->setTextCursor(cursor);
-                QTextCharFormat fmt=QTextCharFormat();
-                fmt.clearBackground();
-                fmt.setBackground(QColor("#ffffff"));
-                mergeCurrentCharFormat(fmt);
-                cursor.setPosition(tmp);
-                this->setTextCursor(cursor);
-            }
-        }
-    }
-
-
-
     Message m {MessageType::Insert, s}; //prepare and send message
     //qDebug() << QString::fromStdString(m.toString());
     //EMISSION OF SIGNAL SHOULD HAPPEN IN MESSAGE QUEUE, BY ANOTHER THREAD
@@ -504,7 +488,7 @@ void SharedEditor::incomingPacket(Message m){
             m.getType() == MessageType::Erase)
         process(m);
     else if(m.getType() == MessageType::EditorList){
-        setEditorList(m.getCommand());
+        emit setEditorList(m.getCommand());
     }
 }
 
@@ -514,10 +498,18 @@ void SharedEditor::incomingPacket(Message m){
 void SharedEditor::process(const Message &m) {
     if(m.getType() == MessageType::Insert){
         Symbol sym = m.getSymbol();
-
+<<<<<<< HEAD
         qint32 siteId=sym.getSiteId();
         QTextCursor cursor=textCursor();
 
+
+=======
+        QTextCursor cursor(this->textCursor());
+        if(_symbols.size() == 0){
+            _symbols.insert(_symbols.begin(), m.getSymbol());
+            return;
+        }
+>>>>>>> 0f9ee75e228b1fbdc32775cc8f69a8187b7ae27a
         //if symbol found (already inserted) return
         if(std::find(_symbols.begin(), _symbols.end(), m.getSymbol()) != _symbols.end())
             return;
@@ -588,15 +580,6 @@ void SharedEditor::moveUserCursor(int cursorStart,int cursorEnd,Message m){
     Symbol sym = m.getSymbol();
     qint32 siteId=sym.getSiteId();
     QTextCursor cursor=textCursor();
-    if(siteId==_siteId)
-        return;
-
-    if(!siteIdToCursor.empty()){
-        std::map<QString,int>::iterator mapIt;
-        for(mapIt=usernameToSiteId.begin();mapIt->second!=siteId&&mapIt!=usernameToSiteId.end();mapIt++);
-        if(mapIt==usernameToSiteId.end())
-            return;
-    }
 
     QTextCharFormat fmt=QTextCharFormat();
     std::vector<Symbol>::iterator it;
@@ -611,7 +594,6 @@ void SharedEditor::moveUserCursor(int cursorStart,int cursorEnd,Message m){
         cursor.setPosition(index, QTextCursor::MoveAnchor);
         cursor.setPosition(index+1, QTextCursor::KeepAnchor);
         this->setTextCursor(cursor);
-        fmt.clearBackground();
         fmt.setBackground(QColor("#ffffff"));
         mergeCurrentCharFormat(fmt);
     }
@@ -956,20 +938,4 @@ void SharedEditor::eraseSelectedText(QKeyEvent* e){
             }
         }
     }
-}
-
-
-void SharedEditor::setEditorList(QString userlist){
-    usernameToSiteId.clear();
-    QStringList qlist = userlist.split(",");
-    for(QString s : qlist){
-        QString username = s.split(":").at(0);
-        QString siteId = s.split(":").at(1);
-        int site = siteId.toInt();
-        usernameToSiteId.insert({username, site});
-    }
-}
-
-std::map<QString,int> SharedEditor::getEditorList(){
-    return usernameToSiteId;
 }

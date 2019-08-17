@@ -205,8 +205,6 @@ private:
     QString fileName;
     SharedEditor *textEdit;
     ClientSocket *tcpSocket;
-
-    std::map<QString,int> usernameToSiteId;
 };
 
 #endif // TEXTEDIT_H

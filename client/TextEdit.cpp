@@ -131,8 +131,8 @@ TextEdit::TextEdit(QWidget *parent)
     colorChanged(textEdit->textColor());
     alignmentChanged(textEdit->alignment());
 
-    connect(textEdit, &SharedEditor::setEditorList,
-            this, &TextEdit::setEditorList);
+    //connect(textEdit, &SharedEditor::setEditorList,
+    //        this, &TextEdit::setEditorList);
     //connect(textEdit->document(), &QTextDocument::modificationChanged,
     //        actionSave, &QAction::setEnabled);
     connect(textEdit->document(), &QTextDocument::modificationChanged,
@@ -472,6 +472,10 @@ void TextEdit::logout(){
     showLoginWindow();
 }
 
+void TextEdit::setEditorList(QString list){
+    textEdit->setEditorList(list);
+}
+
 void TextEdit::showTextEdit(ClientSocket* s){
     tcpSocket = s;
     connect(textEdit, &SharedEditor::packetReady,
@@ -496,17 +500,6 @@ void TextEdit::hideWindow(){
     disconnect(tcpSocket, &ClientSocket::signalMessage,
             textEdit, &SharedEditor::incomingPacket);
     this->hide();
-}
-
-void TextEdit::setEditorList(QString userlist){
-    usernameToSiteId.clear();
-    QStringList qlist = userlist.split(",");
-    for(QString s : qlist){
-        QString username = s.split(":").at(0);
-        QString siteId = s.split(":").at(1);
-        int site = siteId.toInt();
-        usernameToSiteId.insert({username, site});
-    }
 }
 
 void TextEdit::fileOpen()
@@ -589,6 +582,8 @@ void TextEdit::showConnectedUsers(){
     QMessageBox* msgAbout=new QMessageBox(this);
     msgAbout->setWindowTitle("Connected Users");
     QString infotext = "<span style='text-align: center'><p>Users connected to the current file are:</p>";
+
+    std::map<QString,int> usernameToSiteId=textEdit->getEditorList();
 
     for(auto pair : usernameToSiteId){
         qint32 siteId=pair.second;
@@ -838,6 +833,9 @@ void TextEdit::currentCharFormatChanged(const QTextCharFormat &format)
 void TextEdit::cursorPositionChanged()
 {
     alignmentChanged(textEdit->alignment());
+
+
+
     /*
     QTextList *list = textEdit->textCursor().currentList();
     if (list) {
