@@ -225,8 +225,22 @@ void KangarooServer::doCreate(int descriptor, Message message){
 
 void KangarooServer::doOpen(int descriptor, Message message){
     Message m;
-    QString pathname = QString(FILES_DIRNAME) + "/" + message.getCommand() + ".kangaroo";
-    QString filename = message.getCommand();
+    QString pathname;
+    QString filename;
+    QStringList uri = message.getCommand().split("/");
+    qDebug() << "URI: " << uri << "Message content: " << message.getCommand();
+    if(uri.size() > 1) {
+        if(uri.first() != "127.0.0.1"){
+            m = Message{MessageType::Error, "Wrong URI request. This server does not exist."};
+            return;
+        }
+        pathname = QString(FILES_DIRNAME) + "/" + uri.last() + ".kangaroo";
+        filename = uri.last();
+    }
+    else {
+        pathname = QString(FILES_DIRNAME) + "/" + message.getCommand() + ".kangaroo";
+        filename = message.getCommand();
+    }
     if(!QDir().exists(pathname)){
         m = Message{MessageType::Error, "Error while opening file. A file with name "+filename+" does not exist."};
     }

@@ -12,6 +12,7 @@
 #include "TextEdit.h"
 #include "FileListWindow.h"
 #include <QDebug>
+#include "ui_shareuri.h"
 
 FileListWindow::FileListWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -37,12 +38,17 @@ FileListWindow::FileListWindow(QWidget *parent) : QMainWindow(parent)
     buttonOpenFile->resize(this->width(),buttonOpenFile->height());
     buttonOpenFile->move(0,this->height()-buttonOpenFile->height()-buttonNewFile->height());
 
+    QPushButton *buttonURI = new QPushButton(this);
+    buttonURI->setText("Open File from URI");
+    buttonURI->resize(this->width(),buttonURI->height());
+    buttonURI->move(0,this->height()-buttonOpenFile->height()-buttonNewFile->height()-buttonURI->height());
+
     qFileList=new QListWidget(this);
-    qFileList->resize(this->width(),this->height()-buttonOpenFile->height()-buttonNewFile->height());
+    qFileList->resize(this->width(),this->height()-buttonOpenFile->height()-buttonNewFile->height()-buttonURI->height());
 
     connect(buttonOpenFile, SIGNAL (released()), this, SLOT (openFileClicked()));
     connect(buttonNewFile, SIGNAL (released()), this, SLOT (newFileClicked()));
-
+    connect(buttonURI, SIGNAL (released()), this, SLOT (openURIClicked()));
 }
 
 void FileListWindow::openFileClicked(){
@@ -65,6 +71,17 @@ void FileListWindow::newFileClicked(){
     changeFileName(filename);
     Message m {MessageType::Create, filename};
     tcpSocket->writeMessage(m);
+}
+
+void FileListWindow::openURIClicked(){
+    QString URI = QInputDialog::getText(this,"URI","Insert URI:");
+    if(URI.isEmpty()){
+        QMessageBox::warning(this, "Error", "Please insert something as URI.");
+        return;
+    }
+    Message m {MessageType::Open, URI};
+    tcpSocket->writeMessage(m);
+    qDebug() << "[URI] " << URI;
 }
 
 void FileListWindow::incomingMessage(Message message){

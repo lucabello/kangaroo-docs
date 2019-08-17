@@ -60,6 +60,7 @@
 #include <QFontDatabase>
 #include <QMenu>
 #include <QMenuBar>
+#include <QGroupBox>
 #include <QTextCodec>
 #include <QTextEdit>
 #include <QStatusBar>
@@ -84,6 +85,7 @@
 #endif
 #endif
 
+#include "ui_shareuri.h"
 #include "TextEdit.h"
 #include "ClientSocket.h"
 #define QT_NO_CLIPBOARD
@@ -194,6 +196,7 @@ void TextEdit::setupFileActions()
 
     menu->addSeparator();
 
+
     const QIcon infoIcon = QIcon::fromTheme("document-info", QIcon(rsrcPath + "/editcopy.png"));
     a = menu->addAction(infoIcon, tr("&Show connected users..."), this, &TextEdit::showConnectedUsers);
     tb->addAction(a);
@@ -208,6 +211,10 @@ void TextEdit::setupFileActions()
     a->setPriority(QAction::LowPriority);
     menu->addSeparator();
 */
+    const QIcon uriIcon =  QIcon::fromTheme("document-open", QIcon(rsrcPath + "/uri.png"));
+    a = menu->addAction(uriIcon, tr("&Share URI..."), this, &TextEdit::shareURI);
+    a->setShortcut(Qt::CTRL + Qt::Key_S);
+    tb->addAction(a);
 #ifndef QT_NO_PRINTER
 
     const QIcon printIcon = QIcon::fromTheme("document-print", QIcon(rsrcPath + "/fileprint.png"));
@@ -462,7 +469,7 @@ void TextEdit::fileNew()
 {
     if (maybeSave()) {
         textEdit->clear();
-        setCurrentFileName(QString());
+        //setCurrentFileName(QString());
     }
 }
 
@@ -561,6 +568,7 @@ bool TextEdit::fileSaveAs()
     return fileSave();
 }
 
+
 void TextEdit::filePrint()
 {
 #if QT_CONFIG(printdialog)
@@ -603,6 +611,26 @@ void TextEdit::printPreview(QPrinter *printer)
 #endif
 }
 
+void TextEdit::shareURI()
+{
+   QDialog* URIwin = new QDialog(this);
+   Ui::ShareURI ui;
+   ui.setupUi(URIwin);
+   ui.uri->setReadOnly(true);
+   QPalette *palette = new QPalette();
+   palette->setColor(QPalette::Base,Qt::lightGray);
+   palette->setColor(QPalette::Text,Qt::black);
+   ui.uri->setPalette(*palette);
+   QString uri = generateURI();
+   ui.uri->setText(uri);
+   URIwin->show();
+}
+
+QString TextEdit::generateURI() {
+    QString str = QString::fromStdString(tcpSocket->getaddress());
+    str.append("/"+fileName);
+    return str;
+}
 
 void TextEdit::filePrintPdf()
 {

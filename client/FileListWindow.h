@@ -19,6 +19,7 @@ signals:
 private slots:
     void openFileClicked();
     void newFileClicked();
+    void openURIClicked();
 
 public slots:
     void incomingMessage(Message message);

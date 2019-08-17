@@ -67,6 +67,7 @@ class QTextEdit;
 class QTextCharFormat;
 class QMenu;
 class QPrinter;
+class QWindow;
 QT_END_NAMESPACE
 
 class TextEdit : public QMainWindow
@@ -126,6 +127,10 @@ private slots:
 
     //Modified functions
     /**
+     * Allows registered user to share URI by email.
+     */
+    void shareURI();
+    /**
      * Sets selected text as bold, both on SymbolVector and on editor.
      */
     void textBold();
@@ -179,6 +184,7 @@ private:
     void colorChanged(const QColor &c);
     void alignmentChanged(Qt::Alignment a);
     void showConnectedUsers();
+    QString generateURI();
 
     QAction *actionSave;
     QAction *actionTextBold;

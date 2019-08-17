@@ -87,3 +87,8 @@ void ClientSocket::writeMessage(Message message){
     socket->flush();
     //qDebug() << written << " bytes written.";
 }
+
+std::string ClientSocket::getaddress()
+{
+    return address;
+}
