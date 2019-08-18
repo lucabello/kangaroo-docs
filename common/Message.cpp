@@ -38,6 +38,8 @@ std::string Message::toString(){
         result += "Register";
     else if(this->type == MessageType::EditorList)
         result += "Editor List";
+    else if(this->type == MessageType::URI)
+        result += "URI";
     else
         result += "Unknown";
     result += " - Content: ";

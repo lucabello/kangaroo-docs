@@ -112,6 +112,13 @@ public:
     bool siteIdHasColor(qint32 siteId);
     QColor getSiteIdColor(qint32 siteId);
 
+    void setEditorList(QString);
+
+    std::map<QString,int> getEditorList();
+
+    void hideUserCursors();
+    void showUserCursors();
+
 signals:
     /**
      * Emitted when a packet is ready to be sent.
@@ -125,7 +132,6 @@ signals:
      * purposes.
      */
     void connectToServer();
-    void setEditorList(QString);
 
 public slots:
     /**
@@ -150,6 +156,9 @@ private:
 
 
     std::vector<Symbol> _clipboard;
+
+
+    std::map<QString,qint32> usernameToSiteId;
 
     /**
      * Insert a character locally and send a Message to the server.
@@ -283,12 +292,16 @@ private:
 
     QColor randomColor();
 
+
     /**
      * Debbugging tool that prints all the symbols in the vector
      *
      * @param e event that triggered the method
      */
     void printAll();
+
+
+    void avoidBackgroundPropagation(int editorIndexSym);
 
 };
 

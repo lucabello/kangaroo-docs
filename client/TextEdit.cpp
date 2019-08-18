@@ -60,6 +60,7 @@
 #include <QFontDatabase>
 #include <QMenu>
 #include <QMenuBar>
+#include <QGroupBox>
 #include <QTextCodec>
 #include <QTextEdit>
 #include <QStatusBar>
@@ -84,6 +85,7 @@
 #endif
 #endif
 
+#include "ui_shareuri.h"
 #include "TextEdit.h"
 #include "ClientSocket.h"
 #define QT_NO_CLIPBOARD
@@ -131,8 +133,8 @@ TextEdit::TextEdit(QWidget *parent)
     colorChanged(textEdit->textColor());
     alignmentChanged(textEdit->alignment());
 
-    connect(textEdit, &SharedEditor::setEditorList,
-            this, &TextEdit::setEditorList);
+    //connect(textEdit, &SharedEditor::setEditorList,
+    //        this, &TextEdit::setEditorList);
     //connect(textEdit->document(), &QTextDocument::modificationChanged,
     //        actionSave, &QAction::setEnabled);
     connect(textEdit->document(), &QTextDocument::modificationChanged,
@@ -194,6 +196,7 @@ void TextEdit::setupFileActions()
 
     menu->addSeparator();
 
+
     const QIcon infoIcon = QIcon::fromTheme("document-info", QIcon(rsrcPath + "/editcopy.png"));
     a = menu->addAction(infoIcon, tr("&Show connected users..."), this, &TextEdit::showConnectedUsers);
     tb->addAction(a);
@@ -208,7 +211,13 @@ void TextEdit::setupFileActions()
     a->setPriority(QAction::LowPriority);
     menu->addSeparator();
 */
+    const QIcon uriIcon =  QIcon::fromTheme("document-share", QIcon(rsrcPath + "/editpaste.png"));
+    a = menu->addAction(uriIcon, tr("&Share URI..."), this, &TextEdit::shareURI);
+    a->setShortcut(Qt::CTRL + Qt::Key_S);
+    tb->addAction(a);
 #ifndef QT_NO_PRINTER
+
+    /*
 
     const QIcon printIcon = QIcon::fromTheme("document-print", QIcon(rsrcPath + "/fileprint.png"));
     a = menu->addAction(printIcon, tr("&Print..."), this, &TextEdit::filePrint);
@@ -218,6 +227,7 @@ void TextEdit::setupFileActions()
 
     const QIcon filePrintIcon = QIcon::fromTheme("fileprint", QIcon(rsrcPath + "/fileprint.png"));
     menu->addAction(filePrintIcon, tr("Print Preview..."), this, &TextEdit::filePrintPreview);
+    */
 
     const QIcon exportPdfIcon = QIcon::fromTheme("exportpdf", QIcon(rsrcPath + "/exportpdf.png"));
     a = menu->addAction(exportPdfIcon, tr("&Export PDF..."), this, &TextEdit::filePrintPdf);
@@ -462,7 +472,7 @@ void TextEdit::fileNew()
 {
     if (maybeSave()) {
         textEdit->clear();
-        setCurrentFileName(QString());
+        //setCurrentFileName(QString());
     }
 }
 
@@ -470,6 +480,10 @@ void TextEdit::logout(){
     tcpSocket->doDisconnect();
     hideWindow();
     showLoginWindow();
+}
+
+void TextEdit::setEditorList(QString list){
+    textEdit->setEditorList(list);
 }
 
 void TextEdit::showTextEdit(ClientSocket* s){
@@ -496,17 +510,6 @@ void TextEdit::hideWindow(){
     disconnect(tcpSocket, &ClientSocket::signalMessage,
             textEdit, &SharedEditor::incomingPacket);
     this->hide();
-}
-
-void TextEdit::setEditorList(QString userlist){
-    usernameToSiteId.clear();
-    QStringList qlist = userlist.split(",");
-    for(QString s : qlist){
-        QString username = s.split(":").at(0);
-        QString siteId = s.split(":").at(1);
-        int site = siteId.toInt();
-        usernameToSiteId.insert({username, site});
-    }
 }
 
 void TextEdit::fileOpen()
@@ -561,6 +564,7 @@ bool TextEdit::fileSaveAs()
     return fileSave();
 }
 
+
 void TextEdit::filePrint()
 {
 #if QT_CONFIG(printdialog)
@@ -590,6 +594,8 @@ void TextEdit::showConnectedUsers(){
     msgAbout->setWindowTitle("Connected Users");
     QString infotext = "<span style='text-align: center'><p>Users connected to the current file are:</p>";
 
+    std::map<QString,int> usernameToSiteId=textEdit->getEditorList();
+
     for(auto pair : usernameToSiteId){
         qint32 siteId=pair.second;
         if(textEdit->siteIdHasColor(siteId)){
@@ -614,6 +620,26 @@ void TextEdit::printPreview(QPrinter *printer)
 #endif
 }
 
+void TextEdit::shareURI()
+{
+   QDialog* URIwin = new QDialog(this);
+   Ui::ShareURI ui;
+   ui.setupUi(URIwin);
+   ui.uri->setReadOnly(true);
+   QPalette *palette = new QPalette();
+   palette->setColor(QPalette::Base,Qt::lightGray);
+   palette->setColor(QPalette::Text,Qt::black);
+   ui.uri->setPalette(*palette);
+   QString uri = generateURI();
+   ui.uri->setText(uri);
+   URIwin->show();
+}
+
+QString TextEdit::generateURI() {
+    QString str = QString::fromStdString(tcpSocket->getaddress());
+    str.append("/"+fileName);
+    return str;
+}
 
 void TextEdit::filePrintPdf()
 {
@@ -629,7 +655,15 @@ void TextEdit::filePrintPdf()
     QPrinter printer(QPrinter::HighResolution);
     printer.setOutputFormat(QPrinter::PdfFormat);
     printer.setOutputFileName(fileName);
+
+    //HIDE CURSORS
+    textEdit->hideUserCursors();
+
     textEdit->document()->print(&printer);
+
+    //SHOW CURSORS
+    textEdit->showUserCursors();
+
     statusBar()->showMessage(tr("Exported \"%1\"")
                              .arg(QDir::toNativeSeparators(fileName)));
 //! [0]
@@ -839,6 +873,9 @@ void TextEdit::currentCharFormatChanged(const QTextCharFormat &format)
 void TextEdit::cursorPositionChanged()
 {
     alignmentChanged(textEdit->alignment());
+
+
+
     /*
     QTextList *list = textEdit->textCursor().currentList();
     if (list) {

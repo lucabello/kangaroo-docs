@@ -38,3 +38,6 @@ EXAMPLE_FILES = kangaroodocs.qdoc
 # install
 target.path = D:\Programmazione\kangaroo-docs\qt
 INSTALLS += target
+
+FORMS += \
+    shareuri.ui

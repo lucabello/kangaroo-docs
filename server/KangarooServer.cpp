@@ -89,8 +89,11 @@ void KangarooServer::incomingMessage(int descriptor,Message message){
         case MessageType::FileList:
             sendFileList(descriptor);
             break;
-        default:
+        case MessageType::URI:
+            doOpenURI(descriptor, message);
             break;
+        default:
+        break;
     }
 }
 
@@ -166,14 +169,15 @@ void KangarooServer::doLogin(int descriptor, Message message){
 
 void KangarooServer::doRegister(int descriptor, Message message){
     QString registerString = message.getCommand();
+    QString username=registerString.split(",")[0];
     QFile userFile("users.txt");
     bool result = true;
-    int newSiteId = 1;
+    int newSiteId = 50;
     if(userFile.open(QIODevice::ReadOnly)){
         QTextStream in(&userFile);
         while(!in.atEnd() && result){
             QString line = in.readLine();
-            if(line.startsWith(registerString)){
+            if(line.startsWith(username)){
                 result = false;
             }
             newSiteId++;
@@ -182,13 +186,16 @@ void KangarooServer::doRegister(int descriptor, Message message){
     }
     Message m;
     if(result == true){
+        QString siteId = QString().setNum(newSiteId);
         if(userFile.open(QIODevice::WriteOnly | QIODevice::Append)){
-            QString siteId = QString().setNum(newSiteId);
             QString line = registerString + "," + siteId + "\n";
             userFile.write(line.toUtf8());
             userFile.close();
         }
-        m = Message{MessageType::Register, ""};
+        descriptorToEditor.at(descriptor).setDescriptor(descriptor);
+        descriptorToEditor.at(descriptor).setSiteId(newSiteId);
+        descriptorToEditor.at(descriptor).setUsername(username);
+        m = Message{MessageType::Register, siteId};
         descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
         sendFileList(descriptor);
     }
@@ -216,6 +223,9 @@ void KangarooServer::doCreate(int descriptor, Message message){
         //should always be true, since the file does not exist yet
         if(filenameToSymbols.count(filename) == 0)
             filenameToSymbols.insert({filename, std::vector<Symbol>()});
+        for(int d : filenameToDescriptors.at(filename)){
+            sendEditorList(d, filename);
+        }
         m = Message{MessageType::Create, ""};
         descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
         insertControlSymbols(descriptor, filename);
@@ -225,8 +235,56 @@ void KangarooServer::doCreate(int descriptor, Message message){
 
 void KangarooServer::doOpen(int descriptor, Message message){
     Message m;
-    QString pathname = QString(FILES_DIRNAME) + "/" + message.getCommand() + ".kangaroo";
-    QString filename = message.getCommand();
+    QString pathname;
+    QString filename;
+        pathname = QString(FILES_DIRNAME) + "/" + message.getCommand() + ".kangaroo";
+        filename = message.getCommand();
+    if(!QDir().exists(pathname)){
+        m = Message{MessageType::Error, "Error while opening file. A file with name "+filename+" does not exist."};
+    }
+    else {
+        bool alreadyInMemory = true;
+        descriptorToEditor.at(descriptor).setWorkingFile(filename);
+        if(filenameToDescriptors.count(filename) == 0)
+            filenameToDescriptors.insert({filename, std::vector<int>()});
+        filenameToDescriptors.at(filename).push_back(descriptor);
+        if(filenameToSymbols.count(filename) == 0){
+            filenameToSymbols.insert({filename, std::vector<Symbol>()});
+            alreadyInMemory = false;
+        }
+        for(int d : filenameToDescriptors.at(filename)){
+            sendEditorList(d, filename);
+        }
+        m = Message{MessageType::Open, ""};
+        descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
+        sendFile(descriptor, filename, alreadyInMemory);
+    }
+}
+
+
+void KangarooServer::doOpenURI(int descriptor, Message message){
+    Message m;
+    QString pathname;
+    QString filename;
+    if(guestId > 48) {
+        m = Message{MessageType::Error, "Wrong URI request. This server does not exist."};
+        return;
+    }
+    m = Message{MessageType::URI, QString::number(guestId)};
+    descriptorToEditor.at(descriptor).setDescriptor(descriptor);
+    descriptorToEditor.at(descriptor).setSiteId(guestId);
+    descriptorToEditor.at(descriptor).setUsername("Guest"+QString::number(guestId));
+    descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
+    guestId++;
+    QString serverAddr = this->server->serverAddress().toString();
+    QStringList uri = message.getCommand().split("/");
+    qDebug() << "URI: " << uri << "Message content: " << message.getCommand();
+    if(uri.first() != serverAddr){
+        m = Message{MessageType::Error, "Wrong URI request. This server does not exist."};
+        return;
+    }
+    pathname = QString(FILES_DIRNAME) + "/" + uri.last() + ".kangaroo";
+    filename = uri.last();
     if(!QDir().exists(pathname)){
         m = Message{MessageType::Error, "Error while opening file. A file with name "+filename+" does not exist."};
     }
@@ -349,7 +407,6 @@ void KangarooServer::sendFile(int descriptor, QString filename, bool alreadyInMe
             while(!f.atEnd()){
                 in >> sym;
                 msg = Message{MessageType::Insert, sym};
-                //qDebug() << "[sendFile] " << QString::fromStdString(msg.toString());
                 modifyFileVector(msg, symbols);
                 socket->writeMessage(msg);
             }
@@ -363,6 +420,7 @@ void KangarooServer::sendFile(int descriptor, QString filename, bool alreadyInMe
             socket->writeMessage(m);
         }
     }
+    descriptorToEditor.at(descriptor).getSocket()->writeMessage(Message{MessageType::FileSent, ""});
 }
 
 void KangarooServer::hostDisconnected(int descriptor){

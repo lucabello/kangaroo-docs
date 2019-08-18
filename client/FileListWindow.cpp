@@ -12,6 +12,7 @@
 #include "TextEdit.h"
 #include "FileListWindow.h"
 #include <QDebug>
+#include "ui_shareuri.h"
 
 FileListWindow::FileListWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -42,7 +43,6 @@ FileListWindow::FileListWindow(QWidget *parent) : QMainWindow(parent)
 
     connect(buttonOpenFile, SIGNAL (released()), this, SLOT (openFileClicked()));
     connect(buttonNewFile, SIGNAL (released()), this, SLOT (newFileClicked()));
-
 }
 
 void FileListWindow::openFileClicked(){

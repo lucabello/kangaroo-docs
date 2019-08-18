@@ -58,7 +58,7 @@ public slots:
      */
     void readMessage();
     void writeMessage(Message message);
-
+    std::string getaddress();
 
 private:
     QTcpSocket *socket;

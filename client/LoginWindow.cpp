@@ -5,6 +5,7 @@
 #include <QPushButton>
 #include <QMessageBox>
 #include <QDesktopWidget>
+#include <QInputDialog>
 
 #include "LoginWindow.h"
 #include "FileListWindow.h"
@@ -49,6 +50,11 @@ LoginWindow::LoginWindow(QWidget *parent) : QMainWindow(parent)
     buttonRegister->setText("Register");
     buttonRegister->move(buttonLogin->width(),buttonLogin->y());
 
+    QPushButton *buttonURI = new QPushButton(this);
+    buttonURI->setText("Open File from URI");
+    buttonURI->resize(this->width(),buttonURI->height());
+    buttonURI->move(0,buttonURI->height());
+
     int width=usernameLabel->width()+usernameLine->width();
     int height=buttonLogin->y()+buttonLogin->height();
     int offsetX=(this->width()-width)/2;
@@ -67,6 +73,7 @@ LoginWindow::LoginWindow(QWidget *parent) : QMainWindow(parent)
 
     connect(buttonLogin, SIGNAL (released()), this, SLOT (loginClicked()));
     connect(buttonRegister, SIGNAL (released()), this, SLOT (registerClicked()));
+    connect(buttonURI, SIGNAL (released()), this, SLOT (openURIClicked()));
 
 }
 
@@ -106,6 +113,25 @@ void LoginWindow::registerClicked(){
     tcpSocket->writeMessage(m);
 }
 
+void LoginWindow::openURIClicked(){
+    QString URI = QInputDialog::getText(this,"URI","Insert URI:");
+    if(URI.isEmpty()){
+        QMessageBox::warning(this, "Error", "Please insert something as URI.");
+        return;
+    }
+
+    QString ip=ipLine->text().split(":").at(0);
+    QString port=ipLine->text().split(":").at(1);
+
+    tcpSocket = new ClientSocket(ip.toStdString(), port.toInt());
+    connect(tcpSocket, &ClientSocket::signalMessage,
+            this, &LoginWindow::incomingMessage);
+    tcpSocket->doConnect();
+
+    Message m {MessageType::URI, URI};
+    tcpSocket->writeMessage(m);
+    qDebug() << "[URI] " << URI;
+}
 void LoginWindow::hideWindow(){
     disconnect(tcpSocket, &ClientSocket::signalMessage,
             this, &LoginWindow::incomingMessage);
@@ -120,6 +146,7 @@ void LoginWindow::incomingMessage(Message message){
             showResult("Login successful.");
             break;
         case MessageType::Register:
+            siteIdReceived(message.getCommand().toUInt());
             showResult("Registration successful.");
             break;
         case MessageType::FileList:
@@ -127,6 +154,10 @@ void LoginWindow::incomingMessage(Message message){
             break;
         case MessageType::Error:
             showResult(message);
+            break;
+        case MessageType::URI:
+            siteIdReceived(message.getCommand().toUInt());
+            showTextEdit(tcpSocket);
             break;
         default:
             break;
