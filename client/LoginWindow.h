@@ -15,6 +15,7 @@ public:
 signals:
     void showFileList(ClientSocket*, std::vector<std::string>);
     void siteIdReceived(int);
+    void showTextEdit(ClientSocket*);
 
 public slots:
     void incomingMessage(Message message);
@@ -22,6 +23,7 @@ public slots:
 private slots:
     void loginClicked();
     void registerClicked();
+    void openURIClicked();
     void hideWindow();
 
 private:

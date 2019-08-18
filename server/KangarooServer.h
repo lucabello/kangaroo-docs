@@ -25,6 +25,7 @@ public slots:
 
 private:
     QTcpServer *server;
+    int guestId = 1;
     std::map<int,ConnectedEditor> descriptorToEditor;
     std::map<QString, std::vector<int>> filenameToDescriptors;
     std::map<QString, std::vector<Symbol>> filenameToSymbols;
@@ -41,6 +42,7 @@ private:
     void saveFile(QString filename);
     void sendFile(int descriptor, QString filename, bool alreadyInMemory);
     void insertControlSymbols(int descriptor, QString filename);
+    void doOpenURI(int descriptor, Message message);
 };
 
 #endif // MYTCPSERVER_H

@@ -77,13 +77,16 @@ int main(int argc, char *argv[])
     FileListWindow flw{};
     TextEdit te{};
 
-
     QObject::connect(&lw, SIGNAL(showFileList(ClientSocket*, std::vector<std::string>)),
                      &flw, SLOT(showFileList(ClientSocket*, std::vector<std::string>)));
     QObject::connect(&lw, SIGNAL(showFileList(ClientSocket*, std::vector<std::string>)),
                      &lw, SLOT(hideWindow()));
     QObject::connect(&flw, SIGNAL(showTextEdit(ClientSocket*)),
                      &te, SLOT(showTextEdit(ClientSocket*)));
+    QObject::connect(&lw, SIGNAL(showTextEdit(ClientSocket*)),
+                     &te, SLOT(showTextEdit(ClientSocket*)));
+    QObject::connect(&lw, SIGNAL(showTextEdit(ClientSocket*)),
+                     &lw, SLOT(hideWindow()));
     QObject::connect(&flw, SIGNAL(showTextEdit(ClientSocket*)),
                      &flw, SLOT(hideWindow()));
     QObject::connect(&lw, SIGNAL(siteIdReceived(int)),
