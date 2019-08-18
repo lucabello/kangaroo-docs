@@ -71,7 +71,6 @@ public:
      *   them enclosing no content
      */
     virtual void clear();
-    void clearWithSymbols();
 
     //Set fixed siteId for testing and debugging purposes
     //the real ones should be communicated from server!
@@ -279,9 +278,18 @@ private:
      */
     void eraseSelectedText(QKeyEvent* e);
 
+
     void moveUserCursor(int cursorStart,int cursorEnd,Message m);
 
     QColor randomColor();
+
+    /**
+     * Debbugging tool that prints all the symbols in the vector
+     *
+     * @param e event that triggered the method
+     */
+    void printAll();
+
 };
 
 #endif // SHAREDEDITOR_H

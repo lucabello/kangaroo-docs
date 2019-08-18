@@ -641,8 +641,9 @@ void TextEdit::textBold()
     QTextCharFormat fmt;
     QTextCursor cursor = textEdit->textCursor();
     fmt.setFontWeight(actionTextBold->isChecked() ? QFont::Bold : QFont::Normal);
-    if(!cursor.hasSelection())
+    if(!cursor.hasSelection()){
         cursor.select(QTextCursor::WordUnderCursor);
+    }
     int start = cursor.selectionStart();
     int end = cursor.selectionEnd();
     if(actionTextBold->isChecked()){

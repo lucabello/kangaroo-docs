@@ -174,6 +174,14 @@ public:
      * @param other the symbol to compare to
      */
     bool isOpeningOf(Symbol& other);
+
+    /**
+     * Checks whether a symbol is the closing style of another one.
+     *
+     * @param other the symbol to compare to
+     */
+    bool isClosingOf(Symbol& other);
+
     /**
      * Checks if two symbols are twin tags, which means that one is the
      * opening of the other one
@@ -182,6 +190,7 @@ public:
      * @param b a style symbol
      * @return true if symbols are twin tags
      */
+
     static bool areTwinTags(Symbol& a, Symbol& b);
     /**
      * Checks if two symbols are similar tags, which means that the StyleType

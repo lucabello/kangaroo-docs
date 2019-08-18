@@ -305,6 +305,27 @@ bool Symbol::isOpeningOf(Symbol& other){
     return false;
 }
 
+bool Symbol::isClosingOf(Symbol& other){
+    if(!this->isStyle() || !other.isStyle())
+        return false;
+    if(this->style == StyleType::BoldEnd && other.style == StyleType::Bold)
+        return true;
+    if(this->style == StyleType::ItalicEnd && other.style == StyleType::Italic)
+        return true;
+    if(this->style == StyleType::UnderlinedEnd && other.style == StyleType:: Underlined)
+        return true;
+    if(this->style == StyleType::ColorEnd && other.style == StyleType::Color)
+        if(this->color == other.color)
+            return true;
+    if(this->style == StyleType::FontEnd && other.style == StyleType::Font)
+        if(this->fontname == other.fontname)
+            return true;
+    if(this->style == StyleType::FontSizeEnd && other.style == StyleType::FontSize)
+        if(this->fontsize == other.fontsize)
+            return true;
+    return false;
+}
+
 bool Symbol::areTwinTags(Symbol& a, Symbol& b){
     return (a.isOpeningOf(b) || b.isOpeningOf(a));
 }
