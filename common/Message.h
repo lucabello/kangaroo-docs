@@ -8,7 +8,7 @@
 #include "Symbol.h"
 #include <QDataStream>
 
-enum MessageType:qint32 {Insert, Erase, Login, Register, FileList, Create, Open, Error, EditorList, URI};
+enum MessageType:qint32 {Insert, Erase, Login, Register, FileList, Create, Open, Error, EditorList, URI, FileSent};
 
 /**
  * It holds information for the communication between Editor and Server

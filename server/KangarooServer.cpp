@@ -186,8 +186,8 @@ void KangarooServer::doRegister(int descriptor, Message message){
     }
     Message m;
     if(result == true){
+        QString siteId = QString().setNum(newSiteId);
         if(userFile.open(QIODevice::WriteOnly | QIODevice::Append)){
-            QString siteId = QString().setNum(newSiteId);
             QString line = registerString + "," + siteId + "\n";
             userFile.write(line.toUtf8());
             userFile.close();
@@ -195,7 +195,7 @@ void KangarooServer::doRegister(int descriptor, Message message){
         descriptorToEditor.at(descriptor).setDescriptor(descriptor);
         descriptorToEditor.at(descriptor).setSiteId(newSiteId);
         descriptorToEditor.at(descriptor).setUsername(username);
-        m = Message{MessageType::Register, ""};
+        m = Message{MessageType::Register, siteId};
         descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
         sendFileList(descriptor);
     }
@@ -407,7 +407,6 @@ void KangarooServer::sendFile(int descriptor, QString filename, bool alreadyInMe
             while(!f.atEnd()){
                 in >> sym;
                 msg = Message{MessageType::Insert, sym};
-                //qDebug() << "[sendFile] " << QString::fromStdString(msg.toString());
                 modifyFileVector(msg, symbols);
                 socket->writeMessage(msg);
             }
@@ -421,6 +420,7 @@ void KangarooServer::sendFile(int descriptor, QString filename, bool alreadyInMe
             socket->writeMessage(m);
         }
     }
+    descriptorToEditor.at(descriptor).getSocket()->writeMessage(Message{MessageType::FileSent, ""});
 }
 
 void KangarooServer::hostDisconnected(int descriptor){

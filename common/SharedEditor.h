@@ -117,6 +117,9 @@ public:
 
     std::map<QString,int> getEditorList();
 
+    void hideUserCursors();
+    void showUserCursors();
+
 signals:
     /**
      * Emitted when a packet is ready to be sent.
@@ -156,7 +159,7 @@ private:
     std::vector<Symbol> _clipboard;
 
 
-    std::map<QString,int> usernameToSiteId;
+    std::map<QString,qint32> usernameToSiteId;
 
     /**
      * Insert a character locally and send a Message to the server.
@@ -288,6 +291,8 @@ private:
     void moveUserCursor(int cursorStart,int cursorEnd,Message m);
 
     QColor randomColor();
+
+    void avoidBackgroundPropagation(int editorIndexSym);
 };
 
 #endif // SHAREDEDITOR_H

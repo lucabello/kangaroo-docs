@@ -146,6 +146,7 @@ void LoginWindow::incomingMessage(Message message){
             showResult("Login successful.");
             break;
         case MessageType::Register:
+            siteIdReceived(message.getCommand().toUInt());
             showResult("Registration successful.");
             break;
         case MessageType::FileList:

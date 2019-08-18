@@ -217,6 +217,8 @@ void TextEdit::setupFileActions()
     tb->addAction(a);
 #ifndef QT_NO_PRINTER
 
+    /*
+
     const QIcon printIcon = QIcon::fromTheme("document-print", QIcon(rsrcPath + "/fileprint.png"));
     a = menu->addAction(printIcon, tr("&Print..."), this, &TextEdit::filePrint);
     a->setPriority(QAction::LowPriority);
@@ -225,6 +227,7 @@ void TextEdit::setupFileActions()
 
     const QIcon filePrintIcon = QIcon::fromTheme("fileprint", QIcon(rsrcPath + "/fileprint.png"));
     menu->addAction(filePrintIcon, tr("Print Preview..."), this, &TextEdit::filePrintPreview);
+    */
 
     const QIcon exportPdfIcon = QIcon::fromTheme("exportpdf", QIcon(rsrcPath + "/exportpdf.png"));
     a = menu->addAction(exportPdfIcon, tr("&Export PDF..."), this, &TextEdit::filePrintPdf);
@@ -652,7 +655,15 @@ void TextEdit::filePrintPdf()
     QPrinter printer(QPrinter::HighResolution);
     printer.setOutputFormat(QPrinter::PdfFormat);
     printer.setOutputFileName(fileName);
+
+    //HIDE CURSORS
+    textEdit->hideUserCursors();
+
     textEdit->document()->print(&printer);
+
+    //SHOW CURSORS
+    textEdit->showUserCursors();
+
     statusBar()->showMessage(tr("Exported \"%1\"")
                              .arg(QDir::toNativeSeparators(fileName)));
 //! [0]
