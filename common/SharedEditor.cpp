@@ -1033,7 +1033,7 @@ void SharedEditor::printAll(){
     for (int i=0; i< _symbols.size(); i++) {
         qDebug() << QString::fromStdString(_symbols.at(i).toString());
     }
-
+}
 
 void SharedEditor::setEditorList(QString userlist){
     usernameToSiteId.clear();
