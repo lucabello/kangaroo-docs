@@ -1048,6 +1048,9 @@ void SharedEditor::printAll(){
 
 
 
+
+
+
 void SharedEditor::setEditorList(QString userlist){
     usernameToSiteId.clear();
     QStringList qlist = userlist.split(",");
