@@ -835,6 +835,7 @@ void SharedEditor::applyStylesToEditor(){
     int lastFontEnd=0;
     int lastFontsizeEnd=0;
     int lastColorEnd=0;
+//  int lastStyleEnd=0;
 
 
     QTextCursor previousCursor(this->textCursor());
@@ -896,7 +897,11 @@ void SharedEditor::applyStylesToEditor(){
             this->setTextCursor(currentCursor);
             fmt.setFontWeight(QFont::Normal);
             currentCursor.mergeCharFormat(fmt);
-            lastBoldEnd=i;
+            qDebug() << "Last bold end: " << lastBoldEnd;
+            qDebug() << "Bold start: " << boldStart;
+            lastBoldEnd=boldEnd;
+//            if(lastBoldEnd > lastStyleEnd)
+//                lastStyleEnd=lastBoldEnd;
             bold = false;
         }
         else if(s.getStyleType() == StyleType::Italic){
@@ -922,9 +927,11 @@ void SharedEditor::applyStylesToEditor(){
             currentCursor.setPosition(lastItalicEnd, QTextCursor::MoveAnchor);
             currentCursor.setPosition(italicStart-1, QTextCursor::KeepAnchor);
             this->setTextCursor(currentCursor);
-            fmt.setFontWeight(QFont::Normal);
+            fmt.setFontItalic(false);
             currentCursor.mergeCharFormat(fmt);
-            lastItalicEnd=i;
+            lastItalicEnd=italicEnd;
+//            if(lastItalicEnd > lastStyleEnd)
+//                lastStyleEnd=lastItalicEnd;
             italic = false;
         }
         else if(s.getStyleType() == StyleType::Underlined){
@@ -950,9 +957,11 @@ void SharedEditor::applyStylesToEditor(){
             currentCursor.setPosition(lastUnderlinedEnd, QTextCursor::MoveAnchor);
             currentCursor.setPosition(underlinedStart-1, QTextCursor::KeepAnchor);
             this->setTextCursor(currentCursor);
-            fmt.setFontWeight(QFont::Normal);
+            fmt.setFontUnderline(false);
             currentCursor.mergeCharFormat(fmt);
-            lastUnderlinedEnd=i;
+            lastUnderlinedEnd=underlinedEnd;
+//            if(lastUnderlinedEnd > lastStyleEnd)
+//                lastStyleEnd=lastUnderlinedEnd;
             underlined = false;
         }
         else if(s.getStyleType() == StyleType::Font){
@@ -1033,6 +1042,7 @@ void SharedEditor::printAll(){
     for (int i=0; i< _symbols.size(); i++) {
         qDebug() << QString::fromStdString(_symbols.at(i).toString());
     }
+}
 
 
 void SharedEditor::setEditorList(QString userlist){
