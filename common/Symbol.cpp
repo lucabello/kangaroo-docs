@@ -235,6 +235,7 @@ StyleType Symbol::getClosedStyle(StyleType s){
 
 Symbol Symbol::getOpenStyle(Symbol& s){
     Symbol result(s, s.siteId, s.siteCounter, s.position);
+    qDebug() << s.siteId << ", " << s.siteCounter << ", " << s.position << ", "<< s.style << ", " << s.color;
     result.style = getOpenStyle(s.style);
     result.setProperTag();
     return result;
@@ -242,6 +243,7 @@ Symbol Symbol::getOpenStyle(Symbol& s){
 
 Symbol Symbol::getClosedStyle(Symbol& s){
     Symbol result(s, s.siteId, s.siteCounter, s.position);
+    qDebug() << s.siteId << ", " << s.siteCounter << ", " << s.position << ", "<< s.style << ", " << s.color;
     result.style = getClosedStyle(s.style);
     result.setProperTag();
     return result;
