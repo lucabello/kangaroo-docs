@@ -191,6 +191,9 @@ void SharedEditor::keyPressEvent(QKeyEvent * e){
         applyStylesToEditor();
         return;
     }*/
+    else if (e->key() == Qt::Key_Left || e->key() == Qt::Key_Right || e->key() == Qt::Key_Up || e->key() == Qt::Key_Down) {
+
+    }
     else if(e->text().unicode()[0].category() == 9){
         return;
     }
