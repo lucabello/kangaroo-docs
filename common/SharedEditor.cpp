@@ -48,7 +48,9 @@ void SharedEditor::keyPressEvent(QKeyEvent * e){
         qDebug() << "Debug key pressed.";
         qDebug() << "Hope for the best. Good luck.";
         qDebug() << "++++++++++++++++++++++++++++";
-        qDebug() << to_string();
+        for(Symbol s : _symbols){
+            qDebug() << "[key0]" << QString::fromStdString(s.toString());
+        }
         qDebug() << "++++++++++++++++++++++++++++";
         return;
     }
