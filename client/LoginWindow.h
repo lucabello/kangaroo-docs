@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QGroupBox>
 #include <QLineEdit>
+#include <QPushButton>
 #include "ClientSocket.h"
 
 class LoginWindow : public QMainWindow
@@ -30,6 +31,8 @@ private:
     QLineEdit *usernameLine;
     QLineEdit *passwordLine;
     QLineEdit *ipLine;
+    QPushButton *buttonLogin;
+    QPushButton *buttonRegister;
     ClientSocket *tcpSocket;
     void showResult(Message message);
     void showResult(QString result);

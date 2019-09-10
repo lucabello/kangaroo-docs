@@ -137,6 +137,7 @@ void KangarooServer::propagate(int descriptor, Message message){
 void KangarooServer::doLogin(int descriptor, Message message){
     QString loginString = message.getCommand();
     QString username = loginString.split(",").at(0);
+    QString password = loginString.split(",").at(1);
     QFile inputFile("users.txt");
     bool result = false;
     QString siteId = "-1";
@@ -144,7 +145,9 @@ void KangarooServer::doLogin(int descriptor, Message message){
         QTextStream in(&inputFile);
         while(!in.atEnd() && !result){
             QString line = in.readLine();
-            if(line.startsWith(loginString)){
+            QString u = line.split(",").at(0);
+            QString p = line.split(",").at(1);
+            if(username==u&&password==p){
                 result = true;
                 siteId = line.split(",").at(2);
             }

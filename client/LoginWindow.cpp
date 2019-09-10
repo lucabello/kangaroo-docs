@@ -43,10 +43,10 @@ LoginWindow::LoginWindow(QWidget *parent) : QMainWindow(parent)
     ipLine->setText("127.0.0.1:1501");
     ipLine->move(ipLabel->width(),ipLabel->y());
 
-    QPushButton *buttonLogin=new QPushButton(this);
+    buttonLogin=new QPushButton(this);
     buttonLogin->setText("Login");
     buttonLogin->move(0,ipLabel->y()+ipLabel->height());
-    QPushButton *buttonRegister=new QPushButton(this);
+    buttonRegister=new QPushButton(this);
     buttonRegister->setText("Register");
     buttonRegister->move(buttonLogin->width(),buttonLogin->y());
 
@@ -78,6 +78,9 @@ LoginWindow::LoginWindow(QWidget *parent) : QMainWindow(parent)
 }
 
 void LoginWindow::loginClicked(){
+    buttonLogin->setEnabled(false);
+    buttonRegister->setEnabled(false);
+
     QString username=usernameLine->text();
     QString password=passwordLine->text();
     QString ip=ipLine->text().split(":").at(0);
@@ -99,6 +102,9 @@ void LoginWindow::loginClicked(){
 }
 
 void LoginWindow::registerClicked(){
+    buttonLogin->setEnabled(false);
+    buttonRegister->setEnabled(false);
+
     QString username=usernameLine->text();
     QString password=passwordLine->text();
     QString ip=ipLine->text().split(":").at(0);
@@ -142,10 +148,14 @@ void LoginWindow::incomingMessage(Message message){
     qDebug()<<message.getCommand();
     switch(message.getType()){
         case MessageType::Login:
+            buttonLogin->setEnabled(true);
+            buttonRegister->setEnabled(true);
             siteIdReceived(message.getCommand().toUInt());
             showResult("Login successful.");
             break;
         case MessageType::Register:
+            buttonLogin->setEnabled(true);
+            buttonRegister->setEnabled(true);
             siteIdReceived(message.getCommand().toUInt());
             showResult("Registration successful.");
             break;
@@ -153,6 +163,8 @@ void LoginWindow::incomingMessage(Message message){
             openFileListWindow(message);
             break;
         case MessageType::Error:
+            buttonLogin->setEnabled(true);
+            buttonRegister->setEnabled(true);
             showResult(message);
             break;
         case MessageType::URI:
