@@ -63,6 +63,8 @@ void ClientSocket::readMessage()
 
         clientReadStream >> message;
         qDebug() << "[ClientSocket] I read this message: " << QString::fromStdString(message.toString());
+        message.getType();
+
         signalMessage(message);
     }
 }

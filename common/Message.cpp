@@ -11,7 +11,12 @@ Message::Message(MessageType t, Symbol s) : type(t), value(s) {};
 Message::Message(MessageType t, QString cmd) : type(t), command(cmd) {};
 
 MessageType Message::getType() const {
-    return type;
+    if (type >= Insert || type <= FileSent)
+        return type;
+    else {
+        //qDebug() << "[ERR] type UNKNOWN";
+        return Unknown;
+    }
 }
 
 Symbol Message::getSymbol() const {
@@ -40,6 +45,8 @@ std::string Message::toString(){
         result += "Editor List";
     else if(this->type == MessageType::URI)
         result += "URI";
+    else if(this->type == MessageType::FileSent)
+        result+= "FileSent";
     else
         result += "Unknown";
     result += " - Content: ";
