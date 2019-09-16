@@ -56,8 +56,8 @@ void ServerSocket::readMessage()
 
         clientReadStream >> message;
         signalMessage(descriptor, message);
+        qDebug() << "[ServerSocket] socket state "<< socket->atEnd();
     }
-
 }
 
 void ServerSocket::writeMessage(Message message){

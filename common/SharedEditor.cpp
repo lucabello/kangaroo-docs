@@ -212,8 +212,8 @@ int SharedEditor::editorToVectorIndex(int i){
     }
 
     qDebug() << count << "," << count+i;
-    qDebug() << QString::fromStdString(_symbols.at(count+i).toString()) << " count + i";
-    qDebug() << QString::fromStdString(_symbols.at(count+i-1).toString()) << " count + i - 1";
+    //qDebug() << QString::fromStdString(_symbols.at(count+i).toString()) << " count + i";
+    //qDebug() << QString::fromStdString(_symbols.at(count+i-1).toString()) << " count + i - 1";
 
     return count+i;
 }

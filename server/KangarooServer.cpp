@@ -92,7 +92,10 @@ void KangarooServer::incomingMessage(int descriptor,Message message){
         case MessageType::URI:
             doOpenURI(descriptor, message);
             break;
+        case MessageType::FileSent:
+            break;
         default:
+            qDebug() << "[ERR] - " << QString::fromStdString(message.toString());
         break;
     }
 }
@@ -441,7 +444,7 @@ void KangarooServer::hostDisconnected(int descriptor){
         filenameToDescriptors.erase(filename);
         filenameToSymbols.erase(filename);
     }
-    //descriptorToEditor.erase(descriptor);
+    descriptorToEditor.erase(descriptor);
 }
 
 void KangarooServer::insertControlSymbols(int descriptor, QString filename){
