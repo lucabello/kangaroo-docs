@@ -70,6 +70,8 @@ void ClientSocket::readMessage()
 }
 
 void ClientSocket::writeMessage(Message message){
+    qDebug() << "[ClientSocket] I write this message: " << QString::fromStdString(message.toString());
+
     //SERIALIZATION
     QByteArray serializedMessage;
     QDataStream serializedStream(&serializedMessage, QIODevice::ReadWrite);

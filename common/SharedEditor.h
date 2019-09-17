@@ -106,7 +106,7 @@ public:
      * Return the char sequence in the SharedEditor from its internal
      * representation.
      */
-    std::wstring to_string();
+    QString to_string();
     int getSiteId();
     void setSiteId(int siteId);
     bool siteIdHasColor(qint32 siteId);
@@ -166,7 +166,7 @@ private:
      * @param index index in the vector
      * @param value
      */
-    void localInsert(int index, wchar_t value);
+    void localInsert(int index, QString value);
     /**
      * Insert a style locally and send a Message to the server.
      *

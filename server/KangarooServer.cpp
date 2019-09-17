@@ -362,7 +362,7 @@ void KangarooServer::saveFile(QString filename){
         for(Symbol sym : symbols){
             stream << sym;
             if(sym.isContent() && !sym.isFake())
-                streamPlain << sym.getPlaintext().at(0);
+                streamPlain << sym.getContent();
         }
         file.close();
         filePlain.close();
@@ -433,49 +433,49 @@ void KangarooServer::insertControlSymbols(qintptr descriptor, QString filename){
     std::vector<int> position;
     //paragraph
     position = {1, 0};
-    s = Symbol{StyleType::Paragraph, AlignmentType::AlignLeft, 0, 1, position};
+    s = Symbol{0, 1, position,StyleType::Paragraph, AlignmentType::AlignLeft};
     m = Message{MessageType::Insert, s};
     modifyFileVector(m, symbols);
     descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
     //font
     position = {2, 0};
-    s = Symbol{StyleType::Font, "Arial", 0, 1, position};
+    s = Symbol{0, 1, position,StyleType::Font, "Arial"};
     m = Message{MessageType::Insert, s};
     modifyFileVector(m, symbols);
     descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
     //fontsize
     position = {3, 0};
-    s = Symbol{StyleType::FontSize, 8, 0, 1, position};
+    s = Symbol{0, 1, position,StyleType::FontSize, 8};
     m = Message{MessageType::Insert, s};
     modifyFileVector(m, symbols);
     descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
     //color
     position = {4, 0};
-    s = Symbol{StyleType::Color, "#000000", 0, 1, position};
+    s = Symbol{0, 1, position,StyleType::Color, "#000000"};
     m = Message{MessageType::Insert, s};
     modifyFileVector(m, symbols);
     descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
     //empty symbol
     position = {5, 0};
-    s = Symbol{'\u0000', 0, 0, position};
+    s = Symbol{0, 0, position,"\u0000"};
     m = Message{MessageType::Insert, s};
     modifyFileVector(m, symbols);
     descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
     //fontEnd
     position = {6, 0};
-    s = Symbol{StyleType::FontEnd, "Arial", 0, 1, position};
+    s = Symbol{0, 1, position,StyleType::FontEnd, "Arial"};
     m = Message{MessageType::Insert, s};
     modifyFileVector(m, symbols);
     descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
     //fontsizeEnd
     position = {7, 0};
-    s = Symbol{StyleType::FontSizeEnd, 8, 0, 1, position};
+    s = Symbol{0, 1, position,StyleType::FontSizeEnd, 8};
     m = Message{MessageType::Insert, s};
     modifyFileVector(m, symbols);
     descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
     //colorEnd
     position = {8, 0};
-    s = Symbol{StyleType::ColorEnd, "#000000", 0, 1, position};
+    s = Symbol{0, 1, position,StyleType::ColorEnd, "#000000"};
     m = Message{MessageType::Insert, s};
     modifyFileVector(m, symbols);
     descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);

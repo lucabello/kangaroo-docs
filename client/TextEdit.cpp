@@ -683,10 +683,10 @@ void TextEdit::textBold()
     qDebug() << "cursorSelectionStart: " << start;
     qDebug() << "cursorSelectionEnd: " << end;
     if(actionTextBold->isChecked()){
-        textEdit->localSetStyle(start, end, Symbol(StyleType::Bold, -1, -1, std::vector<int>()));
+        textEdit->localSetStyle(start, end, Symbol(-1, -1, std::vector<qint32>(),StyleType::Bold));
     }
     else{
-        textEdit->localUnsetStyle(start, end, Symbol(StyleType::Bold, -1, -1, std::vector<int>()));
+        textEdit->localUnsetStyle(start, end, Symbol(-1, -1, std::vector<qint32>(),StyleType::Bold));
     }
     mergeFormatOnWordOrSelection(fmt);
 }
@@ -701,10 +701,10 @@ void TextEdit::textUnderline()
     int start = cursor.selectionStart();
     int end = cursor.selectionEnd();
     if(actionTextUnderline->isChecked()){
-        textEdit->localSetStyle(start, end, Symbol(StyleType::Underlined, -1, -1, std::vector<int>()));
+        textEdit->localSetStyle(start, end, Symbol(-1, -1, std::vector<qint32>(),StyleType::Underlined));
     }
     else{
-        textEdit->localUnsetStyle(start, end, Symbol(StyleType::Underlined, -1, -1, std::vector<int>()));
+        textEdit->localUnsetStyle(start, end, Symbol(-1, -1, std::vector<qint32>(),StyleType::Underlined));
     }
     mergeFormatOnWordOrSelection(fmt);
 }
@@ -719,10 +719,10 @@ void TextEdit::textItalic()
     int start = cursor.selectionStart();
     int end = cursor.selectionEnd();
     if(actionTextItalic->isChecked()){
-        textEdit->localSetStyle(start, end, Symbol(StyleType::Italic, -1, -1, std::vector<int>()));
+        textEdit->localSetStyle(start, end, Symbol(-1, -1, std::vector<qint32>(),StyleType::Italic));
     }
     else{
-        textEdit->localUnsetStyle(start, end, Symbol(StyleType::Italic, -1, -1, std::vector<int>()));
+        textEdit->localUnsetStyle(start, end, Symbol(-1, -1, std::vector<qint32>(),StyleType::Italic));
     }
     mergeFormatOnWordOrSelection(fmt);
 }
@@ -735,7 +735,7 @@ void TextEdit::textFamily(const QString &f)
         cursor.select(QTextCursor::WordUnderCursor);
     int start = cursor.selectionStart();
     int end = cursor.selectionEnd();
-    textEdit->localSetStyle(start, end, Symbol(StyleType::Font, familyName, -1, -1, std::vector<int>()));
+    textEdit->localSetStyle(start, end, Symbol(-1, -1, std::vector<int>(),StyleType::Font, familyName));
     QTextCharFormat fmt;
     fmt.setFontFamily(familyName);
     mergeFormatOnWordOrSelection(fmt);
@@ -752,7 +752,7 @@ void TextEdit::textSize(const QString &p)
 
     qreal pointSize = p.toFloat();
     if (p.toFloat() > 0) {
-        textEdit->localSetStyle(start, end, Symbol(StyleType::FontSize, p.toFloat(), -1, -1, std::vector<int>()));
+        textEdit->localSetStyle(start, end, Symbol(-1, -1, std::vector<qint32>(),StyleType::FontSize, p.toInt()));
         QTextCharFormat fmt;
         fmt.setFontPointSize(pointSize);
         mergeFormatOnWordOrSelection(fmt);
@@ -838,7 +838,7 @@ void TextEdit::textColor()
         cursor.select(QTextCursor::WordUnderCursor);
     int start = cursor.selectionStart();
     int end = cursor.selectionEnd();
-    textEdit->localSetStyle(start, end, Symbol(StyleType::Color, col.name(), -1, -1, std::vector<int>()));
+    textEdit->localSetStyle(start, end, Symbol(-1, -1, std::vector<int>(),StyleType::Color, col.name()));
     QTextCharFormat fmt;
     fmt.setForeground(col);
     mergeFormatOnWordOrSelection(fmt);

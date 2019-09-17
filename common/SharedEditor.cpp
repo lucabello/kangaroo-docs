@@ -70,9 +70,7 @@ void SharedEditor::keyPressEvent(QKeyEvent * e){
         qDebug() << "- Printable key: " << e->text();
         eraseSelectedText(e);
         //insert new character
-        wchar_t c[1];
-        e->text().toWCharArray(c);
-        localInsert(this->textCursor().position(), c[0]);
+        localInsert(this->textCursor().position(), e->text().left(1));
     } else if(e->key() == Qt::Key_Backspace || e->key() == Qt::Key_Delete){
         eraseSelectedText(e);
     }/*
@@ -257,7 +255,7 @@ void SharedEditor::avoidBackgroundPropagation(int editorIndexSym){
     }
 }
 
-void SharedEditor::localInsert(int index, wchar_t value) {
+void SharedEditor::localInsert(int index, QString value) {
     std::vector<int> prev, succ;
     //get prev and succ positions if present
     int editorIndexSym=index-1;
@@ -283,11 +281,11 @@ void SharedEditor::localInsert(int index, wchar_t value) {
             _symbols.at(index-1).getPosition() : prev;
     succ = (index >= 0 && index < _symbols.size())?
             _symbols.at(index).getPosition() : succ;
-    Symbol s {value, _siteId, _counter, _lseq.alloc(prev, succ)};
+    Symbol s {_siteId, _counter, _lseq.alloc(prev, succ),value};
     _counter++;
     _symbols.insert(_symbols.begin()+index, s);
     if(value == '\r'){
-        localInsertStyle(index+1, Symbol(StyleType::Paragraph, AlignmentType::AlignLeft, -1, -1, std::vector<int>()));
+        localInsertStyle(index+1, Symbol(-1,-1,std::vector<qint32>(),StyleType::Paragraph, AlignmentType::AlignLeft));
     }
 
     //AVOID BACKGROUND PROPAGATION -- better if after insertText with editorIndexSym=index
@@ -559,7 +557,7 @@ void SharedEditor::localSetAlignment(int position, AlignmentType a){
             if(s.isStyle() && s.getStyleType() == StyleType::Paragraph){
                 if(s.getAlignment() != a){
                     localErase(lastPar);
-                    localInsertStyle(lastPar, Symbol(StyleType::Paragraph, a, _siteId, _counter, std::vector<int>()));
+                    localInsertStyle(lastPar, Symbol(_siteId, _counter, std::vector<qint32>(),StyleType::Paragraph, a));
                 }
             }
         }
@@ -571,7 +569,7 @@ void SharedEditor::localSetAlignment(int position, AlignmentType a){
         if(s.isStyle() && s.getStyleType() == StyleType::Paragraph){
             if(s.getAlignment() != a){
                 localErase(lastPar);
-                localInsertStyle(lastPar, Symbol(StyleType::Paragraph, a, _siteId, _counter, std::vector<int>()));
+                localInsertStyle(lastPar, Symbol(_siteId, _counter, std::vector<qint32>(),StyleType::Paragraph, a));
             }
             break;
         }
@@ -638,10 +636,7 @@ void SharedEditor::process(const Message &m) {
         _symbols.insert(it, sym);
         cursor.setPosition(vectorToEditorIndex(index));
         if(m.getSymbol().isContent()){
-            wchar_t content = sym.getContent();
-            wchar_t arr[2];
-            arr[0] = content;
-            arr[1] = '\0';
+            QString arr=sym.getContent();
             if(m.getSymbol().getSiteId() == 0 && m.getSymbol().isFake()){
                 return;
             }
@@ -650,7 +645,7 @@ void SharedEditor::process(const Message &m) {
             //AVOID BACKGROUND PROPAGATION -- better if after insertText without -1
             avoidBackgroundPropagation(cursorStart-1);
 
-            cursor.insertText(QString::fromWCharArray(arr));
+            cursor.insertText(arr);
             int cursorEnd=cursor.position();
 
             //MOVE USER CURSOR
@@ -757,19 +752,15 @@ void SharedEditor::moveUserCursor(int cursorStart,int cursorEnd,Message m){
     setTextCursor(cursor);
 }
 
-std::wstring SharedEditor::to_string() {
-    std::wstring result;
+QString SharedEditor::to_string() {
+    QString result;
     auto it = _symbols.begin();
     for( ; it != _symbols.end() ; ++it){
         if((*it).isContent()){
-            if(!(*it).getContent()=='\0')
-                result.push_back((*it).getContent());
+            result+=(*it).getContent();
         }
         else{
-            std::wstring tmp((*it).getTag().length(), L' ');
-            std::string base((*it).getTag().toStdString());
-            std::copy(base.begin(), base.end(), tmp.begin());
-            result.append(std::wstring(tmp));
+            result+=(*it).getTag()+" ";
         }
     }
     return result;

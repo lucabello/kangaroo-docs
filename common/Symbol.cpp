@@ -6,10 +6,9 @@
 #include <QDebug>
 //Constructors
 
-Symbol::Symbol() : c(0), siteId(-1), siteCounter(-1){};
+Symbol::Symbol():siteId(-1),siteCounter(-1),c(""){};
 
-Symbol::Symbol(const Symbol& old) : type(old.type), position(old.position),
-    siteId(old.siteId), siteCounter(old.siteCounter){
+Symbol::Symbol(const Symbol& old) : type(old.type),siteId(old.siteId), siteCounter(old.siteCounter), position(old.position){
     if(old.type == SymbolType::Content){
         c = old.c;
     } else if (old.type == SymbolType::Style) {
@@ -26,21 +25,21 @@ Symbol::Symbol(const Symbol& old) : type(old.type), position(old.position),
     }
 }
 
-Symbol::Symbol(wchar_t c, int site, int counter, std::vector<int> pos) : c(c),
-    siteId(site), siteCounter(counter), position(pos), type(SymbolType::Content){};
+Symbol::Symbol(qint32 siteId,qint32 siteCounter,std::vector<qint32> pos,QString c) :
+    type(SymbolType::Content),siteId(siteId),siteCounter(siteCounter),position(pos),c(c){};
 
-Symbol::Symbol(StyleType style, int site, int counter, std::vector<int> pos) : style(style),
-    siteId(site), siteCounter(counter), position(pos), type(SymbolType::Style){
+Symbol::Symbol(qint32 siteId,qint32 siteCounter,std::vector<qint32> pos,StyleType style) : type(SymbolType::Style),
+    siteId(siteId), siteCounter(siteCounter), position(pos),style(style){
     setProperTag();
 };
 
-Symbol::Symbol(StyleType style, AlignmentType alignment, int site, int counter, std::vector<int> pos) : style(style),
-    alignment(alignment), siteId(site), siteCounter(counter), position(pos), type(SymbolType::Style){
+Symbol::Symbol(qint32 siteId,qint32 siteCounter,std::vector<qint32> pos,StyleType style, AlignmentType alignment) :
+    type(SymbolType::Style),siteId(siteId),siteCounter(siteCounter),position(pos),style(style),alignment(alignment){
     setProperTag();
 };
 
-Symbol::Symbol(StyleType style, QString param, int site, int counter, std::vector<int> pos) : style(style),
-    siteId(site), siteCounter(counter), position(pos), type(SymbolType::Style){
+Symbol::Symbol(qint32 siteId,qint32 siteCounter,std::vector<qint32> pos,StyleType style, QString param):
+    type(SymbolType::Style),siteId(siteId), siteCounter(siteCounter), position(pos),style(style){
     if(style == StyleType::Color)
         color = param;
     else if(style == StyleType::ColorEnd)
@@ -52,8 +51,8 @@ Symbol::Symbol(StyleType style, QString param, int site, int counter, std::vecto
     setProperTag();
 };
 
-Symbol::Symbol(StyleType style, int fontsize, int site, int counter, std::vector<int> pos) : style(style),
-    fontsize(fontsize), siteId(site), siteCounter(counter), position(pos), type(SymbolType::Style){
+Symbol::Symbol(qint32 siteId,qint32 siteCounter,std::vector<qint32> pos,StyleType style, int fontsize):
+    type(SymbolType::Style),siteId(siteId), siteCounter(siteCounter), position(pos),style(style),fontsize(fontsize){
     setProperTag();
 };
 
@@ -126,7 +125,7 @@ std::string Symbol::toString(){
     if(this->type == SymbolType::Style)
         result += this->tag.toStdString();
     else if(this->type == SymbolType::Content)
-        result += this->c;
+        result += this->c.toStdString();
     result += " Position: ";
     for(int a : this->position)
         result += std::to_string(a) + ",";
@@ -151,7 +150,7 @@ std::vector<qint32> Symbol::getPosition() const{
     return position;
 }
 
-wchar_t Symbol::getContent() const{
+QString Symbol::getContent() const{
     return c;
 }
 
@@ -181,11 +180,11 @@ qint32 Symbol::getFontSize() const{
 
 
 
-QString Symbol::getPlaintext() const{
+/*QString Symbol::getPlaintext() const{
     char16_t ch = c;
     QString result = QString::fromUtf16(&ch, 1);
     return result;
-}
+}*/
 
 //Utilities
 
@@ -434,8 +433,7 @@ QDataStream &operator<<(QDataStream &out, const Symbol &item)
     for(qint32 i:item.getPosition())
         out << i;
     if(item.isContent()){
-        wchar_t content[1]={item.getContent()};
-        out << QString::fromWCharArray(content);
+        out << item.getContent();
     }else if(item.isStyle()){
         out << item.getStyleType();
         switch(item.getStyleType()){
@@ -470,7 +468,7 @@ QDataStream &operator>>(QDataStream &in, Symbol &item){
     qint32 siteId;
     qint32 siteCounter;
     std::vector<qint32> position;
-    wchar_t c;
+    QString c;
     qint32 style;
     QString tag;
     qint32 alignment;
@@ -483,24 +481,21 @@ QDataStream &operator>>(QDataStream &in, Symbol &item){
     in >> siteCounter;
     qint32 positionSize;
     in >> positionSize;
-    for(qint32 i;i<positionSize;i++){
+    for(qint32 i=0;i<positionSize;i++){
         qint32 positionElement;
         in >> positionElement;
         position.push_back(positionElement);
     }
     if(type == SymbolType::Content){
-        wchar_t cArray[1];
-        QString c0;
-        in >> c0;
-        c0.toWCharArray(cArray);
-        c=cArray[0];
-        item = Symbol{c, siteId, siteCounter, position};
+        in >> c;
+        item = Symbol{siteId, siteCounter, position,c};
+        qDebug()<<QString::fromStdString(item.toString());
     }else if(type == SymbolType::Style){
         in >> style;
         switch (style) {
             case StyleType::Paragraph:
                 in >> alignment;
-                item = Symbol{static_cast<StyleType>(style), static_cast<AlignmentType>(alignment), siteId, siteCounter, position};
+                item = Symbol{siteId,siteCounter,position,static_cast<StyleType>(style), static_cast<AlignmentType>(alignment)};
                 break;
             case StyleType::Bold:
             case StyleType::BoldEnd:
@@ -508,26 +503,27 @@ QDataStream &operator>>(QDataStream &in, Symbol &item){
             case StyleType::ItalicEnd:
             case StyleType::Underlined:
             case StyleType::UnderlinedEnd:
-                item = Symbol{static_cast<StyleType>(style), siteId, siteCounter, position};
+                item = Symbol{siteId,siteCounter,position,static_cast<StyleType>(style)};
                 break;
             case StyleType::Color:
             case StyleType::ColorEnd:
                 in >> color;
-                item = Symbol{static_cast<StyleType>(style), color, siteId, siteCounter, position};
+                item = Symbol{siteId,siteCounter,position,static_cast<StyleType>(style), color};
                 break;
             case StyleType::Font:
             case StyleType::FontEnd:
                 in >> fontname;
-                item = Symbol{static_cast<StyleType>(style), fontname, siteId, siteCounter, position};
+                item = Symbol{siteId,siteCounter,position,static_cast<StyleType>(style), fontname};
                 break;
             case StyleType::FontSize:
             case StyleType::FontSizeEnd:
                 in >> fontsize;
-                item = Symbol{static_cast<StyleType>(style), fontsize, siteId, siteCounter, position};
+                item = Symbol{siteId,siteCounter,position,static_cast<StyleType>(style), fontsize};
                 break;
             default:
                 break;
         }
     }
     return in;
+
 }

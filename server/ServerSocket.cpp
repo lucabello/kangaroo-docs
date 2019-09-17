@@ -55,6 +55,7 @@ void ServerSocket::readMessage()
 
         clientReadStream >> message;
 
+        qDebug() << "[ServerSocket] I read this message state "<< QString::fromStdString(message.toString());
         qDebug() << "[ServerSocket] socket state "<< socket->atEnd();
 
         signalMessage(descriptor, message);
@@ -64,6 +65,8 @@ void ServerSocket::readMessage()
 void ServerSocket::writeMessage(Message message){
     if(!isConnected())
         return;
+
+    qDebug() << "[ServerSocket] I write this message: " << QString::fromStdString(message.toString());
 
     //SERIALIZATION
     QByteArray serializedMessage;

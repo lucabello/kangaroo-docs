@@ -50,15 +50,13 @@ class Symbol {
     qint32 siteId;
     qint32 siteCounter;
     std::vector<qint32> position;
-
-    wchar_t c;
+    QString c;
     StyleType style;
     /**
      * Tag is used to represent a human-readable form of a style symbol.
      * It is only used to check for correctness in debug prints.
      */
     QString tag;
-    //Alignment is specific to a Paragraph style
     AlignmentType alignment;
     QString color;
     QString fontname;
@@ -72,17 +70,17 @@ public:
     //TODO: Assignment operator
     //TODO: Destructor
     //Content constructor
-    Symbol(wchar_t c, int site, int counter, std::vector<int> pos);
+    Symbol(qint32 siteId,qint32 siteCounter,std::vector<int> pos,QString c);
     //Style constructor for Bold, Italic, Underlined
-    Symbol(StyleType style, int site, int counter, std::vector<int> pos);
+    Symbol(qint32 siteId,qint32 siteCounter,std::vector<qint32> pos,StyleType style);
     //Style constructor for Paragraph
-    Symbol(StyleType style, AlignmentType alignment, int site, int counter, std::vector<int> pos);
+    Symbol(qint32 siteId,qint32 siteCounter,std::vector<qint32> pos,StyleType style, AlignmentType alignment);
     //Style constructor for Color or Font
-    Symbol(StyleType style, QString param, int site, int counter, std::vector<int> pos);
+    Symbol(qint32 siteId,qint32 siteCounter,std::vector<qint32> pos,StyleType style, QString param);
     //Style constructor for FontSize
-    Symbol(StyleType style, int fontsize, int site, int counter, std::vector<int> pos);
+    Symbol(qint32 siteId,qint32 siteCounter,std::vector<qint32> pos,StyleType style, int fontsize);
     //Style constructor for copy
-    Symbol(Symbol& s, int site, int counter, std::vector<int> pos);
+    Symbol(Symbol& s, qint32 siteId,qint32 siteCounter,std::vector<qint32> pos);
 
     //general methods
     bool operator<(const Symbol &other) const;
@@ -104,7 +102,7 @@ public:
     qint32 getSiteId() const;
     qint32 getSiteCounter() const;
     std::vector<qint32> getPosition() const;
-    wchar_t getContent() const;
+    QString getContent() const;
     StyleType getStyleType() const;
     QString getTag() const;
     AlignmentType getAlignment() const;
