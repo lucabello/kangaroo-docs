@@ -156,13 +156,7 @@ void KangarooServer::doLogin(qintptr descriptor, Message message){
     Message m;
     if(result == true){
         descriptorToEditor.at(descriptor).setDescriptor(descriptor);
-<<<<<<< HEAD
-
         descriptorToEditor.at(descriptor).setSiteId(siteId.toInt());
-=======
-        descriptorToEditor.at(descriptor).setSiteId(siteId.toUInt());
-        qDebug() << "siteID: " << descriptorToEditor.at(descriptor).getSiteId();
->>>>>>> 79ce1c9af47752e8a92b31a2b5f09e580edf8df8
         descriptorToEditor.at(descriptor).setUsername(username);
         m = Message{MessageType::Login, siteId};
         descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
@@ -395,7 +389,7 @@ void KangarooServer::sendFile(qintptr descriptor, QString filename, bool already
             while(!f.atEnd()){
                 in >> sym;
                 msg = Message{MessageType::Insert, sym};
-                modifyFileVector(msg, symbols);
+                //modifyFileVector(msg, symbols);
                 socket->writeMessage(msg);
             }
             f.close();
