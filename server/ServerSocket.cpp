@@ -62,8 +62,9 @@ void ServerSocket::readMessage()
 }
 
 void ServerSocket::writeMessage(Message message){
-    if(socket->state() != QTcpSocket::ConnectedState)
+    if(!isConnected())
         return;
+
     //SERIALIZATION
     QByteArray serializedMessage;
     QDataStream serializedStream(&serializedMessage, QIODevice::ReadWrite);
@@ -84,4 +85,8 @@ void ServerSocket::writeMessage(Message message){
 
 void ServerSocket::disconnectFromHost(){
     socket->disconnectFromHost();
+}
+
+bool ServerSocket::isConnected(){
+    return socket->state() == QTcpSocket::ConnectedState;
 }

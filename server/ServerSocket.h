@@ -16,6 +16,7 @@ public:
     explicit ServerSocket(QTcpSocket *s);
     qintptr getDescriptor();
     void disconnectFromHost();
+    bool isConnected();
 
 signals:
     void signalMessage(qintptr, Message);

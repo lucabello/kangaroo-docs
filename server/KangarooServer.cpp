@@ -386,10 +386,10 @@ void KangarooServer::sendFile(qintptr descriptor, QString filename, bool already
             QDataStream in(&f);
             Symbol sym;
             Message msg;
-            while(!f.atEnd()){
+            while(!f.atEnd()&&socket->isConnected()){
                 in >> sym;
                 msg = Message{MessageType::Insert, sym};
-                //modifyFileVector(msg, symbols);
+                modifyFileVector(msg, symbols);
                 socket->writeMessage(msg);
             }
             f.close();
@@ -398,11 +398,14 @@ void KangarooServer::sendFile(qintptr descriptor, QString filename, bool already
     else {
         Message m;
         for(auto it = symbols.begin(); it != symbols.end(); ++it){
-            m = Message{MessageType::Insert, *it};
-            socket->writeMessage(m);
+            if(socket->isConnected()){
+                m = Message{MessageType::Insert, *it};
+                socket->writeMessage(m);
+            }
         }
     }
-    socket->writeMessage(Message{MessageType::FileSent, ""});
+    if(socket->isConnected())
+        socket->writeMessage(Message{MessageType::FileSent, ""});
 }
 
 void KangarooServer::hostDisconnected(qintptr descriptor){
