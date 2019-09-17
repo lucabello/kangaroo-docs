@@ -680,6 +680,8 @@ void TextEdit::textBold()
     }
     int start = cursor.selectionStart();
     int end = cursor.selectionEnd();
+    qDebug() << "cursorSelectionStart: " << start;
+    qDebug() << "cursorSelectionEnd: " << end;
     if(actionTextBold->isChecked()){
         textEdit->localSetStyle(start, end, Symbol(StyleType::Bold, -1, -1, std::vector<int>()));
     }

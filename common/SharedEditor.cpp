@@ -5,7 +5,7 @@
 #include <QClipboard>
 #include <QMimeData>
 
-SharedEditor::SharedEditor(QWidget *parent, int siteId) : QTextEdit(parent), _lseq(LSEQAllocator(siteId)){}
+SharedEditor::SharedEditor(QWidget *parent, int siteId) : QTextEdit(parent), _lseq(LSEQAllocator(siteId)), _counter(0){}
 
 //SharedEditor::SharedEditor(const QString &text, QWidget *parent, int siteId) : QTextEdit(text, parent), _lseq(LSEQAllocator(siteId)){}
 
@@ -263,21 +263,21 @@ void SharedEditor::localInsert(int index, wchar_t value) {
     int editorIndexSym=index-1;
     int i;
 
-    qDebug() << editorIndexSym << " editorIndexSym";
-    qDebug() << index << "index";
-
     index = editorToVectorIndex(index); //sum number of tag symbols to index
 
     //allow propagation of style
-    for(i=1; editorIndexSym!=-1 && index-i>0 && _symbols.at(index-i).isStyle(); i++);
+    for(i=1; editorIndexSym!=-1 && index-i>0 && (_symbols.at(index-i).isClosingTag()
+                     || _symbols.at(index-i).isComplexStyle()); i++){
+        qDebug() << QString::fromStdString(_symbols.at(index-i).toString()) << ";" << index-i;
+//        if(_symbols.at(index-i).isOpeningOf(_symbols.at(index-i+1))){
+//           break;
+//        }
+    }
 
     i--;
-
-    if(i>0)
+    qDebug() << "propStyle: " << QString::fromStdString(_symbols.at(index-i-1).toString()) << " inserting symbol";
+    if(i>0 && _symbols.at(index-i-1).getContent() != ' ')
         index-=i;
-
-    qDebug() << index << "indexFixedVector";
-    qDebug() << _symbols.size() << "_symbolsSize";
 
     prev = (index-1 >= 0 && index-1 < _symbols.size())?
             _symbols.at(index-1).getPosition() : prev;
@@ -324,6 +324,8 @@ void SharedEditor::localSetSimpleStyle(int start, int end, Symbol s){
 
     start = editorToVectorIndex(start);
     end = editorToVectorIndex(end);
+//    if(_symbols.at(end).getContent() == ' ')
+//        end++;
     bool insertOpenTag = true, insertCloseTag = true;
 
 //    qDebug() << "start :" << start;
@@ -353,13 +355,6 @@ void SharedEditor::localSetSimpleStyle(int start, int end, Symbol s){
         }
     }
 
-    qDebug() << "insertOpenTag :" << insertOpenTag;
-    qDebug() << "insertCloseTag :" << insertCloseTag;
-
-    //this should never happen
-    if(!insertOpenTag && !insertCloseTag)
-        return;
-
 
     //remove all -style- tags between end and start
     //start from last so we don't ruin indexes
@@ -374,6 +369,15 @@ void SharedEditor::localSetSimpleStyle(int start, int end, Symbol s){
             end--;
         }
     }
+
+//    if(start==end){
+//        bool update=false;
+//        for(i=start-1; _symbols.at(i).isClosingTag()
+//                        || _symbols.at(i).isComplexStyle(); i--, update=true);
+//        if(update)
+//            start=i+1;
+//    }
+
     if(insertCloseTag)
         localInsertStyle(end, Symbol::getClosedStyle(s));
     if(insertOpenTag)
@@ -386,7 +390,7 @@ void SharedEditor::localUnsetStyle(int start, int end, Symbol s){
 //    qDebug() << "end :" << end;
 
     start = editorToVectorIndex(start);
-    end = editorToVectorIndex(end)-1;
+    end = editorToVectorIndex(end);
 
     qDebug() << "start :" << start << QString::fromStdString(_symbols.at(start).toString());
     qDebug() << "end :" << end << QString::fromStdString(_symbols.at(end).toString());
@@ -406,7 +410,7 @@ void SharedEditor::localUnsetStyle(int start, int end, Symbol s){
             break;
         }
     }
-    for(i=end+1; i<_symbols.size(); i++){
+    for(i=end; i<_symbols.size(); i++){
         //if I find an opening tag (isSameStyleAs) before a closing one (isClosingOf)
         //it means that my end is not in the middle of a style tag
         //otherwise I am in the middle and I have to add a opening style tag in end position
@@ -419,26 +423,45 @@ void SharedEditor::localUnsetStyle(int start, int end, Symbol s){
         }
     }
 
-//    qDebug() << "insertOpenTag :" << insertOpenTag;
-//    qDebug() << "insertCloseTag :" << insertCloseTag;
+    qDebug() << "insertOpenTag :" << insertOpenTag;
+    qDebug() << "insertCloseTag :" << insertCloseTag;
 
     //this should never happen
     if(!insertOpenTag && !insertCloseTag)
-        return;
+        qDebug() << "Help!";
 
     //remove all -style- tags between end and start
     //start from last so we don't ruin indexes
-    for(i=end+1; i>=start; i--){
+    for(i=end; i>=start; i--){
         if(_symbols.at(i).isStyle() && Symbol::areSimilarTags(_symbols.at(i), s)){
             localErase(i);
             end--;
         }
     }
+
+    qDebug() << "start :" << start << QString::fromStdString(_symbols.at(start).toString());
+    qDebug() << "end :" << end << QString::fromStdString(_symbols.at(end).toString());
+
     if(insertOpenTag)
-        localInsertStyle(end+1, s);
+        localInsertStyle(end, s);
     if(insertCloseTag)
         localInsertStyle(start, Symbol::getClosedStyle(s));
-    while(eraseTwinTags()>0);
+//    if(start==end){
+//        int j;
+//        for(i=start-1; _symbols.at(i).isStyle(); i--);
+//        qDebug() << "i :" << i << QString::fromStdString(_symbols.at(i).toString());
+//        if(_symbols.at(i).getContent() == ' '){
+//            for(j=start-1; j>i;){
+//                qDebug() << "i :" << i << QString::fromStdString(_symbols.at(i).toString());
+//                qDebug() << "j :" << j << QString::fromStdString(_symbols.at(j).toString());
+//                Symbol s = _symbols.at(j);
+//                localErase(j);
+//                localInsertStyle(i, s);
+//                printAll();
+//                i++;
+//            }
+//        }
+//    }
 }
 
 void SharedEditor::localSetComplexStyle(int start, int end, Symbol s){
@@ -494,6 +517,14 @@ void SharedEditor::localSetComplexStyle(int start, int end, Symbol s){
     qDebug() << "start :" << start << QString::fromStdString(_symbols.at(start).toString());
     qDebug() << "end :" << end << QString::fromStdString(_symbols.at(end).toString());
 
+//    if(start==end){
+//        bool update=false;
+//        for(i=start-1; _symbols.at(i).isClosingTag()
+//                        || _symbols.at(i).isComplexStyle(); i--, update=true);
+//        if(update)
+//            start=i+1;
+//    }
+
     if(insertCloseTag){
         localInsertStyle(end, Symbol::getClosedStyle(s));
         localInsertStyle(end+1, Symbol::getOpenStyle(closeSymbol));
@@ -503,7 +534,8 @@ void SharedEditor::localSetComplexStyle(int start, int end, Symbol s){
         localInsertStyle(start+1, s);
     }
 
-    while(eraseTwinTags()>0);
+    if(start!=end)
+        while(eraseTwinTags()>0);
 }
 
 
@@ -562,6 +594,7 @@ void SharedEditor::localErase(int index) {
         return;
     Symbol s = _symbols.at(index);
     _symbols.erase(_symbols.begin()+index);
+    _counter++;
     //super inefficient, but should work at least for testing
     while(eraseTwinTags() > 0);
     Message m {MessageType::Erase, s};
@@ -584,11 +617,11 @@ void SharedEditor::incomingPacket(Message m){
 }
 
 
-//NOT WORKING PROPERLY
-//TODO: FIX THIS ASAP AND TEST IT WITH MULTIPLE EDITORS
 void SharedEditor::process(const Message &m) {
     if(m.getType() == MessageType::Insert){
         Symbol sym = m.getSymbol();
+        if(sym.getSiteId() == _siteId && sym.getSiteCounter() >= _counter)
+            _counter=sym.getSiteCounter();
 
         qint32 siteId=sym.getSiteId();
         QTextCursor cursor=textCursor();
@@ -625,7 +658,7 @@ void SharedEditor::process(const Message &m) {
         }
         else {
             qDebug() << "Inserting style tag";
-            applyStylesToEditor();
+
         }
     } else if (m.getType() == MessageType::Erase) {
         auto it = std::find(_symbols.begin(), _symbols.end(), m.getSymbol());
@@ -646,9 +679,10 @@ void SharedEditor::process(const Message &m) {
         }
         else {
             qDebug() << "Erasing style tag";
-            applyStylesToEditor();
+
         }
     }
+    applyStylesToEditor();
 }
 
 QColor SharedEditor::randomColor(){
@@ -937,7 +971,7 @@ void SharedEditor::applyStylesToEditor(){
                 currentCursor.mergeCharFormat(fmt);
             }
             currentCursor.setPosition(lastBoldEnd, QTextCursor::MoveAnchor);
-            currentCursor.setPosition(boldStart-1, QTextCursor::KeepAnchor);
+            currentCursor.setPosition(boldStart, QTextCursor::KeepAnchor);
             this->setTextCursor(currentCursor);
             fmt.setFontWeight(QFont::Normal);
             currentCursor.mergeCharFormat(fmt);
@@ -969,7 +1003,7 @@ void SharedEditor::applyStylesToEditor(){
                 mergeCurrentCharFormat(fmt);
             }
             currentCursor.setPosition(lastItalicEnd, QTextCursor::MoveAnchor);
-            currentCursor.setPosition(italicStart-1, QTextCursor::KeepAnchor);
+            currentCursor.setPosition(italicStart, QTextCursor::KeepAnchor);
             this->setTextCursor(currentCursor);
             fmt.setFontItalic(false);
             currentCursor.mergeCharFormat(fmt);
@@ -999,7 +1033,7 @@ void SharedEditor::applyStylesToEditor(){
                 mergeCurrentCharFormat(fmt);
             }
             currentCursor.setPosition(lastUnderlinedEnd, QTextCursor::MoveAnchor);
-            currentCursor.setPosition(underlinedStart-1, QTextCursor::KeepAnchor);
+            currentCursor.setPosition(underlinedStart, QTextCursor::KeepAnchor);
             this->setTextCursor(currentCursor);
             fmt.setFontUnderline(false);
             currentCursor.mergeCharFormat(fmt);
@@ -1188,4 +1222,15 @@ void SharedEditor::hideUserCursors(){
     cursor.setPosition(originalPosition);
     setTextCursor(cursor);
 
+}
+
+int SharedEditor::LastIndex(){
+    int index;
+    int count=0;
+    for(index=0; index<_symbols.size(); index++){
+        if(_symbols.at(index).isStyle() || _symbols.at(index).isFake())
+            count++;
+    }
+    qDebug() << "LastIndex:" << index-count;
+    return index-count;
 }

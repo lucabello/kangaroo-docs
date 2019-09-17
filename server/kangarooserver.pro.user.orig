@@ -1,18 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
 <<<<<<< HEAD
-<!-- Written by QtCreator 4.9.2, 2019-09-09T16:10:16. -->
+<!-- Written by QtCreator 4.9.2, 2019-09-17T16:06:42. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
   <value type="QByteArray">{12b708ec-9933-461d-8803-5194988f786e}</value>
 =======
+
+
+<qtcreator>
+ <data>
+  <variable>EnvironmentId</variable>
+  <value type="QByteArray">{07e7ff67-1f70-4f52-96a5-00ae704a1b0e}</value>
+
+
+
+
+
+
+
+
 <!-- Written by QtCreator 4.10.0, 2019-09-10T09:41:53. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
   <value type="QByteArray">{6f9e93f4-881c-4006-befa-16c1496d61be}</value>
->>>>>>> e76135fe331a7f30661461576f6de318f0563772
+
+
+>>>>>>> 79ce1c9af47752e8a92b31a2b5f09e580edf8df8
  </data>
  <data>
   <variable>ProjectExplorer.Project.ActiveTarget</variable>
@@ -63,7 +79,9 @@
  <data>
   <variable>ProjectExplorer.Project.PluginSettings</variable>
   <valuemap type="QVariantMap">
-   <valuelist type="QVariantList" key="ClangCodeModel.CustomCommandLineKey"/>
+   <valuelist type="QVariantList" key="ClangCodeModel.CustomCommandLineKey">
+    <value type="QString">-fno-delayed-template-parsing</value>
+   </valuelist>
    <value type="bool" key="ClangCodeModel.UseGlobalConfig">true</value>
   </valuemap>
  </data>
@@ -75,10 +93,22 @@
    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Desktop Qt 5.13.0 MinGW 64-bit</value>
    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">qt.qt5.5130.win64_mingw73_kit</value>
 =======
+
+
+
+
+
+
+
+
+
+
    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Desktop Qt 5.13.0 clang 64bit</value>
    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Desktop Qt 5.13.0 clang 64bit</value>
    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">qt.qt5.5130.clang_64_kit</value>
->>>>>>> e76135fe331a7f30661461576f6de318f0563772
+
+
+>>>>>>> 79ce1c9af47752e8a92b31a2b5f09e580edf8df8
    <value type="int" key="ProjectExplorer.Target.ActiveBuildConfiguration">0</value>
    <value type="int" key="ProjectExplorer.Target.ActiveDeployConfiguration">0</value>
    <value type="int" key="ProjectExplorer.Target.ActiveRunConfiguration">0</value>
@@ -86,8 +116,16 @@
 <<<<<<< HEAD
     <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">C:/Qt/Projects/kangaroo/build-kangarooserver-Desktop_Qt_5_13_0_MinGW_64_bit-Debug</value>
 =======
+
+
+
+
+
+
     <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">/Users/angelo/Documents/GitHub/kangaroo-docs/build-kangarooserver-Desktop_Qt_5_13_0_clang_64bit-Debug</value>
->>>>>>> e76135fe331a7f30661461576f6de318f0563772
+
+
+>>>>>>> 79ce1c9af47752e8a92b31a2b5f09e580edf8df8
     <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.0">
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
       <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
@@ -146,8 +184,16 @@
 <<<<<<< HEAD
     <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">C:/Qt/Projects/kangaroo/build-kangarooserver-Desktop_Qt_5_13_0_MinGW_64_bit-Release</value>
 =======
+
+
+
+
+
+
     <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">/Users/angelo/Documents/GitHub/kangaroo-docs/build-kangarooserver-Desktop_Qt_5_13_0_clang_64bit-Release</value>
->>>>>>> e76135fe331a7f30661461576f6de318f0563772
+
+
+>>>>>>> 79ce1c9af47752e8a92b31a2b5f09e580edf8df8
     <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.0">
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
       <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
@@ -206,8 +252,8 @@
 <<<<<<< HEAD
     <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">C:/Qt/Projects/kangaroo/build-kangarooserver-Desktop_Qt_5_13_0_MinGW_64_bit-Profile</value>
 =======
-    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">/Users/angelo/Documents/GitHub/kangaroo-docs/build-kangarooserver-Desktop_Qt_5_13_0_clang_64bit-Profile</value>
->>>>>>> e76135fe331a7f30661461576f6de318f0563772
+    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">C:/Users/pc/Desktop/KangarooProject/Kangaroo/build-kangarooserver-Desktop_Qt_5_12_3_MinGW_64_bit-Profile</value>
+>>>>>>> 79ce1c9af47752e8a92b31a2b5f09e580edf8df8
     <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.0">
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
       <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
@@ -329,18 +375,26 @@
     </valuelist>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Executable"></value>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Custom Executable</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">kangarooserver</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
 <<<<<<< HEAD
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:C:/Qt/Projects/kangaroo/server/kangarooserver.pro</value>
 =======
+
+
+
+
+
+
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.CustomExecutableRunConfiguration</value>
->>>>>>> e76135fe331a7f30661461576f6de318f0563772
+
+
+>>>>>>> 79ce1c9af47752e8a92b31a2b5f09e580edf8df8
     <value type="QString" key="RunConfiguration.Arguments"></value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
     <value type="bool" key="RunConfiguration.UseCppDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
+    <value type="bool" key="RunConfiguration.UseLibrarySearchPath">true</value>
     <value type="bool" key="RunConfiguration.UseMultiProcess">false</value>
     <value type="bool" key="RunConfiguration.UseQmlDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
@@ -348,8 +402,16 @@
 <<<<<<< HEAD
     <value type="QString" key="RunConfiguration.WorkingDirectory.default">C:/Qt/Projects/kangaroo/build-kangarooserver-Desktop_Qt_5_13_0_MinGW_64_bit-Debug</value>
 =======
+
+
+
+
+
+
     <value type="QString" key="RunConfiguration.WorkingDirectory.default"></value>
->>>>>>> e76135fe331a7f30661461576f6de318f0563772
+
+
+>>>>>>> 79ce1c9af47752e8a92b31a2b5f09e580edf8df8
    </valuemap>
    <value type="int" key="ProjectExplorer.Target.RunConfigurationCount">1</value>
   </valuemap>
@@ -360,10 +422,10 @@
  </data>
  <data>
   <variable>ProjectExplorer.Project.Updater.FileVersion</variable>
-  <value type="int">22</value>
+  <value type="int">21</value>
  </data>
  <data>
   <variable>Version</variable>
-  <value type="int">22</value>
+  <value type="int">21</value>
  </data>
 </qtcreator>

@@ -190,7 +190,10 @@ QString Symbol::getPlaintext() const{
 //Utilities
 
 bool Symbol::isOpenTag(){
-    if(style == StyleType::Bold || style == StyleType::Italic || style == StyleType::Underlined || style == StyleType::Color)
+    if(!this->isStyle())
+        return false;
+    if(style == StyleType::Bold || style == StyleType::Italic || style == StyleType::Underlined
+            || style == StyleType::Color || style == StyleType::Font || StyleType::FontSize)
         return true;
     return false;
 }
@@ -328,6 +331,16 @@ bool Symbol::isClosingOf(Symbol& other){
     return false;
 }
 
+bool Symbol::isClosingTag(){
+    if(!this->isStyle())
+        return false;
+    if(this->style==StyleType::BoldEnd || this->style==StyleType::ItalicEnd || this->style==StyleType::UnderlinedEnd
+            || this->style==StyleType::ColorEnd || this->style==StyleType::FontEnd || this->style==StyleType::FontSizeEnd)
+        return true;
+    else
+        return false;
+}
+
 bool Symbol::areTwinTags(Symbol& a, Symbol& b){
     return (a.isOpeningOf(b) || b.isOpeningOf(a));
 }
@@ -407,7 +420,7 @@ bool Symbol::isSimpleStyle(){
 }
 
 bool Symbol::isComplexStyle(){
-    if(type != SymbolType::Style)
+    if(!this->isStyle())
         return false;
     return !isSimpleStyle();
 }
