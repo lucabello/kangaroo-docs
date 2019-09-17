@@ -14,12 +14,12 @@ class ServerSocket : public QObject
 public:
     explicit ServerSocket(QObject *parent = nullptr);
     explicit ServerSocket(QTcpSocket *s);
-    int getDescriptor();
+    qintptr getDescriptor();
     void disconnectFromHost();
 
 signals:
-    void signalMessage(int, Message);
-    void hostDisconnected(int);
+    void signalMessage(qintptr, Message);
+    void hostDisconnected(qintptr);
 
 public slots:
     void connected();
@@ -31,7 +31,7 @@ public slots:
 
 private:
     QTcpSocket *socket;
-    int descriptor;
+    qintptr descriptor;
 };
 
 #endif // MYTCPSOCKET_H

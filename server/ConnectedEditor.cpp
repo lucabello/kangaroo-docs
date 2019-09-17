@@ -10,7 +10,7 @@ ServerSocket* ConnectedEditor::getSocket(){
     return mySocket;
 }
 
-int ConnectedEditor::getDescriptor(){
+qintptr ConnectedEditor::getDescriptor(){
     return descriptor;
 }
 
@@ -26,7 +26,7 @@ QString ConnectedEditor::getWorkingFile(){
     return workingFile;
 }
 
-void ConnectedEditor::setDescriptor(int descr){
+void ConnectedEditor::setDescriptor(qintptr descr){
     descriptor = descr;
 }
 

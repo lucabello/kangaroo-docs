@@ -20,29 +20,29 @@ signals:
 
 public slots:
     void newConnection();
-    void incomingMessage(int descriptor,Message message);
-    void hostDisconnected(int descriptor);
+    void incomingMessage(qintptr descriptor,Message message);
+    void hostDisconnected(qintptr descriptor);
 
 private:
     QTcpServer *server;
     int guestId = 1;
-    std::map<int,ConnectedEditor> descriptorToEditor;
-    std::map<QString, std::vector<int>> filenameToDescriptors;
+    std::map<qintptr,ConnectedEditor> descriptorToEditor;
+    std::map<QString, std::vector<qintptr>> filenameToDescriptors;
     std::map<QString, std::vector<Symbol>> filenameToSymbols;
     void modifyFileVector(const Message& m, std::vector<Symbol>& _symbols);
     //Temporary, for testing and debugging collaborative editing
-    std::vector<int> connectedList;
-    void propagate(int descriptor, Message message);
-    void doLogin(int descriptor, Message message);
-    void doRegister(int descriptor, Message message);
-    void doCreate(int descriptor, Message message);
-    void doOpen(int descriptor, Message message);
-    void sendFileList(int descriptor);
-    void sendEditorList(int descriptor, QString filename);
+    //std::vector<int> connectedList;
+    void propagate(qintptr descriptor, Message message);
+    void doLogin(qintptr descriptor, Message message);
+    void doRegister(qintptr descriptor, Message message);
+    void doCreate(qintptr descriptor, Message message);
+    void doOpen(qintptr descriptor, Message message);
+    void sendFileList(qintptr descriptor);
+    void sendEditorList(qintptr descriptor, QString filename);
     void saveFile(QString filename);
-    void sendFile(int descriptor, QString filename, bool alreadyInMemory);
-    void insertControlSymbols(int descriptor, QString filename);
-    void doOpenURI(int descriptor, Message message);
+    void sendFile(qintptr descriptor, QString filename, bool alreadyInMemory);
+    void insertControlSymbols(qintptr descriptor, QString filename);
+    void doOpenURI(qintptr descriptor, Message message);
 };
 
 #endif // MYTCPSERVER_H

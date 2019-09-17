@@ -14,19 +14,19 @@ public:
     ConnectedEditor();
     ConnectedEditor(ServerSocket *s);
     ServerSocket* getSocket();
-    int getDescriptor();
+    qintptr getDescriptor();
     QString getUsername();
     int getSiteId();
     QString getWorkingFile();
 
-    void setDescriptor(int descr);
+    void setDescriptor(qintptr descr);
     void setUsername(QString user);
     void setSiteId(int id);
     void setWorkingFile(QString filename);
 
 private:
     ServerSocket *mySocket;
-    int descriptor;
+    qintptr descriptor;
     QString username;
     int siteId;
     QString workingFile;

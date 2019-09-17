@@ -5,8 +5,7 @@ ServerSocket::ServerSocket(QObject *parent) :
 {
 }
 
-ServerSocket::ServerSocket(QTcpSocket *s): socket(s),
-    QObject(nullptr)
+ServerSocket::ServerSocket(QTcpSocket *s): QObject(nullptr),socket(s)
 {
     if(s != nullptr)
         descriptor = s->socketDescriptor();
@@ -22,7 +21,7 @@ ServerSocket::ServerSocket(QTcpSocket *s): socket(s),
             this, SLOT(readMessage()));
 }
 
-int ServerSocket::getDescriptor(){
+qintptr ServerSocket::getDescriptor(){
     return descriptor;
 }
 
@@ -55,12 +54,16 @@ void ServerSocket::readMessage()
             qDebug() << " >> Waiting for the next message of size "+QString::fromStdString(std::to_string(nextMessageSize))+"...";
 
         clientReadStream >> message;
-        signalMessage(descriptor, message);
+
         qDebug() << "[ServerSocket] socket state "<< socket->atEnd();
+
+        signalMessage(descriptor, message);
     }
 }
 
 void ServerSocket::writeMessage(Message message){
+    if(socket->state() != QTcpSocket::ConnectedState)
+        return;
     //SERIALIZATION
     QByteArray serializedMessage;
     QDataStream serializedStream(&serializedMessage, QIODevice::ReadWrite);
@@ -73,6 +76,7 @@ void ServerSocket::writeMessage(Message message){
     networkStream << size << message;
 
     qDebug() << size << " + " << sizeof (size) << " = " << networkMessage.size() << "bytes sending";
+
     qint64 written = socket->write(networkMessage);
     qDebug() << written << " bytes written.";
     socket->flush();
