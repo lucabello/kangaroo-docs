@@ -183,6 +183,11 @@ public:
     bool isClosingOf(Symbol& other);
 
     /**
+     * Checks whether a symbol a the closing style tag.
+     */
+    bool isClosingTag();
+
+    /**
      * Checks if two symbols are twin tags, which means that one is the
      * opening of the other one
      *

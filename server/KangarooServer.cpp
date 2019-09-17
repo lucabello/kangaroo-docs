@@ -147,6 +147,7 @@ void KangarooServer::doLogin(int descriptor, Message message){
             if(line.startsWith(loginString)){
                 result = true;
                 siteId = line.split(",").at(2);
+                qDebug() << "siteID: " << siteId;
             }
         }
         inputFile.close();
@@ -155,6 +156,7 @@ void KangarooServer::doLogin(int descriptor, Message message){
     if(result == true){
         descriptorToEditor.at(descriptor).setDescriptor(descriptor);
         descriptorToEditor.at(descriptor).setSiteId(siteId.toUInt());
+        qDebug() << "siteID: " << descriptorToEditor.at(descriptor).getSiteId();
         descriptorToEditor.at(descriptor).setUsername(username);
         m = Message{MessageType::Login, siteId};
         descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
@@ -187,6 +189,7 @@ void KangarooServer::doRegister(int descriptor, Message message){
     Message m;
     if(result == true){
         QString siteId = QString().setNum(newSiteId);
+        qDebug() << "siteID: " << siteId;
         if(userFile.open(QIODevice::WriteOnly | QIODevice::Append)){
             QString line = registerString + "," + siteId + "\n";
             userFile.write(line.toUtf8());
@@ -194,6 +197,7 @@ void KangarooServer::doRegister(int descriptor, Message message){
         }
         descriptorToEditor.at(descriptor).setDescriptor(descriptor);
         descriptorToEditor.at(descriptor).setSiteId(newSiteId);
+        qDebug() << "siteID: " << siteId;
         descriptorToEditor.at(descriptor).setUsername(username);
         m = Message{MessageType::Register, siteId};
         descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);

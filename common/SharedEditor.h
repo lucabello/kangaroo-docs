@@ -143,7 +143,7 @@ public slots:
 
 private:
     int _siteId;
-    int _counter;
+    int _counter = 0;
     LSEQAllocator _lseq;
     //TODO: substitute with SymbolVector
     std::vector<Symbol> _symbols;
@@ -302,6 +302,8 @@ private:
 
 
     void avoidBackgroundPropagation(int editorIndexSym);
+
+    int LastIndex();
 
 };
 
