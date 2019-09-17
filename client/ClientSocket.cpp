@@ -84,10 +84,10 @@ void ClientSocket::writeMessage(Message message){
     qDebug() << "[ClientSocket] Sending " << size << " bytes for this message:";
     qDebug() << QString::fromStdString(message.toString());
 */
-    //qDebug() << size << " + " << sizeof (size) << " = " << networkMessage.size() << "bytes sending";
+    qDebug() << size << " + " << sizeof (size) << " = " << networkMessage.size() << "bytes sending";
     qint64 written = socket->write(networkMessage);
     socket->flush();
-    //qDebug() << written << " bytes written.";
+    qDebug() << written << " bytes written.";
 }
 
 std::string ClientSocket::getaddress()
