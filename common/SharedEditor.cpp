@@ -267,15 +267,16 @@ void SharedEditor::localInsert(int index, QString value) {
     for(i=1; editorIndexSym!=-1 && index-i>0 && (_symbols.at(index-i).isClosingTag()
                      || _symbols.at(index-i).isComplexStyle()); i++){
         qDebug() << QString::fromStdString(_symbols.at(index-i).toString()) << ";" << index-i;
-//        if(_symbols.at(index-i).isOpeningOf(_symbols.at(index-i+1))){
-//           break;
-//        }
+        if(_symbols.at(index-i).isOpeningOf(_symbols.at(index-i+1))){
+           break;
+        }
     }
 
     i--;
-    qDebug() << "propStyle: " << QString::fromStdString(_symbols.at(index-i-1).toString()) << " inserting symbol";
-    if(i>0 && _symbols.at(index-i-1).getContent() != ' ')
+    if(i>=1){
         index-=i;
+    }
+    qDebug() << "propStyle: " << QString::fromStdString(_symbols.at(index-i-1).toString()) << " inserting symbol";
 
     prev = (index-1 >= 0 && index-1 < _symbols.size())?
             _symbols.at(index-1).getPosition() : prev;
@@ -368,13 +369,13 @@ void SharedEditor::localSetSimpleStyle(int start, int end, Symbol s){
         }
     }
 
-//    if(start==end){
-//        bool update=false;
-//        for(i=start-1; _symbols.at(i).isClosingTag()
-//                        || _symbols.at(i).isComplexStyle(); i--, update=true);
-//        if(update)
-//            start=i+1;
-//    }
+    if(start==end){
+        bool update=false;
+        for(i=start-1; _symbols.at(i).isClosingTag()
+                        || _symbols.at(i).isComplexStyle(); i--, update=true);
+        if(update)
+            start=i+1;
+    }
 
     if(insertCloseTag)
         localInsertStyle(end, Symbol::getClosedStyle(s));
@@ -444,22 +445,22 @@ void SharedEditor::localUnsetStyle(int start, int end, Symbol s){
         localInsertStyle(end, s);
     if(insertCloseTag)
         localInsertStyle(start, Symbol::getClosedStyle(s));
-//    if(start==end){
-//        int j;
-//        for(i=start-1; _symbols.at(i).isStyle(); i--);
-//        qDebug() << "i :" << i << QString::fromStdString(_symbols.at(i).toString());
-//        if(_symbols.at(i).getContent() == ' '){
-//            for(j=start-1; j>i;){
-//                qDebug() << "i :" << i << QString::fromStdString(_symbols.at(i).toString());
-//                qDebug() << "j :" << j << QString::fromStdString(_symbols.at(j).toString());
-//                Symbol s = _symbols.at(j);
-//                localErase(j);
-//                localInsertStyle(i, s);
-//                printAll();
-//                i++;
-//            }
-//        }
-//    }
+    if(start==end){
+        int j;
+        for(i=start-1; _symbols.at(i).isStyle(); i--);
+        qDebug() << "i :" << i << QString::fromStdString(_symbols.at(i).toString());
+        if(_symbols.at(i).getContent() == ' '){
+            for(j=start-1; j>i;){
+                qDebug() << "i :" << i << QString::fromStdString(_symbols.at(i).toString());
+                qDebug() << "j :" << j << QString::fromStdString(_symbols.at(j).toString());
+                Symbol s = _symbols.at(j);
+                localErase(j);
+                localInsertStyle(i, s);
+                printAll();
+                i++;
+            }
+        }
+    }
 }
 
 void SharedEditor::localSetComplexStyle(int start, int end, Symbol s){
@@ -501,8 +502,10 @@ void SharedEditor::localSetComplexStyle(int start, int end, Symbol s){
     }
 
     //this should never happen
-    if(!insertOpenTag && !insertCloseTag)
-        return;
+    if(!insertOpenTag && !insertCloseTag){
+
+    }
+
     //remove all -style- tags between end and start that are of the similar
     //start from last so we don't ruin indexes
     for(i=end; i>=start; i--){
@@ -515,13 +518,13 @@ void SharedEditor::localSetComplexStyle(int start, int end, Symbol s){
     qDebug() << "start :" << start << QString::fromStdString(_symbols.at(start).toString());
     qDebug() << "end :" << end << QString::fromStdString(_symbols.at(end).toString());
 
-//    if(start==end){
-//        bool update=false;
-//        for(i=start-1; _symbols.at(i).isClosingTag()
-//                        || _symbols.at(i).isComplexStyle(); i--, update=true);
-//        if(update)
-//            start=i+1;
-//    }
+    if(start==end){
+        bool update=false;
+        for(i=start-1; _symbols.at(i).isClosingTag()
+                        || _symbols.at(i).isComplexStyle(); i--, update=true);
+        if(update)
+            start=i+1;
+    }
 
     if(insertCloseTag){
         localInsertStyle(end, Symbol::getClosedStyle(s));
