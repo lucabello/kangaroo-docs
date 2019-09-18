@@ -49,11 +49,9 @@ LoginWindow::LoginWindow(QWidget *parent) : QMainWindow(parent)
     buttonRegister=new QPushButton(this);
     buttonRegister->setText("Register");
     buttonRegister->move(buttonLogin->width(),buttonLogin->y());
-
-    QPushButton *buttonURI = new QPushButton(this);
+    buttonURI = new QPushButton(this);
     buttonURI->setText("Open File from URI");
-    buttonURI->resize(this->width(),buttonURI->height());
-    buttonURI->move(0,buttonURI->height());
+    buttonURI->move(0,ipLabel->y()+ipLabel->height()+buttonURI->height());
 
     int width=usernameLabel->width()+usernameLine->width();
     int height=buttonLogin->y()+buttonLogin->height();
@@ -68,8 +66,10 @@ LoginWindow::LoginWindow(QWidget *parent) : QMainWindow(parent)
     ipLine->move(ipLine->x()+offsetX,ipLine->y()+offsetY);
     buttonLogin->move(buttonLogin->x()+offsetX,buttonLogin->y()+offsetY);
     buttonRegister->move(buttonRegister->x()+offsetX,buttonRegister->y()+offsetY);
+    buttonURI->move(buttonURI->x()+offsetX,buttonURI->y()+offsetY);
     buttonLogin->resize(width/2,buttonLogin->height());
     buttonRegister->resize(width/2,buttonRegister->height());
+    buttonURI->resize(width,buttonURI->height());
 
     connect(buttonLogin, SIGNAL (released()), this, SLOT (loginClicked()));
     connect(buttonRegister, SIGNAL (released()), this, SLOT (registerClicked()));

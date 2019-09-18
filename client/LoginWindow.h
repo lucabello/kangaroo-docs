@@ -33,6 +33,7 @@ private:
     QLineEdit *ipLine;
     QPushButton *buttonLogin;
     QPushButton *buttonRegister;
+    QPushButton *buttonURI;
     ClientSocket *tcpSocket;
     void showResult(Message message);
     void showResult(QString result);

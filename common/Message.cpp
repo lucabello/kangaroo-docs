@@ -77,7 +77,6 @@ QDataStream &operator>>(QDataStream &in, Message &item){
         case MessageType::Erase:
         case MessageType::Insert:
         {
-            qDebug()<<"CULO2";
             in >> symbol;
             item = Message{static_cast<MessageType>(messageType),symbol};
             break;
