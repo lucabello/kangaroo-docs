@@ -16,11 +16,11 @@ LoginWindow::LoginWindow(QWidget *parent) : QMainWindow(parent)
     setUnifiedTitleAndToolBarOnMac(true);
 #endif
     setWindowTitle(QCoreApplication::applicationName());
-
-    const QRect availableGeometry = QApplication::desktop()->availableGeometry(this);
-    resize(availableGeometry.width() / 2, (availableGeometry.height() * 2) / 3);
-    move((availableGeometry.width() - this->width()) / 2,
-            (availableGeometry.height() - this->height()) / 2);
+//    QApplication::setStyle("fusion");
+    const QRect availableGeometry = QApplication::desktop()->availableGeometry();
+//    const QRect screen = QDesktopWidget::availableGeometry(this);
+    resize(availableGeometry.width()/2, availableGeometry.height()/2);
+//    move((availableGeometry.width() - this->width()) / 2, (availableGeometry.height() - this->height()) / 2);
 
     QLabel *usernameLabel=new QLabel(this);
     usernameLabel->setText("Username:");
@@ -34,6 +34,7 @@ LoginWindow::LoginWindow(QWidget *parent) : QMainWindow(parent)
 
     passwordLine=new QLineEdit(this);
     passwordLine->move(passwordLabel->width(),passwordLabel->y());
+    passwordLine->setEchoMode(QLineEdit::Password);
 
     QLabel *ipLabel=new QLabel(this);
     ipLabel->setText("IP:");

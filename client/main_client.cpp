@@ -71,8 +71,6 @@ int main(int argc, char *argv[])
     parser.addPositionalArgument("file", "The file to open.");
     parser.process(a);
 
-
-
     LoginWindow lw{};
     FileListWindow flw{};
     TextEdit te{};
@@ -102,6 +100,8 @@ int main(int argc, char *argv[])
     QObject::connect(&flw, SIGNAL(setEditorList(QString)),
                      &te, SLOT(setEditorList(QString)));
 
+    te.showNormal();
+    flw.show();
     lw.show();
     return a.exec();
 }

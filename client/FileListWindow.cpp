@@ -21,12 +21,15 @@ FileListWindow::FileListWindow(QWidget *parent) : QMainWindow(parent)
 #endif
 
     setWindowTitle(QCoreApplication::applicationName());
-    //resize(parent->size());
-    //move(parent->pos());
+//    resize(parent->size());
+//    move(parent->pos());
     const QRect availableGeometry = QApplication::desktop()->availableGeometry(this);
-    resize(availableGeometry.width() / 2, (availableGeometry.height() * 2) / 3);
-    move((availableGeometry.width() - this->width()) / 2,
-            (availableGeometry.height() - this->height()) / 2);
+    resize(availableGeometry.width()/2, availableGeometry.height()/2);
+//    move(QApplication::desktop()->screen()->rect().center());
+//    this->setMaximumWidth(availableGeometry.width());
+//    this->setMaximumHeight(availableGeometry.height());
+
+    qFileList=new QListWidget(this);
 
     QPushButton *buttonNewFile=new QPushButton(this);
     buttonNewFile->setText("New File");
@@ -38,8 +41,9 @@ FileListWindow::FileListWindow(QWidget *parent) : QMainWindow(parent)
     buttonOpenFile->resize(this->width(),buttonOpenFile->height());
     buttonOpenFile->move(0,this->height()-buttonOpenFile->height()-buttonNewFile->height());
 
-    qFileList=new QListWidget(this);
+    qFileList->setMinimumWidth(qFileList->sizeHintForColumn(0));
     qFileList->resize(this->width(),this->height()-buttonOpenFile->height()-buttonNewFile->height());
+
 
     connect(buttonOpenFile, SIGNAL (released()), this, SLOT (openFileClicked()));
     connect(buttonNewFile, SIGNAL (released()), this, SLOT (newFileClicked()));

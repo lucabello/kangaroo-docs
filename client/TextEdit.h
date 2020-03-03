@@ -163,6 +163,14 @@ private slots:
      * on editor.
      */
     void textAlign(QAction *a);
+//    /**
+//     * Copies selected text
+//     */
+//    void copy();
+    /**
+     * Pastes text in clipboard();
+     */
+    void processPaste();
 
     //Already present functions
     void currentCharFormatChanged(const QTextCharFormat &format);

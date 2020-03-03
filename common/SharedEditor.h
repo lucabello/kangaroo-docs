@@ -155,7 +155,7 @@ private:
     std::map<qint32,QColor> siteIdToColor;
 
 
-    std::vector<Symbol> _clipboard;
+//    QClipboard _clipboard;
 
 
     std::map<QString,qint32> usernameToSiteId;
@@ -305,6 +305,8 @@ private:
 
     int LastIndex();
 
+    bool canInsertFromMimeData(const QMimeData *source) const;
+    void insertFromMimeData(const QMimeData *source);
 };
 
 #endif // SHAREDEDITOR_H

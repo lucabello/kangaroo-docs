@@ -72,6 +72,7 @@
 #include <QCloseEvent>
 #include <QMessageBox>
 #include <QMimeData>
+#include <QDesktopWidget>
 #if defined(QT_PRINTSUPPORT_LIB)
 #include <QtPrintSupport/qtprintsupportglobal.h>
 #if QT_CONFIG(printer)
@@ -88,7 +89,7 @@
 #include "ui_shareuri.h"
 #include "TextEdit.h"
 #include "ClientSocket.h"
-#define QT_NO_CLIPBOARD
+//#define QT_NO_CLIPBOARD
 
 #ifdef Q_OS_MAC
 const QString rsrcPath = ":/images/mac";
@@ -107,11 +108,17 @@ TextEdit::TextEdit(QWidget *parent)
     //textEdit = new QTextEdit(this);
     textEdit = new SharedEditor(this);
     textEdit->setExampleSiteId();
+//    resize(this->width(), this->height());
+    const QRect availableGeometry = QApplication::desktop()->availableGeometry();
+//    const QRect screen = QDesktopWidget::availableGeometry(this);
+    resize(availableGeometry.width()/2, availableGeometry.height()/2);
 
     connect(textEdit, &QTextEdit::currentCharFormatChanged,
             this, &TextEdit::currentCharFormatChanged);
     connect(textEdit, &QTextEdit::cursorPositionChanged,
             this, &TextEdit::cursorPositionChanged);
+//    connect(textEdit, &QTextEdit::copyAvailable, this, &TextEdit::copy);
+//    connect(textEdit, &QTextEdit::paste, this, &TextEdit::paste);
 
     setCentralWidget(textEdit);
 
@@ -244,9 +251,10 @@ void TextEdit::setupFileActions()
 
 void TextEdit::setupEditActions()
 {
-    /*
     QToolBar *tb = addToolBar(tr("Edit Actions"));
     QMenu *menu = menuBar()->addMenu(tr("&Edit"));
+    /*
+
 
     const QIcon undoIcon = QIcon::fromTheme("edit-undo", QIcon(rsrcPath + "/editundo.png"));
     actionUndo = menu->addAction(undoIcon, tr("&Undo"), textEdit, &QTextEdit::undo);
@@ -262,7 +270,7 @@ void TextEdit::setupEditActions()
 */
 #ifndef QT_NO_CLIPBOARD
     const QIcon cutIcon = QIcon::fromTheme("edit-cut", QIcon(rsrcPath + "/editcut.png"));
-    actionCut = menu->addAction(cutIcon, tr("Cu&t"), textEdit, &QTextEdit::cut);
+    actionCut = menu->addAction(cutIcon, tr("&Cut"), textEdit, &QTextEdit::cut);
     actionCut->setPriority(QAction::LowPriority);
     actionCut->setShortcut(QKeySequence::Cut);
     tb->addAction(actionCut);
@@ -274,12 +282,13 @@ void TextEdit::setupEditActions()
     tb->addAction(actionCopy);
 
     const QIcon pasteIcon = QIcon::fromTheme("edit-paste", QIcon(rsrcPath + "/editpaste.png"));
-    actionPaste = menu->addAction(pasteIcon, tr("&Paste"), textEdit, &QTextEdit::paste);
+    actionPaste = menu->addAction(pasteIcon, tr("&Paste"), this, &TextEdit::processPaste);
     actionPaste->setPriority(QAction::LowPriority);
     actionPaste->setShortcut(QKeySequence::Paste);
     tb->addAction(actionPaste);
-    if (const QMimeData *md = QApplication::clipboard()->mimeData())
+    if (const QMimeData *md = QApplication::clipboard()->mimeData()){
         actionPaste->setEnabled(md->hasText());
+    }
 #endif
 }
 
@@ -871,6 +880,14 @@ void TextEdit::textAlign(QAction *a)
     }
 }
 
+//void TextEdit::copy(){
+//    qDebug() << "COPY";
+//}
+
+//void TextEdit::paste(){
+//    qDebug() << "PASTE";
+//}
+
 void TextEdit::currentCharFormatChanged(const QTextCharFormat &format)
 {
     fontChanged(format.font());
@@ -928,6 +945,18 @@ void TextEdit::clipboardDataChanged()
     if (const QMimeData *md = QApplication::clipboard()->mimeData())
         actionPaste->setEnabled(md->hasText());
 #endif
+}
+
+void TextEdit::processPaste()
+{
+    if (const QMimeData *md = QApplication::clipboard()->mimeData()){
+        QCursor c = this->cursor();
+        QString cbText = md->text();
+        int size = cbText.size();
+        for (int i=0; i<size; i++) {
+
+        }
+    }
 }
 
 void TextEdit::about()

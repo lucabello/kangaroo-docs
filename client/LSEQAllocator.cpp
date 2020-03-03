@@ -29,9 +29,9 @@ const std::vector<int> baseSize {32, 64, 128, 256, 512, 1024, 2048, 4096, 8192,
     8388608, 16777216, 33554432, 67108864, 134217728, 268435456, 536870912,
     1073741824, 2147483647};
 
-LSEQAllocator::LSEQAllocator() : siteId(-1), boundary(10){}
+LSEQAllocator::LSEQAllocator() : boundary(10),  siteId(-1){}
 
-LSEQAllocator::LSEQAllocator(int siteId, int boundary) : siteId(siteId), boundary(boundary) { //boundary can be any constant
+LSEQAllocator::LSEQAllocator(int siteId, int boundary) : boundary(boundary), siteId(siteId) { //boundary can be any constant
     srand(time(NULL));
 }
 
