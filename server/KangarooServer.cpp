@@ -214,6 +214,7 @@ void KangarooServer::doLogin(qintptr descriptor, Message message){
 //    }
     Message m;
     if(result == true){
+        qDebug() << "Preparing Message";
         descriptorToEditor.at(descriptor).setDescriptor(descriptor);
         descriptorToEditor.at(descriptor).setSiteId(siteId.toInt());
         descriptorToEditor.at(descriptor).setUsername(username);

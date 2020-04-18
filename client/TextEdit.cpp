@@ -92,7 +92,7 @@
 //#define QT_NO_CLIPBOARD
 
 #ifdef Q_OS_MAC
-const QString rsrcPath = ":/images/mac";
+const QString rsrcPath = ":/images/win";
 #else
 const QString rsrcPath = ":/images/win";
 #endif
@@ -157,8 +157,8 @@ TextEdit::TextEdit(QWidget *parent)
     //actionRedo->setEnabled(textEdit->document()->isRedoAvailable());
 
 #ifndef QT_NO_CLIPBOARD
-    actionCut->setEnabled(false);
-    connect(textEdit, &QTextEdit::copyAvailable, actionCut, &QAction::setEnabled);
+//    actionCut->setEnabled(false);
+//    connect(textEdit, &QTextEdit::copyAvailable, actionCut, &QAction::setEnabled);
     actionCopy->setEnabled(false);
     connect(textEdit, &QTextEdit::copyAvailable, actionCopy, &QAction::setEnabled);
 
@@ -269,11 +269,11 @@ void TextEdit::setupEditActions()
     menu->addSeparator();
 */
 #ifndef QT_NO_CLIPBOARD
-    const QIcon cutIcon = QIcon::fromTheme("edit-cut", QIcon(rsrcPath + "/editcut.png"));
-    actionCut = menu->addAction(cutIcon, tr("&Cut"), textEdit, &QTextEdit::cut);
-    actionCut->setPriority(QAction::LowPriority);
-    actionCut->setShortcut(QKeySequence::Cut);
-    tb->addAction(actionCut);
+//    const QIcon cutIcon = QIcon::fromTheme("edit-cut", QIcon(rsrcPath + "/editcut.png"));
+//    actionCut = menu->addAction(cutIcon, tr("&Cut"), textEdit, &QTextEdit::cut);
+//    actionCut->setPriority(QAction::LowPriority);
+//    actionCut->setShortcut(QKeySequence::Cut);
+//    tb->addAction(actionCut);
 
     const QIcon copyIcon = QIcon::fromTheme("edit-copy", QIcon(rsrcPath + "/editcopy.png"));
     actionCopy = menu->addAction(copyIcon, tr("&Copy"), textEdit, &QTextEdit::copy);

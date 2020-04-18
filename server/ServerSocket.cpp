@@ -63,8 +63,8 @@ void ServerSocket::readMessage()
 }
 
 void ServerSocket::writeMessage(Message message){
-    if(!isConnected())
-        return;
+//    if(!isConnected())
+//        return;
 
     qDebug() << "[ServerSocket] I write this message: " << QString::fromStdString(message.toString());
 

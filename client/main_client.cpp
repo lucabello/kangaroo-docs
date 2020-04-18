@@ -101,7 +101,9 @@ int main(int argc, char *argv[])
                      &te, SLOT(setEditorList(QString)));
 
     te.showNormal();
+    te.hide();
     flw.show();
+    flw.hide();
     lw.show();
     return a.exec();
 }
