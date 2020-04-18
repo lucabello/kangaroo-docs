@@ -5,6 +5,7 @@
 #include <QTcpSocket>
 #include <QTcpServer>
 #include <QDebug>
+#include <QtSql>
 #include "ConnectedEditor.h"
 #include "ServerSocket.h"
 #include "../common/Message.h"
@@ -15,6 +16,7 @@ class KangarooServer : public QObject
 public:
     explicit KangarooServer(QObject *parent = nullptr);
     explicit KangarooServer(std::string address, unsigned short port);
+    ~KangarooServer();
 
 signals:
 
@@ -24,6 +26,7 @@ public slots:
     void hostDisconnected(qintptr descriptor);
 
 private:
+    QSqlDatabase usersDB;
     QTcpServer *server;
     int guestId = 1;
     std::map<qintptr,ConnectedEditor> descriptorToEditor;
@@ -43,6 +46,8 @@ private:
     void sendFile(qintptr descriptor, QString filename, bool alreadyInMemory);
     void insertControlSymbols(qintptr descriptor, QString filename);
     void doOpenURI(qintptr descriptor, Message message);
+    bool openDBConnection();
+    void createUsersDB();
 };
 
 #endif // MYTCPSERVER_H

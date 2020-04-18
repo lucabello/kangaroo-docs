@@ -1,7 +1,6 @@
 #include "KangarooServer.h"
 #include <fstream>
 #include <QDir>
-
 #define FILES_DIRNAME "textfiles"
 
 KangarooServer::KangarooServer(QObject *parent) :
@@ -21,6 +20,7 @@ KangarooServer::KangarooServer(QObject *parent) :
     {
         qDebug() << "Server started!";
     }
+    openDBConnection();
 }
 
 KangarooServer::KangarooServer(std::string a, unsigned short p) :
@@ -42,6 +42,48 @@ KangarooServer::KangarooServer(std::string a, unsigned short p) :
     {
         qDebug() << "[SERVER] Server started - " << QString::fromStdString(a) << ":" << p;
     }
+    openDBConnection();
+}
+
+KangarooServer::~KangarooServer(){
+    usersDB.close();
+    delete server;
+}
+
+bool KangarooServer::openDBConnection(){
+    usersDB = QSqlDatabase::addDatabase("QSQLITE");
+    usersDB.setDatabaseName("users.sqlite");
+    //    usersDB.setUserName("kangarooserver");
+    //    usersDB.setPassword("kangarooPSW");
+    //    usersDB.setHostName("kangaroo");
+    if (!usersDB.isValid()) {
+        qDebug() << "[KangarooServer] - DB not valid "+usersDB.lastError().driverText();
+        return false;
+    }
+//    if (!usersDB.isOpen() ){
+//        qDebug() << "[KangarooServer] - Failed to connect to driver";
+//        return false;
+//    }
+    if( !usersDB.open() ){
+        qDebug() << "[KangarooServer] - Failed to connect to open the users database " + usersDB.lastError().driverText();
+        return false;
+    }
+    createUsersDB();
+
+    qDebug() << "[KangarooServer] - Connected to the users DB ";
+    return true;
+}
+
+void KangarooServer::createUsersDB(){
+    qDebug() << usersDB.lastError().text();
+    QString query = "CREATE TABLE kangaroo_users (Username VARCHAR(30) PRIMARY KEY NOT NULL, Password VARCHAR(30) NOT NULL)";
+    QSqlQuery q = usersDB.exec(query);
+    if(!q.isValid()){
+        qDebug() << "[KangarooServer] - DB exists";
+//        qDebug() << usersDB.lastError().text();
+    }
+    else
+        qDebug() << "[KangarooServer] - Users table created";
 }
 
 void KangarooServer::newConnection()
@@ -96,7 +138,7 @@ void KangarooServer::incomingMessage(qintptr descriptor,Message message){
     }
 }
 
-//NOT WORKING PROPERLY
+//NOT WORKING PROPERLY --> fixed changing C&P editor's behavior
 //COPY&PASTE OF SharedEditor::process
 //TODO: FIX THIS ASAP AND TEST IT WITH MULTIPLE EDITORS
 void KangarooServer::modifyFileVector(const Message &m, std::vector<Symbol>& _symbols) {
@@ -137,22 +179,39 @@ void KangarooServer::doLogin(qintptr descriptor, Message message){
     QString loginString = message.getCommand();
     QString username = loginString.split(",").at(0);
     QString password = loginString.split(",").at(1);
-    QFile inputFile("users.txt");
+    QString siteId = "";
     bool result = false;
-    QString siteId = "-1";
-    if(inputFile.open(QIODevice::ReadOnly)){
-        QTextStream in(&inputFile);
-        while(!in.atEnd() && !result){
-            QString line = in.readLine();
-            QString u = line.split(",").at(0);
-            QString p = line.split(",").at(1);
-            if(username==u&&password==p){
-                result = true;
-                siteId = line.split(",").at(2);
-            }
-        }
-        inputFile.close();
+    // new fashion : db
+    QSqlQuery q = usersDB.exec("SELECT ROWID FROM kangaroo_users WHERE Username = '"+username+"' AND Password = '"+ password +"'");
+    qDebug() << "[KangarooServer] - last query : " << q.lastQuery() << ":" << q.value(0).toInt() << ":" << q.lastInsertId().toString() ;
+    int size = 0;
+    while (q.next()) {
+        size++;
+        siteId = q.value("rowid").toString();
+        qDebug() << siteId;
     }
+    qDebug() << "size : " << size;
+    if(size == 1)
+        result = true;
+    else
+        result = false;
+
+    // Old fashion: file
+//    QFile inputFile("users.txt");
+//    QString siteId = "-1";
+//    if(inputFile.open(QIODevice::ReadOnly)){
+//        QTextStream in(&inputFile);
+//        while(!in.atEnd() && !result){
+//            QString line = in.readLine();
+//            QString u = line.split(",").at(0);
+//            QString p = line.split(",").at(1);
+//            if(username==u&&password==p){
+//                result = true;
+//                siteId = line.split(",").at(2);
+//            }
+//        }
+//        inputFile.close();
+//    }
     Message m;
     if(result == true){
         descriptorToEditor.at(descriptor).setDescriptor(descriptor);
@@ -171,32 +230,53 @@ void KangarooServer::doLogin(qintptr descriptor, Message message){
 
 void KangarooServer::doRegister(qintptr descriptor, Message message){
     QString registerString = message.getCommand();
-    QString username=registerString.split(",")[0];
-    QFile userFile("users.txt");
+    QString username = registerString.split(",")[0];
+    QString password = registerString.split(",")[1];
     bool result = true;
-    int newSiteId = 50;
-    if(userFile.open(QIODevice::ReadOnly)){
-        QTextStream in(&userFile);
-        while(!in.atEnd() && result){
-            QString line = in.readLine();
-            if(line.startsWith(username)){
-                result = false;
-            }
-            newSiteId++;
-        }
-        userFile.close();
-    }
+    //new fashion
+    QSqlQuery q = usersDB.exec("SELECT COUNT(*) FROM kangaroo_users WHERE Username = '"+username+"'");
+    qDebug() << "[KangarooServer] - last query : " << q.lastQuery() << ":" << q.executedQuery() << ":" << q.lastError().text();
+    q.next();
+    int size = q.value(0).toInt();
+    qDebug() << "size : " << size;
+    if(size == 1)
+        result = false;
+    else
+        q.exec("INSERT INTO kangaroo_users (Username, Password) VALUES ('"+username+"','"+password+"')");
+    qDebug() << "[KangarooServer] - last query : " << q.lastQuery() << ":" << q.last() << ":" << q.lastInsertId().toInt();
+    qDebug() << usersDB.lastError().text();
+    // Old fashion
+//    QFile userFile("users.txt");
+//    int newSiteId = 50;
+//    if(userFile.open(QIODevice::ReadOnly)){
+//        QTextStream in(&userFile);
+//        while(!in.atEnd() && result){
+//            QString line = in.readLine();
+//            if(line.startsWith(username)){
+//                result = false;
+//            }
+//            newSiteId++;
+//        }
+//        userFile.close();
+//    }
     Message m;
     if(result == true){
-        QString siteId = QString().setNum(newSiteId);
-        qDebug() << "siteID: " << siteId;
-        if(userFile.open(QIODevice::WriteOnly | QIODevice::Append)){
-            QString line = registerString + "," + siteId + "\n";
-            userFile.write(line.toUtf8());
-            userFile.close();
+//        q.exec("SELECT ROWID FROM kangaroo_users WHERE Username = '"+username+"';");
+//        qDebug() << "[KangarooServer] - last query : " << q.lastQuery() << ":" << q.last();
+        QString siteId = q.lastInsertId().toString();
+//        qDebug() << usersDB.lastError().text();
+        if(siteId.isEmpty()){
+            qDebug() << "EMPTY siteID";
         }
+//        QString siteId = QString().setNum(newSiteId);
+//        qDebug() << "siteID: " << siteId;
+//        if(userFile.open(QIODevice::WriteOnly | QIODevice::Append)){
+//            QString line = registerString + "," + siteId + "\n";
+//            userFile.write(line.toUtf8());
+//            userFile.close();
+//        }
         descriptorToEditor.at(descriptor).setDescriptor(descriptor);
-        descriptorToEditor.at(descriptor).setSiteId(newSiteId);
+        descriptorToEditor.at(descriptor).setSiteId(siteId.toInt());
         qDebug() << "siteID: " << siteId;
         descriptorToEditor.at(descriptor).setUsername(username);
         m = Message{MessageType::Register, siteId};
