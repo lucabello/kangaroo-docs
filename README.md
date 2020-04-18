@@ -48,7 +48,7 @@ Every action on symbol vector needs to be atomic; all messages are processed one
 The server runs 3 similar threads (input, output, message).
 
 ## **Team members**
-Luca Bello (https://github.com/lucabello)
-Francesco Galati (https://github.com/manigalati)
-Alessandro Iucci (https://github.com/alessandro-iucci)
-Angelo Russi (https://github.com/Roger1254)
+* Luca Bello (https://github.com/lucabello)
+* Francesco Galati (https://github.com/manigalati)
+* Alessandro Iucci (https://github.com/alessandro-iucci)
+* Angelo Russi (https://github.com/Roger1254)
