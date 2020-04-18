@@ -47,20 +47,8 @@ The client runs 4 threads:
 Every action on symbol vector needs to be atomic; all messages are processed one at a time since there is only one message process thread. This could conflict with the main thread; for this reason, the functions "localInsert/localErase" must be atomic. Any of these functions should be locked to be used exclusively. The symbol vector can, in this way, not be thread-safe since every function that operates on is mutually exclusive with the others.
 The server runs 3 similar threads (input, output, message).
 
-## **Classes**
-For classes description, it is advised to read the respective headers.
-
-## **TODO list**
-- [ ] Create dialog box for login on client
-- [ ] Implement login process on server, also adding informations in the ConnectedEditor structure
-- [ ] Implement login process on client, also receiving and setting proper siteId
-- [ ] Impose login and file selection/creation before enabling the editor
-- [ ] Fix the "SharedEditor::process" function on client
-- [ ] MessageQueue, FIFO, to be shared by input-message threads and output-application threads
-- [ ] Implement serialization mechanism using Qt
-- [ ] Copy constructor, assignment and destructor where appropriate
-- [ ] Check what functions should be tagged as "const"
-- [ ] SharedEditor: set the proper siteCounter when opening/creating a file
-- [ ] After correcting serialization, be SURE that no memory leaks happen
-- [ ] Multithreading, locking localInsert/localErase functions
-- [ ] Multithreading in general, creating threads etc
+## **Team members**
+Luca Bello (https://github.com/lucabello)
+Francesco Galati (https://github.com/manigalati)
+Alessandro Iucci (https://github.com/alessandro-iucci)
+Angelo Russi (https://github.com/Roger1254)
