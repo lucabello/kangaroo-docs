@@ -73,6 +73,7 @@
 #include <QMessageBox>
 #include <QMimeData>
 #include <QDesktopWidget>
+#include <QDialogButtonBox>
 #if defined(QT_PRINTSUPPORT_LIB)
 #include <QtPrintSupport/qtprintsupportglobal.h>
 #if QT_CONFIG(printer)
@@ -87,6 +88,8 @@
 #endif
 
 #include "ui_shareuri.h"
+#include "ui_accountInfo.h"
+#include "ui_editNick.h"
 #include "TextEdit.h"
 #include "ClientSocket.h"
 //#define QT_NO_CLIPBOARD
@@ -133,6 +136,12 @@ TextEdit::TextEdit(QWidget *parent)
         helpMenu->addAction(tr("About &Qt"), qApp, &QApplication::aboutQt);
     }
 
+    {
+        QMenu *accountMenu = menuBar()->addMenu(tr("User Account"));
+        accountMenu->addAction(tr("Info"), this, &TextEdit::accountInfo);
+        accountMenu->addAction(tr("Edit nickname"), this, &TextEdit::editNick);
+    }
+
     QFont textFont("Helvetica");
     textFont.setStyleHint(QFont::SansSerif);
     textEdit->setFont(textFont);
@@ -175,6 +184,10 @@ TextEdit::TextEdit(QWidget *parent)
     pal.setColor(QPalette::Text, QColor(Qt::black));
     textEdit->setPalette(pal);
 #endif
+
+  name = "";
+  nick = "";
+  siteID = "";
 }
 
 void TextEdit::closeEvent(QCloseEvent *e)
@@ -505,8 +518,11 @@ void TextEdit::showTextEdit(ClientSocket* s){
     this->show();
 }
 
-void TextEdit::siteIdReceived(int site){
-    textEdit->setSiteId(site);
+void TextEdit::userInfoReceived(QString command){
+    this->name=command.split(',')[0];
+    this->siteID=command.split(',')[1];
+    this->nick=command.split(',')[2];
+    textEdit->setSiteId(this->siteID.toInt());
 }
 
 void TextEdit::changeFileName(QString filename){
@@ -649,6 +665,7 @@ QString TextEdit::generateURI() {
     str.append("/"+fileName);
     return str;
 }
+
 
 void TextEdit::filePrintPdf()
 {
@@ -879,6 +896,68 @@ void TextEdit::textAlign(QAction *a)
         textEdit->setAlignment(Qt::AlignJustify);
     }
 }
+
+void TextEdit::accountInfo(){
+
+//        QMessageBox* msgAbout=new QMessageBox(this);
+//    msgAbout->setWindowTitle("Account Info");
+//        QString infotext = "<span style='text-align: center'>";
+//        infotext+=("</span>");
+//    msgAbout->setInformativeText("Username: "+name+"\nSiteID: "+siteID+"\nNickname: "+nick);
+//    msgAbout->addButton(QMessageBox::Ok);
+//    msgAbout->exec();
+        QDialog* accountInfo = new QDialog(this);
+        accountInfo->setWindowTitle("Account Info");
+        Ui::accountInfo ui;
+        ui.setupUi(accountInfo);
+        ui.name->setText(name);
+        ui.nick->setText(nick);
+        ui.siteID->setText(siteID);
+        accountInfo->show();
+
+
+//        QDialog* URIwin = new QDialog(this);
+//        Ui::ShareURI ui;
+//        ui.setupUi(URIwin);
+//        ui.uri->setReadOnly(true);
+//        QPalette *palette = new QPalette();
+//        palette->setColor(QPalette::Base,Qt::lightGray);
+//        palette->setColor(QPalette::Text,Qt::black);
+//        ui.uri->setPalette(*palette);
+//        QString uri = generateURI();
+//        ui.uri->setText(uri);
+//        URIwin->show();
+}
+
+void TextEdit::editNick(){
+    QDialog *editNick = new QDialog(this);
+    editNick->setWindowTitle("Edit nickname");
+    Ui::editNick ui;
+    ui.setupUi(editNick);
+    editNick->show();
+}
+
+//void TextEdit::showConnectedUsers(){
+//    QMessageBox* msgAbout=new QMessageBox(this);
+//    msgAbout->setWindowTitle("Connected Users");
+//    QString infotext = "<span style='text-align: center'>";
+
+//    std::map<QString,int> usernameToSiteId=textEdit->getEditorList();
+
+//    for(auto pair : usernameToSiteId){
+//        qint32 siteId=pair.second;
+//        if(textEdit->siteIdHasColor(siteId))
+//            infotext+=("<p style='color: "+textEdit->getSiteIdColor(siteId).name(QColor::HexRgb)+";'>");
+//        else
+//            infotext+=("<p>");
+//        infotext.append(pair.first);
+//        infotext+=("</p>");
+//    }
+//    infotext+=("</span>");
+//    msgAbout->setInformativeText(infotext);
+//    msgAbout->addButton(QMessageBox::Ok);
+//    msgAbout->exec();
+//}
 
 //void TextEdit::copy(){
 //    qDebug() << "COPY";

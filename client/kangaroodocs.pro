@@ -40,4 +40,6 @@ target.path = D:\Programmazione\kangaroo-docs\qt
 INSTALLS += target
 
 FORMS += \
+    accountInfo.ui \
+    editNick.ui \
     shareuri.ui

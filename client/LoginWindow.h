@@ -15,7 +15,7 @@ public:
 
 signals:
     void showFileList(ClientSocket*, std::vector<std::string>);
-    void siteIdReceived(int);
+    void userInfoReceived(QString);
     void showTextEdit(ClientSocket*);
 
 public slots:

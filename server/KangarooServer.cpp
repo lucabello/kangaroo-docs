@@ -180,15 +180,17 @@ void KangarooServer::doLogin(qintptr descriptor, Message message){
     QString username = loginString.split(",").at(0);
     QString password = loginString.split(",").at(1);
     QString siteId = "";
+    QString nickname = "";
     bool result = false;
     // new fashion : db
-    QSqlQuery q = usersDB.exec("SELECT ROWID FROM kangaroo_users WHERE Username = '"+username+"' AND Password = '"+ password +"'");
+    QSqlQuery q = usersDB.exec("SELECT ROWID, Nickname FROM kangaroo_users WHERE Username = '"+username+"' AND Password = '"+ password +"'");
     qDebug() << "[KangarooServer] - last query : " << q.lastQuery() << ":" << q.value(0).toInt() << ":" << q.lastInsertId().toString() ;
     int size = 0;
     while (q.next()) {
         size++;
         siteId = q.value("rowid").toString();
-        qDebug() << siteId;
+        nickname = q.value("nickname").toString();
+        qDebug() << siteId << "nickname" << nickname;
     }
     qDebug() << "size : " << size;
     if(size == 1)
@@ -215,10 +217,12 @@ void KangarooServer::doLogin(qintptr descriptor, Message message){
     Message m;
     if(result == true){
         qDebug() << "Preparing Message";
+        siteId = QString(siteId.toInt()+50);
         descriptorToEditor.at(descriptor).setDescriptor(descriptor);
         descriptorToEditor.at(descriptor).setSiteId(siteId.toInt());
         descriptorToEditor.at(descriptor).setUsername(username);
-        m = Message{MessageType::Login, siteId};
+        QString info = username+','+siteId+','+nickname;
+        m = Message{MessageType::Login, info};
         descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
         sendFileList(descriptor);
     }
@@ -233,6 +237,7 @@ void KangarooServer::doRegister(qintptr descriptor, Message message){
     QString registerString = message.getCommand();
     QString username = registerString.split(",")[0];
     QString password = registerString.split(",")[1];
+    QString nickname = registerString.split(",")[2];
     bool result = true;
     //new fashion
     QSqlQuery q = usersDB.exec("SELECT COUNT(*) FROM kangaroo_users WHERE Username = '"+username+"'");
@@ -276,11 +281,13 @@ void KangarooServer::doRegister(qintptr descriptor, Message message){
 //            userFile.write(line.toUtf8());
 //            userFile.close();
 //        }
+
+        siteId = QString(siteId.toInt()+50);
         descriptorToEditor.at(descriptor).setDescriptor(descriptor);
         descriptorToEditor.at(descriptor).setSiteId(siteId.toInt());
         qDebug() << "siteID: " << siteId;
         descriptorToEditor.at(descriptor).setUsername(username);
-        m = Message{MessageType::Register, siteId};
+        m = Message{MessageType::Register, username+','+siteId+','+nickname};
         descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
         sendFileList(descriptor);
     }

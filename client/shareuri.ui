@@ -22,6 +22,9 @@
      <height>21</height>
     </rect>
    </property>
+   <property name="frame">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QLabel" name="label">
    <property name="geometry">

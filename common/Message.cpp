@@ -47,10 +47,12 @@ std::string Message::toString(){
         result += "URI";
     else if(this->type == MessageType::FileSent)
         result+= "FileSent";
+    else if(this->type == MessageType::AccountInfo)
+        result+= "AccountInfo";
     else
         result += "Unknown";
     result += " - Content: ";
-    if(this->type != MessageType::Erase &&this->type!=MessageType::Insert)
+    if(this->type != MessageType::Erase && this->type!=MessageType::Insert)
         result += this->command.toStdString();
     else
         result += this->value.toString();

@@ -87,8 +87,8 @@ int main(int argc, char *argv[])
                      &lw, SLOT(hideWindow()));
     QObject::connect(&flw, SIGNAL(showTextEdit(ClientSocket*)),
                      &flw, SLOT(hideWindow()));
-    QObject::connect(&lw, SIGNAL(siteIdReceived(int)),
-                     &te, SLOT(siteIdReceived(int)));
+    QObject::connect(&lw, SIGNAL(userInfoReceived(QString)),
+                     &te, SLOT(userInfoReceived(QString)));
     QObject::connect(&flw, SIGNAL(changeFileName(QString)),
                      &te, SLOT(changeFileName(QString)));
     QObject::connect(&te, SIGNAL(newFileListWindow(ClientSocket*)),

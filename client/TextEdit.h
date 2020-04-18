@@ -87,7 +87,7 @@ public slots:
     void fileNew();
     void logout();
     void showTextEdit(ClientSocket*);
-    void siteIdReceived(int);
+    void userInfoReceived(QString);
     void changeFileName(QString);
     void hideWindow();
     void setEditorList(QString);
@@ -172,6 +172,9 @@ private slots:
      */
     void processPaste();
 
+    void accountInfo();
+    void editNick();
+
     //Already present functions
     void currentCharFormatChanged(const QTextCharFormat &format);
     void cursorPositionChanged();
@@ -219,6 +222,9 @@ private:
     QString fileName;
     SharedEditor *textEdit;
     ClientSocket *tcpSocket;
+    QString name;
+    QString nick;
+    QString siteID;
 };
 
 #endif // TEXTEDIT_H

@@ -151,13 +151,13 @@ void LoginWindow::incomingMessage(Message message){
         case MessageType::Login:
             buttonLogin->setEnabled(true);
             buttonRegister->setEnabled(true);
-            siteIdReceived(message.getCommand().toUInt());
+            userInfoReceived(message.getCommand());
             showResult("Login successful.");
             break;
         case MessageType::Register:
             buttonLogin->setEnabled(true);
             buttonRegister->setEnabled(true);
-            siteIdReceived(message.getCommand().toUInt());
+            userInfoReceived(message.getCommand());
             showResult("Registration successful.");
             break;
         case MessageType::FileList:
@@ -169,7 +169,7 @@ void LoginWindow::incomingMessage(Message message){
             showResult(message);
             break;
         case MessageType::URI:
-            siteIdReceived(message.getCommand().toUInt());
+            userInfoReceived(message.getCommand());
             showTextEdit(tcpSocket);
             break;
         default:

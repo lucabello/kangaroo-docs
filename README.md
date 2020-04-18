@@ -34,10 +34,18 @@ Interactions modifying the symbol vector are:
 * mouse right key + action selected (to be disabled)
 * keyboard shortcuts for styling
 * buttons on the interface (as alignment, bold, etc)
-* copy&paste (disabled)
+* copy&paste
+ 
 Whenever some keys are pressed, the event is intercepted and analyzed. If the event is inserting a printable key, the content insertion is replicated on the symbol vector. If it is a style shortcut (as CTRL+B for bold), the style is applied to the selected text or to the word under the cursor if there is no active selection. If it is a copy-paste action or something else, it is ignored.
 Propagating an action on the symbol vector means replicating its effects on it and preparing a Message for the server describing the modification that has just been performed. It is notable that any of this action can happen with or without an active selection of text, and that correct behaviour is implemented and replicated on the symbol vector for any case.
-#### *Multithreading*
+
+#### *Implemented Extensions
+* Export to PDF
+* Rich Text
+* Copy & Paste
+* Invite to collaborate (URI)
+
+<!-- #### *Multithreading*
 The application operates on multiple threads both for client and server.
 The client runs 4 threads:
 * the **input** thread, that is woken up by the main thread when some data is available on the socket, reads the data from the socket and puts the message into the input queue
@@ -45,7 +53,7 @@ The client runs 4 threads:
 * the **output** thread, that is woken up by the output message queue when some Message is present in it, sends the messages in the queue to the server via socket
 * the **application** thread, responsible for running the application, intercepting keypresses, pushing messsages into the output queue, and everything else;
 Every action on symbol vector needs to be atomic; all messages are processed one at a time since there is only one message process thread. This could conflict with the main thread; for this reason, the functions "localInsert/localErase" must be atomic. Any of these functions should be locked to be used exclusively. The symbol vector can, in this way, not be thread-safe since every function that operates on is mutually exclusive with the others.
-The server runs 3 similar threads (input, output, message).
+The server runs 3 similar threads (input, output, message). -->
 
 ## **Team members**
 * Luca Bello (https://github.com/lucabello)
