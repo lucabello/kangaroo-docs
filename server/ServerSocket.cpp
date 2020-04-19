@@ -63,8 +63,8 @@ void ServerSocket::readMessage()
 }
 
 void ServerSocket::writeMessage(Message message){
-//    if(!isConnected())
-//        return;
+    if(!isConnected())
+        return;
 
     qDebug() << "[ServerSocket] I write this message: " << QString::fromStdString(message.toString());
 
@@ -80,9 +80,13 @@ void ServerSocket::writeMessage(Message message){
     networkStream << size << message;
 
     qDebug() << size << " + " << sizeof (size) << " = " << networkMessage.size() << "bytes sending";
-
-    qint64 written = socket->write(networkMessage);
-    qDebug() << written << " bytes written.";
+    qint64 written = 0;
+    int count = 0;
+    while(written < size && isConnected()) {
+        written = socket->write(networkMessage);
+        count++;
+        qDebug() << written << " bytes written.";
+    }
     socket->flush();
 }
 

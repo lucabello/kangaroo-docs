@@ -76,7 +76,7 @@ bool KangarooServer::openDBConnection(){
 
 void KangarooServer::createUsersDB(){
     qDebug() << usersDB.lastError().text();
-    QString query = "CREATE TABLE kangaroo_users (Username VARCHAR(30) PRIMARY KEY NOT NULL, Password VARCHAR(30) NOT NULL)";
+    QString query = "CREATE TABLE kangaroo_users (Username VARCHAR(30) PRIMARY KEY NOT NULL, Password VARCHAR(30) NOT NULL, Nickname VARCHAR(30))";
     QSqlQuery q = usersDB.exec(query);
     if(!q.isValid()){
         qDebug() << "[KangarooServer] - DB exists";
@@ -179,7 +179,7 @@ void KangarooServer::doLogin(qintptr descriptor, Message message){
     QString loginString = message.getCommand();
     QString username = loginString.split(",").at(0);
     QString password = loginString.split(",").at(1);
-    QString siteId = "";
+    QString rowid = "";
     QString nickname = "";
     bool result = false;
     // new fashion : db
@@ -188,9 +188,9 @@ void KangarooServer::doLogin(qintptr descriptor, Message message){
     int size = 0;
     while (q.next()) {
         size++;
-        siteId = q.value("rowid").toString();
+        rowid = q.value("rowid").toString();
         nickname = q.value("nickname").toString();
-        qDebug() << siteId << "nickname" << nickname;
+        qDebug() << "[KangarooServer] - rowid " << rowid << "nickname" << nickname;
     }
     qDebug() << "size : " << size;
     if(size == 1)
@@ -217,7 +217,7 @@ void KangarooServer::doLogin(qintptr descriptor, Message message){
     Message m;
     if(result == true){
         qDebug() << "Preparing Message";
-        siteId = QString(siteId.toInt()+50);
+        QString siteId = QString::number(rowid.toInt()+50);
         descriptorToEditor.at(descriptor).setDescriptor(descriptor);
         descriptorToEditor.at(descriptor).setSiteId(siteId.toInt());
         descriptorToEditor.at(descriptor).setUsername(username);
@@ -237,18 +237,18 @@ void KangarooServer::doRegister(qintptr descriptor, Message message){
     QString registerString = message.getCommand();
     QString username = registerString.split(",")[0];
     QString password = registerString.split(",")[1];
-    QString nickname = registerString.split(",")[2];
+//    QString nickname = registerString.split(",")[2];
     bool result = true;
     //new fashion
     QSqlQuery q = usersDB.exec("SELECT COUNT(*) FROM kangaroo_users WHERE Username = '"+username+"'");
     qDebug() << "[KangarooServer] - last query : " << q.lastQuery() << ":" << q.executedQuery() << ":" << q.lastError().text();
     q.next();
     int size = q.value(0).toInt();
-    qDebug() << "size : " << size;
+    qDebug() << "[KangarooServer] - query result size : " << size;
     if(size == 1)
         result = false;
     else
-        q.exec("INSERT INTO kangaroo_users (Username, Password) VALUES ('"+username+"','"+password+"')");
+        q.exec("INSERT INTO kangaroo_users (Username, Password, Nickname) VALUES ('"+username+"','"+password+"','ChangeME')");
     qDebug() << "[KangarooServer] - last query : " << q.lastQuery() << ":" << q.last() << ":" << q.lastInsertId().toInt();
     qDebug() << usersDB.lastError().text();
     // Old fashion
@@ -269,25 +269,24 @@ void KangarooServer::doRegister(qintptr descriptor, Message message){
     if(result == true){
 //        q.exec("SELECT ROWID FROM kangaroo_users WHERE Username = '"+username+"';");
 //        qDebug() << "[KangarooServer] - last query : " << q.lastQuery() << ":" << q.last();
-        QString siteId = q.lastInsertId().toString();
+        QString rowid = q.lastInsertId().toString();
 //        qDebug() << usersDB.lastError().text();
-        if(siteId.isEmpty()){
+        if(rowid.isEmpty()){
             qDebug() << "EMPTY siteID";
         }
 //        QString siteId = QString().setNum(newSiteId);
-//        qDebug() << "siteID: " << siteId;
+//        qDebug() << "[KangarooServer] - siteID: " << siteId;
 //        if(userFile.open(QIODevice::WriteOnly | QIODevice::Append)){
 //            QString line = registerString + "," + siteId + "\n";
 //            userFile.write(line.toUtf8());
 //            userFile.close();
 //        }
-
-        siteId = QString(siteId.toInt()+50);
+        QString siteId = QString::number(rowid.toInt()+50);
+        qDebug() << "[KangarooServer] - siteID: " << siteId;
         descriptorToEditor.at(descriptor).setDescriptor(descriptor);
         descriptorToEditor.at(descriptor).setSiteId(siteId.toInt());
-        qDebug() << "siteID: " << siteId;
         descriptorToEditor.at(descriptor).setUsername(username);
-        m = Message{MessageType::Register, username+','+siteId+','+nickname};
+        m = Message{MessageType::Register, username+','+siteId+",ChangeME"};
         descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
         sendFileList(descriptor);
     }
@@ -358,14 +357,15 @@ void KangarooServer::doOpenURI(qintptr descriptor, Message message){
     Message m;
     QString pathname;
     QString filename;
-    if(guestId > 48) {
-        m = Message{MessageType::Error, "Wrong URI request. This server does not exist."};
+    if(guestId > 50) {
+        m = Message{MessageType::Error, "Too many guests connected. Try later"};
         return;
     }
-    m = Message{MessageType::URI, QString::number(guestId)};
+    QString gId = QString::number(guestId);
+    m = Message{MessageType::URI, "Guest"+gId+","+gId+",Guest"};
     descriptorToEditor.at(descriptor).setDescriptor(descriptor);
     descriptorToEditor.at(descriptor).setSiteId(guestId);
-    descriptorToEditor.at(descriptor).setUsername("Guest"+QString::number(guestId));
+    descriptorToEditor.at(descriptor).setUsername("Guest"+gId);
     descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
     guestId++;
     QString serverAddr = this->server->serverAddress().toString();

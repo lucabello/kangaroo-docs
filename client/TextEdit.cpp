@@ -898,35 +898,14 @@ void TextEdit::textAlign(QAction *a)
 }
 
 void TextEdit::accountInfo(){
-
-//        QMessageBox* msgAbout=new QMessageBox(this);
-//    msgAbout->setWindowTitle("Account Info");
-//        QString infotext = "<span style='text-align: center'>";
-//        infotext+=("</span>");
-//    msgAbout->setInformativeText("Username: "+name+"\nSiteID: "+siteID+"\nNickname: "+nick);
-//    msgAbout->addButton(QMessageBox::Ok);
-//    msgAbout->exec();
-        QDialog* accountInfo = new QDialog(this);
-        accountInfo->setWindowTitle("Account Info");
-        Ui::accountInfo ui;
-        ui.setupUi(accountInfo);
-        ui.name->setText(name);
-        ui.nick->setText(nick);
-        ui.siteID->setText(siteID);
-        accountInfo->show();
-
-
-//        QDialog* URIwin = new QDialog(this);
-//        Ui::ShareURI ui;
-//        ui.setupUi(URIwin);
-//        ui.uri->setReadOnly(true);
-//        QPalette *palette = new QPalette();
-//        palette->setColor(QPalette::Base,Qt::lightGray);
-//        palette->setColor(QPalette::Text,Qt::black);
-//        ui.uri->setPalette(*palette);
-//        QString uri = generateURI();
-//        ui.uri->setText(uri);
-//        URIwin->show();
+    QDialog* accountInfo = new QDialog(this);
+    accountInfo->setWindowTitle("Account Info");
+    Ui::accountInfo ui;
+    ui.setupUi(accountInfo);
+    ui.name->setText(name);
+    ui.nick->setText(nick);
+    ui.siteID->setText(siteID);
+    accountInfo->show();
 }
 
 void TextEdit::editNick(){
