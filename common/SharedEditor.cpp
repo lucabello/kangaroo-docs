@@ -299,7 +299,8 @@ void SharedEditor::localInsert(int index, QString value) {
 
     //allow propagation of style
     for(i=1; editorIndexSym!=-1 && index-i>0 && (_symbols.at(index-i).isClosingTag()
-                     || _symbols.at(index-i).isComplexStyle()); i++){
+                     || _symbols.at(index-i).isComplexStyle()) &&
+        (_symbols.at(index-i).isStyle() && _symbols.at(index-i).getStyleType() != StyleType::Paragraph); i++){
         qDebug() << QString::fromStdString(_symbols.at(index-i).toString()) << ";" << index-i;
         if(_symbols.at(index-i).isOpeningOf(_symbols.at(index-i+1))){
            break;
@@ -320,7 +321,8 @@ void SharedEditor::localInsert(int index, QString value) {
     _counter++;
     _symbols.insert(_symbols.begin()+index, s);
     if(value == '\r'){
-        localInsertStyle(index+1, Symbol(-1,-1,std::vector<qint32>(),StyleType::Paragraph, AlignmentType::AlignLeft));
+        AlignmentType at = findLastAlignment(index);
+        localInsertStyle(index+1, Symbol(-1,-1,std::vector<qint32>(),StyleType::Paragraph, at));
     }
 
     //AVOID BACKGROUND PROPAGATION -- better if after insertText with editorIndexSym=index
@@ -331,6 +333,17 @@ void SharedEditor::localInsert(int index, QString value) {
     //EMISSION OF SIGNAL SHOULD HAPPEN IN MESSAGE QUEUE, BY ANOTHER THREAD
     emit packetReady(m); //DEBUG TESTING, NEEDS TO BE ADDED TO STYLE TOO
     //_mqOut.push(m);
+}
+
+AlignmentType SharedEditor::findLastAlignment(int index){
+    AlignmentType at;
+    int i;
+    for(i=index; i>=0; i--){
+        if(_symbols.at(i).isStyle() && _symbols.at(i).getStyleType() == StyleType::Paragraph)
+            break;
+    }
+    at = _symbols.at(i).getAlignment();
+    return at;
 }
 
 void SharedEditor::localInsertStyle(int index, Symbol styleSymbol){
@@ -588,6 +601,8 @@ void SharedEditor::localSetAlignment(int position, AlignmentType a){
     if(this->textCursor().hasSelection()){
         int start = editorToVectorIndex(this->textCursor().selectionStart());
         int end = editorToVectorIndex(this->textCursor().selectionEnd());
+        qDebug() << "Align start: " << start;
+        qDebug() << "Align start: " << end;
         for(lastPar=end; lastPar>=start && lastPar>=0; lastPar--){
             //for each paragraph in thee selection
             s = _symbols.at(lastPar);

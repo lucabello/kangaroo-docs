@@ -173,6 +173,14 @@ private:
      * @param index index in the vector
      * @param value
      */
+
+    AlignmentType findLastAlignment(int index);
+    /**
+     * Find last used alignment to set the next paragraph to it
+     *
+     * @param index index in the vector
+     */
+
     void localInsertStyle(int index, Symbol styleSymbol);
     /**
      * Erase a char locally and send a Message to the server

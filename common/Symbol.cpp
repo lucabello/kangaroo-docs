@@ -336,7 +336,7 @@ bool Symbol::isClosingTag(){
     if(!this->isStyle())
         return false;
     if(this->style==StyleType::BoldEnd || this->style==StyleType::ItalicEnd || this->style==StyleType::UnderlinedEnd
-            || this->style==StyleType::ColorEnd || this->style==StyleType::FontEnd || this->style==StyleType::FontSizeEnd)
+            || this->style==StyleType::ColorEnd || this->style==StyleType::FontEnd || this->style==StyleType::FontSizeEnd )
         return true;
     else
         return false;
