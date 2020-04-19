@@ -267,25 +267,25 @@ void SharedEditor::avoidBackgroundPropagation(int editorIndexSym){
     if(editorIndexSym>=0&&!siteIdToCursor.empty()){
         int indexSym=editorToVectorIndex(editorIndexSym);
         qDebug()<<indexSym<<"<"<<_symbols.size();
-//        if(indexSym >= 0 && indexSym < (int)_symbols.size()){
-//            Symbol prevSym=_symbols.at(indexSym);
-//            std::map<qint32,Symbol>::iterator mapIt;
-//            for(mapIt=siteIdToCursor.begin();((!(mapIt->second==prevSym))||mapIt->first==_siteId)&&mapIt!=siteIdToCursor.end();++mapIt);
-//            if(mapIt!=siteIdToCursor.end()){
-//                //qDebug()<<"No propagation position:"<<editorIndexSym <<"-"<<editorIndexSym+1;
-//                QTextCursor cursor=this->textCursor();
-//                int tmp=cursor.position();
-//                cursor.setPosition(editorIndexSym, QTextCursor::MoveAnchor);
-//                cursor.setPosition(editorIndexSym+1, QTextCursor::KeepAnchor);
-//                this->setTextCursor(cursor);
-//                QTextCharFormat fmt=QTextCharFormat();
-//                fmt.clearBackground();
-//                fmt.setBackground(QColor("#ffffff"));
-//                mergeCurrentCharFormat(fmt);
-//                cursor.setPosition(tmp);
-//                this->setTextCursor(cursor);
-//            }
-//        }
+        if(indexSym >= 0 && indexSym < (int)_symbols.size()){
+            Symbol prevSym=_symbols.at(indexSym);
+            std::map<qint32,Symbol>::iterator mapIt;
+            for(mapIt=siteIdToCursor.begin();((!(mapIt->second==prevSym))||mapIt->first==_siteId)&&mapIt!=siteIdToCursor.end();++mapIt);
+            if(mapIt!=siteIdToCursor.end()){
+                //qDebug()<<"No propagation position:"<<editorIndexSym <<"-"<<editorIndexSym+1;
+                QTextCursor cursor=this->textCursor();
+                int tmp=cursor.position();
+                cursor.setPosition(editorIndexSym, QTextCursor::MoveAnchor);
+                cursor.setPosition(editorIndexSym+1, QTextCursor::KeepAnchor);
+                this->setTextCursor(cursor);
+                QTextCharFormat fmt=QTextCharFormat();
+                fmt.clearBackground();
+                fmt.setBackground(QColor("#ffffff"));
+                mergeCurrentCharFormat(fmt);
+                cursor.setPosition(tmp);
+                this->setTextCursor(cursor);
+            }
+        }
     }
 }
 
@@ -658,7 +658,7 @@ void SharedEditor::process(const Message &m) {
         if(sym.getSiteId() == _siteId && sym.getSiteCounter() >= _counter)
             _counter=sym.getSiteCounter();
 
-//        qint32 siteId=sym.getSiteId();
+        qint32 siteId=sym.getSiteId();
         QTextCursor cursor=textCursor();
 
         //if symbol found (already inserted) return
