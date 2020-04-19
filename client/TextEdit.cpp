@@ -616,6 +616,7 @@ void TextEdit::filePrintPreview()
 
 void TextEdit::showConnectedUsers(){
     QMessageBox* msgAbout=new QMessageBox(this);
+    msgAbout->setStyleSheet("QLabel{min-width: 200px; font-size: 15px;}");
     msgAbout->setWindowTitle("Connected Users");
     QString infotext = "<span style='text-align: center'>";
 
@@ -633,7 +634,7 @@ void TextEdit::showConnectedUsers(){
     infotext+=("</span>");
     msgAbout->setInformativeText(infotext);
     msgAbout->addButton(QMessageBox::Ok);
-    msgAbout->exec();
+    msgAbout->show();
 }
 
 void TextEdit::printPreview(QPrinter *printer)

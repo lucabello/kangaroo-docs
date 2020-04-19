@@ -311,7 +311,7 @@ void SharedEditor::localInsert(int index, QString value) {
     if(i>=1){
         index-=i;
     }
-    qDebug() << "propStyle: " << QString::fromStdString(_symbols.at(index-i-1).toString()) << " inserting symbol";
+    //qDebug() << "propStyle: " << QString::fromStdString(_symbols.at(index-i-1).toString()) << " inserting symbol";
 
     prev = (index-1 >= 0 && index-1 < (int)_symbols.size())?
             _symbols.at(index-1).getPosition() : prev;

@@ -19,6 +19,7 @@ public:
     ~KangarooServer();
 
 signals:
+    void connected();
 
 public slots:
     void newConnection();
