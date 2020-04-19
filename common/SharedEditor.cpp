@@ -651,6 +651,14 @@ void SharedEditor::localErase(int index) {
     //EMISSION OF SIGNAL SHOULD HAPPEN IN MESSAGE QUEUE, BY ANOTHER THREAD
     emit packetReady(m); //DEBUG TESTING, NEEDS TO BE ADDED TO STYLE TOO
     //_mqOut.push(m);
+
+    //delete alignment tag
+    if(s.getContent() == "\r"){
+        if (_symbols.at(index).isStyle() && _symbols.at(index).getStyleType() == StyleType::Paragraph){
+            localErase(index);
+        }
+    }
+
 }
 
 void SharedEditor::incomingPacket(Message m){
