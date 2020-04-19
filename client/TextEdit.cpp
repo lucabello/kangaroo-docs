@@ -920,36 +920,6 @@ void TextEdit::editNick(){
     textEdit->packetReady(m);
 }
 
-//void TextEdit::showConnectedUsers(){
-//    QMessageBox* msgAbout=new QMessageBox(this);
-//    msgAbout->setWindowTitle("Connected Users");
-//    QString infotext = "<span style='text-align: center'>";
-
-//    std::map<QString,int> usernameToSiteId=textEdit->getEditorList();
-
-//    for(auto pair : usernameToSiteId){
-//        qint32 siteId=pair.second;
-//        if(textEdit->siteIdHasColor(siteId))
-//            infotext+=("<p style='color: "+textEdit->getSiteIdColor(siteId).name(QColor::HexRgb)+";'>");
-//        else
-//            infotext+=("<p>");
-//        infotext.append(pair.first);
-//        infotext+=("</p>");
-//    }
-//    infotext+=("</span>");
-//    msgAbout->setInformativeText(infotext);
-//    msgAbout->addButton(QMessageBox::Ok);
-//    msgAbout->exec();
-//}
-
-//void TextEdit::copy(){
-//    qDebug() << "COPY";
-//}
-
-//void TextEdit::paste(){
-//    qDebug() << "PASTE";
-//}
-
 void TextEdit::currentCharFormatChanged(const QTextCharFormat &format)
 {
     fontChanged(format.font());
