@@ -508,6 +508,8 @@ void SharedEditor::localUnsetStyle(int start, int end, Symbol s){
             }
         }
     }
+
+    eraseTwinTags();
 }
 
 void SharedEditor::localSetComplexStyle(int start, int end, Symbol s){
