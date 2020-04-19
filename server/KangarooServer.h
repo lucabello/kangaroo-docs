@@ -48,6 +48,7 @@ private:
     void doOpenURI(qintptr descriptor, Message message);
     bool openDBConnection();
     void createUsersDB();
+    void changeNickname(Message message);
 };
 
 #endif // MYTCPSERVER_H

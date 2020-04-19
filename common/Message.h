@@ -9,7 +9,7 @@
 #include <QDataStream>
 #include <QDebug>
 
-enum MessageType:qint32 {Insert, Erase, Login, Register, FileList, Create, Open, Error, EditorList, URI, FileSent, AccountInfo,Unknown};
+enum MessageType:qint32 {Insert, Erase, Login, Register, FileList, Create, Open, Error, EditorList, URI, FileSent, EditNick,Unknown};
 
 /**
  * It holds information for the communication between Editor and Server

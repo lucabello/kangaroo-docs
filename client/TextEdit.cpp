@@ -73,7 +73,7 @@
 #include <QMessageBox>
 #include <QMimeData>
 #include <QDesktopWidget>
-#include <QDialogButtonBox>
+#include <QInputDialog>
 #if defined(QT_PRINTSUPPORT_LIB)
 #include <QtPrintSupport/qtprintsupportglobal.h>
 #if QT_CONFIG(printer)
@@ -909,11 +909,15 @@ void TextEdit::accountInfo(){
 }
 
 void TextEdit::editNick(){
-    QDialog *editNick = new QDialog(this);
-    editNick->setWindowTitle("Edit nickname");
-    Ui::editNick ui;
-    ui.setupUi(editNick);
-    editNick->show();
+    bool ok;
+    QString newNick = QInputDialog::getText(this,"EditNick","Your current nick is: "+nick+"\nInsert the new one:",QLineEdit::Normal,"", &ok);
+    if(newNick.isEmpty() && ok){
+        QMessageBox::warning(this, "Error", "Please insert a nickname");
+        return;
+    }
+    nick = newNick;
+    Message m = Message{MessageType::EditNick,name+','+nick} ;
+    textEdit->packetReady(m);
 }
 
 //void TextEdit::showConnectedUsers(){

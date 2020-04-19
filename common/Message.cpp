@@ -47,8 +47,8 @@ std::string Message::toString(){
         result += "URI";
     else if(this->type == MessageType::FileSent)
         result+= "FileSent";
-    else if(this->type == MessageType::AccountInfo)
-        result+= "AccountInfo";
+    else if(this->type == MessageType::EditNick)
+        result+= "EditNick";
     else
         result += "Unknown";
     result += " - Content: ";

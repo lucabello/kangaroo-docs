@@ -86,6 +86,13 @@ void KangarooServer::createUsersDB(){
         qDebug() << "[KangarooServer] - Users table created";
 }
 
+void KangarooServer::changeNickname(Message message){
+    QString username = message.getCommand().split(',')[0];
+    QString nickname = message.getCommand().split(',')[1];
+    QSqlQuery q = usersDB.exec("UPDATE kangaroo_users SET Nickname = '"+nickname+"' WHERE Username = '"+username+"'");
+    qDebug() << "[KangarooServer] - last query : " << q.lastQuery();
+}
+
 void KangarooServer::newConnection()
 {
     qDebug() << "[SERVER] Connection received!";
@@ -131,6 +138,9 @@ void KangarooServer::incomingMessage(qintptr descriptor,Message message){
             doOpenURI(descriptor, message);
             break;
         case MessageType::FileSent:
+            break;
+        case MessageType::EditNick:
+            changeNickname(message);
             break;
         default:
             qDebug() << "[ERR] - " << QString::fromStdString(message.toString());

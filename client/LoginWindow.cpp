@@ -121,8 +121,9 @@ void LoginWindow::registerClicked(){
 }
 
 void LoginWindow::openURIClicked(){
-    QString URI = QInputDialog::getText(this,"URI","Insert URI:");
-    if(URI.isEmpty()){
+    bool ok;
+    QString URI = QInputDialog::getText(this,"URI","Insert URI:",QLineEdit::Normal,"", &ok);
+    if(URI.isEmpty() && ok){
         QMessageBox::warning(this, "Error", "Please insert something as URI.");
         return;
     }
@@ -139,6 +140,7 @@ void LoginWindow::openURIClicked(){
     tcpSocket->writeMessage(m);
     qDebug() << "[URI] " << URI;
 }
+
 void LoginWindow::hideWindow(){
     disconnect(tcpSocket, &ClientSocket::signalMessage,
             this, &LoginWindow::incomingMessage);
