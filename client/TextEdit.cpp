@@ -120,8 +120,8 @@ TextEdit::TextEdit(QWidget *parent)
             this, &TextEdit::currentCharFormatChanged);
     connect(textEdit, &QTextEdit::cursorPositionChanged,
             this, &TextEdit::cursorPositionChanged);
-//    connect(textEdit, &QTextEdit::copyAvailable, this, &TextEdit::copy);
-//    connect(textEdit, &QTextEdit::paste, this, &TextEdit::paste);
+//    connect(textEdit, &QTextEdit::copyAvailable, this, &TextEdit::actionCopy);
+//    connect(textEdit, &QTextEdit::paste, this, &TextEdit::actionPaste);
 
     setCentralWidget(textEdit);
 
@@ -130,17 +130,14 @@ TextEdit::TextEdit(QWidget *parent)
     setupEditActions();
     setupTextActions();
 
-    {
-        QMenu *helpMenu = menuBar()->addMenu(tr("Help"));
-        helpMenu->addAction(tr("About"), this, &TextEdit::about);
-        helpMenu->addAction(tr("About &Qt"), qApp, &QApplication::aboutQt);
-    }
+    QMenu *accountMenu = menuBar()->addMenu(tr("User Account"));
+    accountMenu->addAction(tr("Info"), this, &TextEdit::accountInfo);
+    accountMenu->addAction(tr("Edit nickname"), this, &TextEdit::editNick);
 
-    {
-        QMenu *accountMenu = menuBar()->addMenu(tr("User Account"));
-        accountMenu->addAction(tr("Info"), this, &TextEdit::accountInfo);
-        accountMenu->addAction(tr("Edit nickname"), this, &TextEdit::editNick);
-    }
+    QMenu *helpMenu = menuBar()->addMenu(tr("Help"));
+    helpMenu->addAction(tr("About"), this, &TextEdit::about);
+    helpMenu->addAction(tr("About &Qt"), qApp, &QApplication::aboutQt);
+
 
     QFont textFont("Helvetica");
     textFont.setStyleHint(QFont::SansSerif);
@@ -217,7 +214,7 @@ void TextEdit::setupFileActions()
     menu->addSeparator();
 
 
-    const QIcon infoIcon = QIcon::fromTheme("document-info", QIcon(rsrcPath + "/editcopy.png"));
+    const QIcon infoIcon = QIcon::fromTheme("document-info", QIcon(":/images/mac/editcopy.png"));
     a = menu->addAction(infoIcon, tr("&Show connected users..."), this, &TextEdit::showConnectedUsers);
     tb->addAction(a);
 /*
@@ -616,8 +613,9 @@ void TextEdit::filePrintPreview()
 
 void TextEdit::showConnectedUsers(){
     QMessageBox* msgAbout=new QMessageBox(this);
-    msgAbout->setStyleSheet("QLabel{min-width: 80px; font-size: 15px;}");
-    msgAbout->setWindowTitle("Connected Users");
+    msgAbout->setStyleSheet("QLabel{{min-width: 500px;}");
+    msgAbout->setWindowTitle("Users");
+    msgAbout->setText("Connected users to "+ fileName+"      ");
     QString infotext = "<span style='text-align: center'>";
 
     std::map<QString,int> usernameToSiteId=textEdit->getEditorList();
@@ -628,12 +626,12 @@ void TextEdit::showConnectedUsers(){
             infotext+=("<p style='color: "+textEdit->getSiteIdColor(siteId).name(QColor::HexRgb)+";'>");
         else
             infotext+=("<p>");
-        infotext.append(pair.first);
+        infotext.append(pair.first+"    ");
         infotext+=("</p>");
     }
     infotext+=("</span>");
+    msgAbout->setDefaultButton(QMessageBox::Ok);
     msgAbout->setInformativeText(infotext);
-    msgAbout->addButton(QMessageBox::Ok);
     msgAbout->show();
 }
 
@@ -904,8 +902,11 @@ void TextEdit::accountInfo(){
     Ui::accountInfo ui;
     ui.setupUi(accountInfo);
     ui.name->setText(name);
+    ui.name->setFont(QFont("Arial",10));
     ui.nick->setText(nick);
+    ui.nick->setFont(QFont("Arial",10));
     ui.siteID->setText(siteID);
+    ui.siteID->setFont(QFont("Arial",10));
     accountInfo->show();
 }
 
@@ -986,12 +987,7 @@ void TextEdit::clipboardDataChanged()
 void TextEdit::processPaste()
 {
     if (const QMimeData *md = QApplication::clipboard()->mimeData()){
-        QCursor c = this->cursor();
-        QString cbText = md->text();
-        int size = cbText.size();
-        for (int i=0; i<size; i++) {
-
-        }
+        textEdit->processPaste(md);
     }
 }
 

@@ -14,6 +14,12 @@
 #include <QDebug>
 #include "ui_shareuri.h"
 
+#ifdef Q_OS_MAC
+const QString rsrcPath = ":/images/win";
+#else
+const QString rsrcPath = ":/images/win";
+#endif
+
 FileListWindow::FileListWindow(QWidget *parent) : QMainWindow(parent)
 {
 #ifdef Q_OS_OSX
@@ -24,7 +30,7 @@ FileListWindow::FileListWindow(QWidget *parent) : QMainWindow(parent)
 //    resize(parent->size());
 //    move(parent->pos());
     const QRect availableGeometry = QApplication::desktop()->availableGeometry(this);
-    resize(availableGeometry.width()/4, availableGeometry.height()/2);
+    resize(availableGeometry.width()/4, availableGeometry.height()/3);
 //    move(QApplication::desktop()->screen()->rect().center());
 //    this->setMaximumWidth(availableGeometry.width());
 //    this->setMaximumHeight(availableGeometry.height());
@@ -33,17 +39,18 @@ FileListWindow::FileListWindow(QWidget *parent) : QMainWindow(parent)
 
     QPushButton *buttonNewFile=new QPushButton(this);
     buttonNewFile->setText("New File");
+    buttonNewFile->setFixedHeight(40);
     buttonNewFile->resize(this->width(),buttonNewFile->height());
     buttonNewFile->move(0,this->height()-buttonNewFile->height());
 
     QPushButton *buttonOpenFile=new QPushButton(this);
     buttonOpenFile->setText("Open File");
+    buttonOpenFile->setFixedHeight(40);
     buttonOpenFile->resize(this->width(),buttonOpenFile->height());
     buttonOpenFile->move(0,this->height()-buttonOpenFile->height()-buttonNewFile->height());
 
     qFileList->setMinimumWidth(qFileList->sizeHintForColumn(0));
     qFileList->resize(this->width(),this->height()-buttonOpenFile->height()-buttonNewFile->height());
-
 
     connect(buttonOpenFile, SIGNAL (released()), this, SLOT (openFileClicked()));
     connect(buttonNewFile, SIGNAL (released()), this, SLOT (newFileClicked()));
@@ -108,7 +115,12 @@ void FileListWindow::showFileList(ClientSocket* s, std::vector<std::string> file
     connect(tcpSocket, &ClientSocket::signalMessage,
             this, &FileListWindow::incomingMessage, Qt::UniqueConnection);
     for (std::string& fileName: fileList){
-         qFileList->addItem(QString::fromStdString(fileName));
+        QListWidgetItem *fileEntry = new QListWidgetItem(QString::fromStdString(fileName));
+        fileEntry->setSizeHint(QSize(fileEntry->sizeHint().width(), 30));
+//        fileEntry->setTextAlignment(Qt::AlignCenter);
+        fileEntry->setFont(QFont("Arial",12));
+        fileEntry->setIcon(QIcon(rsrcPath + "/filenew.png"));
+        qFileList->addItem(fileEntry);
     }
     this->show();
 }

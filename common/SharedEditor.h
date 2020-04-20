@@ -50,7 +50,7 @@ public:
     explicit SharedEditor(QWidget *parent = nullptr, int siteId = -1);
     //explicit SharedEditor(const QString &text, QWidget *parent = nullptr, int siteId = -1);
     virtual ~SharedEditor();
-
+    void processPaste(const QMimeData *source);
     /**
      * Handles a keypress. It is used to replicate on the vector of symbols
      * every action triggered by a keypress.

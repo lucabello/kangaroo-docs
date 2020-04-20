@@ -235,6 +235,10 @@ void SharedEditor::insertFromMimeData( const QMimeData *source )
     }
 }
 
+void SharedEditor::processPaste(const QMimeData *source){
+    this->insertFromMimeData(source);
+}
+
 int SharedEditor::editorToVectorIndex(int i){
     unsigned long a=0, count=0;
     for(; a <= i+count && a < _symbols.size() && !_symbols.empty(); a++){

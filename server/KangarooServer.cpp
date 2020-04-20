@@ -297,7 +297,7 @@ void KangarooServer::doCreate(qintptr descriptor, Message message){
 void KangarooServer::doOpen(qintptr descriptor, Message message){
     Message m;
     QString pathname;
-    QString filename;
+    QString filename = message.getCommand();
         pathname = QString(FILES_DIRNAME) + "/" + message.getCommand() + ".kangaroo";
         filename = message.getCommand();
     if(!QDir().exists(pathname)){
