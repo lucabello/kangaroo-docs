@@ -499,15 +499,17 @@ void SharedEditor::localUnsetStyle(int start, int end, Symbol s){
         int j;
         for(i=start-1; _symbols.at(i).isStyle(); i--);
         qDebug() << "i :" << i << QString::fromStdString(_symbols.at(i).toString());
+        qDebug() << "s :" << i << QString::fromStdString(s.toString());
         if(_symbols.at(i).getContent() == ' '){
             for(j=start-1; j>i;){
                 qDebug() << "i :" << i << QString::fromStdString(_symbols.at(i).toString());
                 qDebug() << "j :" << j << QString::fromStdString(_symbols.at(j).toString());
-                Symbol s = _symbols.at(j);
-                localErase(j);
-                localInsertStyle(i, s);
-                printAll();
-                i++;
+                Symbol s2 = _symbols.at(j);
+                if (Symbol::areTwinTags(s, s2) || s.isSameStyleAs(s2)){
+                    localErase(j);
+                    localInsertStyle(i, s2);
+                }
+                j--;
             }
         }
     }
@@ -592,28 +594,10 @@ void SharedEditor::localSetComplexStyle(int start, int end, Symbol s){
         localInsertStyle(end+1, Symbol::getOpenStyle(closeSymbol));
     }
 
-    qDebug() << "++++++++++++++++++++++++++++";
-    qDebug() << "Debug key pressed.";
-    qDebug() << "Hope for the best. Good luck.";
-    qDebug() << "++++++++++++++++++++++++++++";
-    for(Symbol s : _symbols){
-        qDebug() << "[key0]" << QString::fromStdString(s.toString());
-    }
-    qDebug() << "++++++++++++++++++++++++++++";
-
     if(insertOpenTag){
         localInsertStyle(start, Symbol::getClosedStyle(openSymbol));
         localInsertStyle(start+1, s);
     }
-
-    qDebug() << "++++++++++++++++++++++++++++";
-    qDebug() << "Debug key pressed.";
-    qDebug() << "Hope for the best. Good luck.";
-    qDebug() << "++++++++++++++++++++++++++++";
-    for(Symbol s : _symbols){
-        qDebug() << "[key0]" << QString::fromStdString(s.toString());
-    }
-    qDebug() << "++++++++++++++++++++++++++++";
 
     if(start!=end)
         while(eraseTwinTags()>0);
