@@ -423,7 +423,7 @@ bool Symbol::isSimpleStyle(){
 bool Symbol::isComplexStyle(){
     if(!this->isStyle())
         return false;
-    return !isSimpleStyle();
+    return !isSimpleStyle() && this->getStyleType()!=StyleType::Paragraph;
 }
 
 QDataStream &operator<<(QDataStream &out, const Symbol &item)

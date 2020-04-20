@@ -7,7 +7,6 @@ KangarooServer::KangarooServer(QObject *parent) :
     QObject(parent)
 {
     server = new QTcpServer(this);
-    QDir().mkpath(FILES_DIRNAME); //needs rights to work
     // whenever a user connects, it will emit signal
     connect(server, SIGNAL(newConnection()),
             this, SLOT(newConnection()));
@@ -269,6 +268,7 @@ void KangarooServer::doRegister(qintptr descriptor, Message message){
 
 void KangarooServer::doCreate(qintptr descriptor, Message message){
     Message m;
+    QDir().mkpath(FILES_DIRNAME);
     QString pathname = QString(FILES_DIRNAME) + "/" + message.getCommand() + ".kangaroo";
     QString filename = message.getCommand();
     if(QDir().exists(pathname)){

@@ -312,6 +312,7 @@ private:
     void avoidBackgroundPropagation(int editorIndexSym);
 
     int LastIndex();
+    bool editorIsEmpty();
 
     bool canInsertFromMimeData(const QMimeData *source) const;
     void insertFromMimeData(const QMimeData *source);
