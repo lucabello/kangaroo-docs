@@ -109,7 +109,7 @@ void FileListWindow::showFileList(ClientSocket* s, std::vector<std::string> file
     connect(tcpSocket, &ClientSocket::signalMessage,
             this, &FileListWindow::incomingMessage, Qt::UniqueConnection);
     for (std::string& fileName: fileList){
-        QListWidgetItem *fileEntry = new QListWidgetItem(QString::fromStdString(" # ------ "+fileName+" ------ # "));
+        QListWidgetItem *fileEntry = new QListWidgetItem(QString::fromStdString(fileName));
         fileEntry->setSizeHint(QSize(fileEntry->sizeHint().width(), 30));
         fileEntry->setTextAlignment(Qt::AlignCenter);
         qFileList->addItem(fileEntry);
