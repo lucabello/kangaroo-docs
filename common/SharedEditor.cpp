@@ -501,7 +501,7 @@ void SharedEditor::localUnsetStyle(int start, int end, Symbol s){
         localInsertStyle(start, Symbol::getClosedStyle(s));
     if(start==end){
         int j;
-        for(i=start-1; _symbols.at(i).isStyle(); i--);
+        for(i=start-1; i>0 && _symbols.at(i).isStyle(); i--);
         qDebug() << "i :" << i << QString::fromStdString(_symbols.at(i).toString());
         qDebug() << "s :" << i << QString::fromStdString(s.toString());
         if(_symbols.at(i).getContent() == ' '){
