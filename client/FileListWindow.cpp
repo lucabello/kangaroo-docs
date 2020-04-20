@@ -24,7 +24,7 @@ FileListWindow::FileListWindow(QWidget *parent) : QMainWindow(parent)
 //    resize(parent->size());
 //    move(parent->pos());
     const QRect availableGeometry = QApplication::desktop()->availableGeometry(this);
-    resize(availableGeometry.width()/2, availableGeometry.height()/2);
+    resize(availableGeometry.width()/4, availableGeometry.height()/2);
 //    move(QApplication::desktop()->screen()->rect().center());
 //    this->setMaximumWidth(availableGeometry.width());
 //    this->setMaximumHeight(availableGeometry.height());

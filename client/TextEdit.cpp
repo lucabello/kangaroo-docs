@@ -616,7 +616,7 @@ void TextEdit::filePrintPreview()
 
 void TextEdit::showConnectedUsers(){
     QMessageBox* msgAbout=new QMessageBox(this);
-    msgAbout->setStyleSheet("QLabel{min-width: 200px; font-size: 15px;}");
+    msgAbout->setStyleSheet("QLabel{min-width: 80px; font-size: 15px;}");
     msgAbout->setWindowTitle("Connected Users");
     QString infotext = "<span style='text-align: center'>";
 
@@ -912,7 +912,10 @@ void TextEdit::accountInfo(){
 void TextEdit::editNick(){
     bool ok;
     QString newNick = QInputDialog::getText(this,"EditNick","Your current nick is: "+nick+"\nInsert the new one:",QLineEdit::Normal,"", &ok);
-    if(newNick.isEmpty() && ok){
+    if(!ok) {
+        return;
+    }
+    if(newNick.isEmpty()){
         QMessageBox::warning(this, "Error", "Please insert a nickname");
         return;
     }

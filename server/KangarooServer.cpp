@@ -211,18 +211,12 @@ void KangarooServer::doLogin(qintptr descriptor, Message message){
     if(result == true){
         qDebug() << "Preparing Message";
         QString siteId = QString::number(rowid.toInt()+50);
+        descriptorToEditor.at(descriptor).setDescriptor(descriptor);
+        descriptorToEditor.at(descriptor).setSiteId(siteId.toInt());
+        descriptorToEditor.at(descriptor).setUsername(username);
         QString info = username+','+siteId+','+nickname;
         m = Message{MessageType::Login, info};
-//        qDebug() << "Prepared message";
-        ConnectedEditor ce = descriptorToEditor.at(descriptor);
-//        qDebug() << "Found CE";
-        ce.setDescriptor(descriptor);
-//        qDebug() << "Set descriptor";
-        ce.setSiteId(siteId.toInt());
-//        qDebug() << "Set siteID";
-        ce.setUsername(username);
-//        qDebug() << "Set username";
-        ce.getSocket()->writeMessage(m);
+        descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
         sendFileList(descriptor);
     }
     else {

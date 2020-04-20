@@ -68,7 +68,7 @@
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
    <receiver>editNick</receiver>
-   <slot>accept()</slot>
+   <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>248</x>
@@ -84,7 +84,7 @@
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
    <receiver>editNick</receiver>
-   <slot>reject()</slot>
+   <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>316</x>

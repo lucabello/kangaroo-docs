@@ -19,7 +19,7 @@ LoginWindow::LoginWindow(QWidget *parent) : QMainWindow(parent)
 //    QApplication::setStyle("fusion");
     const QRect availableGeometry = QApplication::desktop()->availableGeometry();
 //    const QRect screen = QDesktopWidget::availableGeometry(this);
-    resize(availableGeometry.width()/2, availableGeometry.height()/2);
+    resize(availableGeometry.width()/4, availableGeometry.height()/2);
 //    move((availableGeometry.width() - this->width()) / 2, (availableGeometry.height() - this->height()) / 2);
 
     QLabel *usernameLabel=new QLabel(this);

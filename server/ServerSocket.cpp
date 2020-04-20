@@ -28,12 +28,14 @@ qintptr ServerSocket::getDescriptor(){
 void ServerSocket::connected()
 {
     qDebug() << socket->socketDescriptor() << " connected...";
+    qDebug() << "[ServerSocket] socket state "<< socket->state();
 }
 
 void ServerSocket::disconnected()
 {
     qDebug() << descriptor << "disconnected...";
     hostDisconnected(descriptor);
+    qDebug() << "[ServerSocket] socket state "<< socket->state();
 }
 
 void ServerSocket::bytesWritten(qint64 bytes)
@@ -57,12 +59,14 @@ void ServerSocket::readMessage()
 
         qDebug() << "[ServerSocket] I read this message state "<< QString::fromStdString(message.toString());
         qDebug() << "[ServerSocket] socket state "<< socket->atEnd();
+        qDebug() << "[ServerSocket] socket state "<< socket->state();
 
         signalMessage(descriptor, message);
     }
 }
 
 void ServerSocket::writeMessage(Message message){
+    qDebug() << "[ServerSocket] socket state "<< socket->state();
     if(!isConnected())
         return;
 
