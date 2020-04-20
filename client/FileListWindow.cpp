@@ -14,6 +14,12 @@
 #include <QDebug>
 #include "ui_shareuri.h"
 
+#ifdef Q_OS_MAC
+const QString rsrcPath = ":/images/win";
+#else
+const QString rsrcPath = ":/images/win";
+#endif
+
 FileListWindow::FileListWindow(QWidget *parent) : QMainWindow(parent)
 {
 #ifdef Q_OS_OSX
@@ -111,7 +117,9 @@ void FileListWindow::showFileList(ClientSocket* s, std::vector<std::string> file
     for (std::string& fileName: fileList){
         QListWidgetItem *fileEntry = new QListWidgetItem(QString::fromStdString(fileName));
         fileEntry->setSizeHint(QSize(fileEntry->sizeHint().width(), 30));
-        fileEntry->setTextAlignment(Qt::AlignCenter);
+//        fileEntry->setTextAlignment(Qt::AlignCenter);
+        fileEntry->setFont(QFont("Arial",12));
+        fileEntry->setIcon(QIcon(rsrcPath + "/filenew.png"));
         qFileList->addItem(fileEntry);
     }
     this->show();

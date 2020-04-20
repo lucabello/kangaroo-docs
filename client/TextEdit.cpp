@@ -217,7 +217,7 @@ void TextEdit::setupFileActions()
     menu->addSeparator();
 
 
-    const QIcon infoIcon = QIcon::fromTheme("document-info", QIcon(rsrcPath + "/editcopy.png"));
+    const QIcon infoIcon = QIcon::fromTheme("document-info", QIcon(":/images/mac/editcopy.png"));
     a = menu->addAction(infoIcon, tr("&Show connected users..."), this, &TextEdit::showConnectedUsers);
     tb->addAction(a);
 /*
