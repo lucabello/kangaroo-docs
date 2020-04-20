@@ -416,12 +416,15 @@ void SharedEditor::localSetSimpleStyle(int start, int end, Symbol s){
         }
     }
 
-    if(start==end){
+    if(start==end && !editorIsEmpty()){
         bool update=false;
         for(i=start-1; _symbols.at(i).isClosingTag()
                         || _symbols.at(i).isComplexStyle(); i--, update=true);
         if(update)
             start=i+1;
+    }
+    else if (editorIsEmpty()) {
+        end = end+1;
     }
 
     if(insertCloseTag)
@@ -566,23 +569,51 @@ void SharedEditor::localSetComplexStyle(int start, int end, Symbol s){
 
     qDebug() << "start :" << start << QString::fromStdString(_symbols.at(start).toString());
     qDebug() << "end :" << end << QString::fromStdString(_symbols.at(end).toString());
+    qDebug() << editorIsEmpty();
 
-    if(start==end){
+    if(start==end && !editorIsEmpty()){
         bool update=false;
-        for(i=start-1; _symbols.at(i).isClosingTag()
-                        || _symbols.at(i).isComplexStyle(); i--, update=true);
+        for(i=start-1; i>=0 && (_symbols.at(i).isClosingTag()
+                        || _symbols.at(i).isComplexStyle()); i--, update=true);
         if(update)
             start=i+1;
     }
+    else if (editorIsEmpty()) {
+        end = end+1;
+    }
+
+    qDebug() << "Start is:" << start;
+    qDebug() <<"End is:" << end;
+    qDebug() << insertCloseTag;
+    qDebug() << insertOpenTag;
 
     if(insertCloseTag){
         localInsertStyle(end, Symbol::getClosedStyle(s));
         localInsertStyle(end+1, Symbol::getOpenStyle(closeSymbol));
     }
+
+    qDebug() << "++++++++++++++++++++++++++++";
+    qDebug() << "Debug key pressed.";
+    qDebug() << "Hope for the best. Good luck.";
+    qDebug() << "++++++++++++++++++++++++++++";
+    for(Symbol s : _symbols){
+        qDebug() << "[key0]" << QString::fromStdString(s.toString());
+    }
+    qDebug() << "++++++++++++++++++++++++++++";
+
     if(insertOpenTag){
         localInsertStyle(start, Symbol::getClosedStyle(openSymbol));
         localInsertStyle(start+1, s);
     }
+
+    qDebug() << "++++++++++++++++++++++++++++";
+    qDebug() << "Debug key pressed.";
+    qDebug() << "Hope for the best. Good luck.";
+    qDebug() << "++++++++++++++++++++++++++++";
+    for(Symbol s : _symbols){
+        qDebug() << "[key0]" << QString::fromStdString(s.toString());
+    }
+    qDebug() << "++++++++++++++++++++++++++++";
 
     if(start!=end)
         while(eraseTwinTags()>0);
@@ -849,7 +880,7 @@ int SharedEditor::eraseTwinTags(){
         for(int j = i+1; j < (int)_symbols.size(); j++){
             //empty tags have no content between them
             if(_symbols.at(j).isContent()){
-                qDebug()<<"Here1";
+                // qDebug()<<"Here1";
                 break;
             }
             //if there is no text between the two tags
@@ -861,10 +892,11 @@ int SharedEditor::eraseTwinTags(){
             }
             else if(Symbol::areTwinTags(_symbols.at(i), _symbols.at(j))){
                 //two twin tags
-                qDebug()<<"Here2";
+                // qDebug()<<"Here2";
                 localErase(j);
                 localErase(i);
                 count++;
+                break;
             }
         }
     }
@@ -1286,4 +1318,14 @@ int SharedEditor::LastIndex(){
     }
     qDebug() << "LastIndex:" << index-count;
     return index-count;
+}
+
+bool SharedEditor::editorIsEmpty(){
+    bool empty = true;
+    for(int i=0; i<_symbols.size() && empty; i++){
+        if(_symbols.at(i).isContent() && !_symbols.at(i).isFake())
+            empty = false;
+    }
+
+    return empty;
 }
