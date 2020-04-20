@@ -120,8 +120,8 @@ TextEdit::TextEdit(QWidget *parent)
             this, &TextEdit::currentCharFormatChanged);
     connect(textEdit, &QTextEdit::cursorPositionChanged,
             this, &TextEdit::cursorPositionChanged);
-//    connect(textEdit, &QTextEdit::copyAvailable, this, &TextEdit::copy);
-//    connect(textEdit, &QTextEdit::paste, this, &TextEdit::paste);
+//    connect(textEdit, &QTextEdit::copyAvailable, this, &TextEdit::actionCopy);
+//    connect(textEdit, &QTextEdit::paste, this, &TextEdit::actionPaste);
 
     setCentralWidget(textEdit);
 
@@ -616,9 +616,9 @@ void TextEdit::filePrintPreview()
 
 void TextEdit::showConnectedUsers(){
     QMessageBox* msgAbout=new QMessageBox(this);
-    msgAbout->setStyleSheet("QLabel{min-width: 80px; font-size: 15px;}");
+    msgAbout->setStyleSheet("QLabel{font-size: 15px;}");
     msgAbout->setWindowTitle("Connected Users");
-    QString infotext = "<span style='text-align: center'>";
+    QString infotext = "";
 
     std::map<QString,int> usernameToSiteId=textEdit->getEditorList();
 
@@ -631,7 +631,7 @@ void TextEdit::showConnectedUsers(){
         infotext.append(pair.first);
         infotext+=("</p>");
     }
-    infotext+=("</span>");
+//    infotext+=("");
     msgAbout->setInformativeText(infotext);
     msgAbout->addButton(QMessageBox::Ok);
     msgAbout->show();
@@ -986,12 +986,7 @@ void TextEdit::clipboardDataChanged()
 void TextEdit::processPaste()
 {
     if (const QMimeData *md = QApplication::clipboard()->mimeData()){
-        QCursor c = this->cursor();
-        QString cbText = md->text();
-        int size = cbText.size();
-        for (int i=0; i<size; i++) {
-
-        }
+        textEdit->processPaste(md);
     }
 }
 

@@ -19,13 +19,15 @@ LoginWindow::LoginWindow(QWidget *parent) : QMainWindow(parent)
 //    QApplication::setStyle("fusion");
     const QRect availableGeometry = QApplication::desktop()->availableGeometry();
 //    const QRect screen = QDesktopWidget::availableGeometry(this);
-    resize(availableGeometry.width()/4, availableGeometry.height()/2);
+    resize(availableGeometry.width()/4, availableGeometry.height()/3);
 //    move((availableGeometry.width() - this->width()) / 2, (availableGeometry.height() - this->height()) / 2);
 
     QLabel *usernameLabel=new QLabel(this);
     usernameLabel->setText("Username:");
 
     usernameLine=new QLineEdit(this);
+    usernameLine->setFixedWidth(300);
+    usernameLine->setFixedHeight(30);
     usernameLine->move(usernameLabel->width(),0);
 
     QLabel *passwordLabel=new QLabel(this);
@@ -33,6 +35,8 @@ LoginWindow::LoginWindow(QWidget *parent) : QMainWindow(parent)
     passwordLabel->move(0,usernameLabel->height());
 
     passwordLine=new QLineEdit(this);
+    passwordLine->setFixedWidth(300);
+    passwordLine->setFixedHeight(30);
     passwordLine->move(passwordLabel->width(),passwordLabel->y());
     passwordLine->setEchoMode(QLineEdit::Password);
 
@@ -41,17 +45,22 @@ LoginWindow::LoginWindow(QWidget *parent) : QMainWindow(parent)
     ipLabel->move(0,passwordLabel->y()+passwordLabel->height());
 
     ipLine=new QLineEdit(this);
+    ipLine->setFixedWidth(300);
+    ipLine->setFixedHeight(30);
     ipLine->setText("127.0.0.1:1501");
     ipLine->move(ipLabel->width(),ipLabel->y());
 
     buttonLogin=new QPushButton(this);
     buttonLogin->setText("Login");
+    buttonLogin->setFixedHeight(40);
     buttonLogin->move(0,ipLabel->y()+ipLabel->height());
     buttonRegister=new QPushButton(this);
     buttonRegister->setText("Register");
-    buttonRegister->move(buttonLogin->width(),buttonLogin->y());
+    buttonRegister->setFixedHeight(40);
+    buttonRegister->move(buttonLogin->width()*2,buttonLogin->y());
     buttonURI = new QPushButton(this);
     buttonURI->setText("Open File from URI");
+    buttonURI->setFixedHeight(40);
     buttonURI->move(0,ipLabel->y()+ipLabel->height()+buttonURI->height());
 
     int width=usernameLabel->width()+usernameLine->width();
