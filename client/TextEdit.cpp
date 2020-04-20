@@ -120,8 +120,8 @@ TextEdit::TextEdit(QWidget *parent)
             this, &TextEdit::currentCharFormatChanged);
     connect(textEdit, &QTextEdit::cursorPositionChanged,
             this, &TextEdit::cursorPositionChanged);
-//    connect(textEdit, &QTextEdit::copyAvailable, this, &TextEdit::actionCopy);
-//    connect(textEdit, &QTextEdit::paste, this, &TextEdit::actionPaste);
+//    connect(textEdit, SIGNAL(&QTextEdit::copyAvailable), this, SLOT(&TextEdit::copy));
+//    connect(textEdit, &QTextEdit::paste, this, &TextEdit::processPaste);
 
     setCentralWidget(textEdit);
 
@@ -216,6 +216,7 @@ void TextEdit::setupFileActions()
 
     const QIcon infoIcon = QIcon::fromTheme("document-info", QIcon(":/images/mac/editcopy.png"));
     a = menu->addAction(infoIcon, tr("&Show connected users..."), this, &TextEdit::showConnectedUsers);
+    a->setShortcut(Qt::CTRL + Qt::Key_H);
     tb->addAction(a);
 /*
     const QIcon saveIcon = QIcon::fromTheme("document-save", QIcon(rsrcPath + "/filesave.png"));

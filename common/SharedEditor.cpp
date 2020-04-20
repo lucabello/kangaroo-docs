@@ -73,8 +73,17 @@ void SharedEditor::keyPressEvent(QKeyEvent * e){
         localInsert(this->textCursor().position(), e->text().left(1));
     } else if(e->key() == Qt::Key_Backspace || e->key() == Qt::Key_Delete){
         eraseSelectedText(e);
-    }/*
+    }
     else if(isKeyCopy(e)){
+        emit copy();
+        return;
+    }
+    else if(isKeyPaste(e)){
+        const QMimeData *md = QApplication::clipboard()->mimeData();
+        processPaste(md);
+        return;
+    }
+        /*
         QTextCursor cursor(this->textCursor());
         if(!cursor.hasSelection())
             return;
@@ -718,7 +727,7 @@ void SharedEditor::process(const Message &m) {
         if(sym.getSiteId() == _siteId && sym.getSiteCounter() >= _counter)
             _counter=sym.getSiteCounter();
 
-        qint32 siteId=sym.getSiteId();
+//        qint32 siteId=sym.getSiteId();
         QTextCursor cursor=textCursor();
 
         //if symbol found (already inserted) return
@@ -1326,7 +1335,7 @@ int SharedEditor::LastIndex(){
 
 bool SharedEditor::editorIsEmpty(){
     bool empty = true;
-    for(int i=0; i<_symbols.size() && empty; i++){
+    for(int i=0; i<(int)_symbols.size() && empty; i++){
         if(_symbols.at(i).isContent() && !_symbols.at(i).isFake())
             empty = false;
     }
