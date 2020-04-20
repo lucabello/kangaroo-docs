@@ -33,6 +33,7 @@ Opening the application, a dialog box pops up, asking the informations required 
 For a registration, the server saves the username-password pair in a text file (users.txt) and gives a confirmation message to the user, that is displayed in a pop up message box.
 For logging in, the server connects to a database to check the user information and see if the user is already registered. If not, an error message is displayed on the user side. If the inserted username-password pair is correct, the server assigns a siteId (a unique numerical id associated to the user) to the editor both internally (memorizing information in an internal structure) and externally (sending the siteId to the editor).
 After the login operation, the following screen only allows some operations to be executed: create a new file, open an existing file, see statistics for the user, quit.
+All the information about the users are kept in a database.
 
 #### *Creating a new file / Opening a file*
 When creating a new file, the real file (consisting in a file-saved serialized symbol vector) is created on the server side. Then, the local editor clears itself and sends the insertions of the basic starting symbols (style symbols that represent the empty file default styles, such as default Arial font and black color). Any request to open a file that is being created needs to be refused (easier) or delayed; a file is correctly initialized only when it has all the default symbols. When creating a file, our choice is that the access to that file is exclusive to the creation, meaning that it cannot be opened by another editor.
@@ -43,12 +44,14 @@ The content of the file can be modified in several ways. As mentioned before, ea
 Some typical interactions that modify the symbol vector are:
 * key pressed on keyboard 
 * mouse right key + action selected (to be disabled)
-* keyboard shortcuts for styling
-* buttons on the interface (as alignment, bold, etc)
-* copy&paste
+* keyboard shortcuts for copy&paste
+* buttons on the interface (as alignment, bold, italic, underlined, color, font, dimension and color)
+* copy&paste with shortcuts
  
 Whenever some keys are pressed, the event is intercepted and analyzed. If the event is inserting a printable key, the content insertion is replicated on the symbol vector. If it is a style shortcut (as CTRL+B for bold), the style is applied to the selected text or to the word under the cursor if there is no active selection. If it is a copy-paste action, the text is copied and pasted as raw text, without formatting. If something happens that is not replicable or expected, it's simply ignored.
 Propagating an action on the symbol vector means not only replicating its effects on it, but also preparing a Message for the server describing the modification that has just been performed. It is worth noting that any of this action can happen with or without an active selection of text, and that correct behaviour is implemented and replicated on the symbol vector for any case.
+
+It is possible in the interface to see the users connected to the same file, see a colored cursor where they have their cursor and it is also possible to modify the user profile changing for example the nickname
 
 #### *Implemented Extensions*
 We implemented some extensions to the original project that were not strictly required by the assignment, but suggested:
@@ -68,7 +71,7 @@ Every action on symbol vector needs to be atomic; all messages are processed one
 The server runs 3 similar threads (input, output, message). -->
 
 ## **Team members**
-* Luca Bello (https://github.com/lucabello)
-* Francesco Galati (https://github.com/manigalati)
-* Alessandro Iucci (https://github.com/alessandro-iucci)
-* Angelo Russi (https://github.com/Roger1254)
+* Luca Bello ( https://github.com/lucabello)
+* Francesco Galati ( https://github.com/manigalati )
+* Alessandro Iucci ( https://github.com/alessandro-iucci )
+* Angelo Russi ( https://github.com/Roger1254 )
