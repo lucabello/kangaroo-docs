@@ -49,8 +49,16 @@ void ClientSocket::bytesWritten(qint64 bytes)
     //qDebug() << bytes << " bytes written...";
 }
 
+QTcpSocket* ClientSocket::getSocket(){
+    return socket;
+}
+
 void ClientSocket::readMessage()
 {
+    if(socket->state() == QTcpSocket::UnconnectedState){
+        qDebug() << "[ClientSocket] disconnected from the server";
+        return;
+    }
     QDataStream clientReadStream(socket);
     qint32 nextMessageSize=0;
     Message message;
@@ -70,6 +78,11 @@ void ClientSocket::readMessage()
 }
 
 void ClientSocket::writeMessage(Message message){
+    if(socket->state() == QTcpSocket::UnconnectedState){
+        qDebug() << "[ClientSocket] disconnected from the server";
+        return;
+    }
+
     qDebug() << "[ClientSocket] I write this message: " << QString::fromStdString(message.toString());
 
     //SERIALIZATION

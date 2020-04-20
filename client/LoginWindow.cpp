@@ -98,17 +98,19 @@ void LoginWindow::loginClicked(){
 
     //sanitize username and password to prevent errors
     //only alphanumeric characters are allowed
-    username.remove(QRegExp("[^0-9a-zA-Z]"));
-    password.remove(QRegExp("[^0-9a-zA-Z]"));
+    username.remove(QRegExp("[^0-9a-zA-Z ]"));
+    password.remove(QRegExp("[^0-9a-zA-Z ]"));
 
-    tcpSocket = new ClientSocket(ip.toStdString(), port.toInt());
-    connect(tcpSocket, &ClientSocket::signalMessage,
-            this, &LoginWindow::incomingMessage);
-    tcpSocket->doConnect();
+    do{
+        tcpSocket = new ClientSocket(ip.toStdString(), port.toInt());
+        connect(tcpSocket, &ClientSocket::signalMessage,
+                this, &LoginWindow::incomingMessage);
+        tcpSocket->doConnect();
 
-    Message m {MessageType::Login,username+","+password}; //prepare and send message
-    //char *serM = Message::serialize(m);
-    tcpSocket->writeMessage(m);//serM,Symbol::peekIntFromByteArray(serM+4)+8);
+        Message m {MessageType::Login,username+","+password}; //prepare and send message
+        //char *serM = Message::serialize(m);
+        tcpSocket->writeMessage(m);//serM,Symbol::peekIntFromByteArray(serM+4)+8);
+    }while(tcpSocket->getSocket()->state() == QTcpSocket::UnconnectedState);
 }
 
 void LoginWindow::registerClicked(){

@@ -36,6 +36,7 @@ public:
      */
     void doConnect();
     void doDisconnect();
+    QTcpSocket* getSocket();
 
 signals:
     /**
