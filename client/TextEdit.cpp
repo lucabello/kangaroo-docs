@@ -214,7 +214,7 @@ void TextEdit::setupFileActions()
     menu->addSeparator();
 
 
-    const QIcon infoIcon = QIcon::fromTheme("document-info", QIcon(":/images/mac/editcopy.png"));
+    const QIcon infoIcon = QIcon::fromTheme("document-info", QIcon(rsrcPath + "/connectededitors.png"));
     a = menu->addAction(infoIcon, tr("&Show connected users..."), this, &TextEdit::showConnectedUsers);
     a->setShortcut(Qt::CTRL + Qt::Key_H);
     tb->addAction(a);
@@ -229,7 +229,7 @@ void TextEdit::setupFileActions()
     a->setPriority(QAction::LowPriority);
     menu->addSeparator();
 */
-    const QIcon uriIcon =  QIcon::fromTheme("document-share", QIcon(rsrcPath + "/editpaste.png"));
+    const QIcon uriIcon =  QIcon::fromTheme("document-share", QIcon(rsrcPath + "/uri.png"));
     a = menu->addAction(uriIcon, tr("&Share URI..."), this, &TextEdit::shareURI);
     a->setShortcut(Qt::CTRL + Qt::Key_S);
     tb->addAction(a);

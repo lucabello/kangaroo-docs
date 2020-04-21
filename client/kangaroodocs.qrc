@@ -39,6 +39,9 @@
         <file>images/win/textunder.png</file>
         <file>images/win/zoomin.png</file>
         <file>images/win/zoomout.png</file>
+	<file>images/win/connectededitors.png</file>
+	<file>images/win/uri.png</file>
+	<file>images/kangaroo_logo.png</file>
         <file>example.html</file>
         <file>images/win/logout.png</file>
     </qresource>

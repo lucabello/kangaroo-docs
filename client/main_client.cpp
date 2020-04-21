@@ -61,8 +61,9 @@ int main(int argc, char *argv[])
     Q_INIT_RESOURCE(kangaroodocs);
 
     QApplication a(argc, argv);
+    a.setWindowIcon(QIcon(":/images/kangaroo_logo.png"));
     QCoreApplication::setOrganizationName("QtProject");
-    QCoreApplication::setApplicationName("Rich Text");
+    QCoreApplication::setApplicationName("Kangaroo-Docs");
     QCoreApplication::setApplicationVersion(QT_VERSION_STR);
     QCommandLineParser parser;
     parser.setApplicationDescription(QCoreApplication::applicationName());
