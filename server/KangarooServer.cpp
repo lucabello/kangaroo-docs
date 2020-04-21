@@ -74,7 +74,7 @@ bool KangarooServer::openDBConnection(){
 }
 
 void KangarooServer::createUsersDB(){
-    qDebug() << usersDB.lastError().text();
+//    qDebug() << usersDB.lastError().text();
     QString query = "CREATE TABLE kangaroo_users (Username VARCHAR(30) PRIMARY KEY NOT NULL, Password VARCHAR(30) NOT NULL, Nickname VARCHAR(30))";
     QSqlQuery q = usersDB.exec(query);
     if(!q.isValid()){
@@ -229,6 +229,17 @@ void KangarooServer::doRegister(qintptr descriptor, Message message){
     QString registerString = message.getCommand();
     QString username = registerString.split(",")[0];
     QString password = registerString.split(",")[1];
+    Message m;
+    if(username.isEmpty() || username.isNull()){
+        m = Message{MessageType::Error, "Error registerning. Empty username."};
+        descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
+        return;
+    }
+    if(password.isEmpty() || password.isNull()){
+        m = Message{MessageType::Error, "Error registering. Empty password."};
+        descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
+        return;
+    }
 //    QString nickname = registerString.split(",")[2];
     bool result = true;
     //new fashion
@@ -243,7 +254,6 @@ void KangarooServer::doRegister(qintptr descriptor, Message message){
         q.exec("INSERT INTO kangaroo_users (Username, Password, Nickname) VALUES ('"+username+"','"+password+"','ChangeME')");
     qDebug() << "[KangarooServer] - last query : " << q.lastQuery() << ":" << q.last() << ":" << q.lastInsertId().toInt();
     qDebug() << usersDB.lastError().text();
-    Message m;
     if(result == true){
         QString rowid = q.lastInsertId().toString();
         if(rowid.isEmpty()){
@@ -306,7 +316,7 @@ void KangarooServer::doOpen(qintptr descriptor, Message message){
         pathname = QString(FILES_DIRNAME) + "/" + message.getCommand() + ".kangaroo";
         filename = message.getCommand();
         if(!QDir().exists(pathname)){
-            m = Message{MessageType::Error, "Error while opening file. A file with name "+filename+" does not exist."};
+            m = Message{MessageType::Error, "Error while opening file. File with name \""+filename+"\" does not exist."};
         }
         else {
             bool alreadyInMemory = true;
@@ -335,10 +345,26 @@ void KangarooServer::doOpenURI(qintptr descriptor, Message message){
     QString filename;
     if(guestId > 50) {
         m = Message{MessageType::Error, "Too many guests connected. Try later"};
+        descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
         return;
     }
+    QString serverAddr = this->server->serverAddress().toString();
+    QStringList uri = message.getCommand().split("/");
+    qDebug() << "URI: " << uri.first() << "second" << uri.last() << "Message content: " << message.getCommand();
+    if(uri.first() != serverAddr){
+        m = Message{MessageType::Error, "Wrong URI request. This server does not exist."};
+        descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
+        return;
+    }
+    pathname = QString(FILES_DIRNAME) + "/" + uri.last() + ".kangaroo";
+    filename = uri.last();
     if(filename.isEmpty()){
         m = Message{MessageType::Error, "Error opening file. Filename is empty."};
+        descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
+        return;
+    }
+    if(!QDir().exists(pathname)){
+        m = Message{MessageType::Error, "Error while opening file. A file with name "+filename+" does not exist."};
         descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
         return;
     }
@@ -349,35 +375,21 @@ void KangarooServer::doOpenURI(qintptr descriptor, Message message){
     descriptorToEditor.at(descriptor).setUsername("Guest"+gId);
     descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
     guestId++;
-    QString serverAddr = this->server->serverAddress().toString();
-    QStringList uri = message.getCommand().split("/");
-    qDebug() << "URI: " << uri << "Message content: " << message.getCommand();
-    if(uri.first() != serverAddr){
-        m = Message{MessageType::Error, "Wrong URI request. This server does not exist."};
-        return;
+    bool alreadyInMemory = true;
+    descriptorToEditor.at(descriptor).setWorkingFile(filename);
+    if(filenameToDescriptors.count(filename) == 0)
+        filenameToDescriptors.insert({filename, std::vector<qintptr>()});
+    filenameToDescriptors.at(filename).push_back(descriptor);
+    if(filenameToSymbols.count(filename) == 0){
+        filenameToSymbols.insert({filename, std::vector<Symbol>()});
+        alreadyInMemory = false;
     }
-    pathname = QString(FILES_DIRNAME) + "/" + uri.last() + ".kangaroo";
-    filename = uri.last();
-    if(!QDir().exists(pathname)){
-        m = Message{MessageType::Error, "Error while opening file. A file with name "+filename+" does not exist."};
+    for(qintptr d : filenameToDescriptors.at(filename)){
+        sendEditorList(d, filename);
     }
-    else {
-        bool alreadyInMemory = true;
-        descriptorToEditor.at(descriptor).setWorkingFile(filename);
-        if(filenameToDescriptors.count(filename) == 0)
-            filenameToDescriptors.insert({filename, std::vector<qintptr>()});
-        filenameToDescriptors.at(filename).push_back(descriptor);
-        if(filenameToSymbols.count(filename) == 0){
-            filenameToSymbols.insert({filename, std::vector<Symbol>()});
-            alreadyInMemory = false;
-        }
-        for(qintptr d : filenameToDescriptors.at(filename)){
-            sendEditorList(d, filename);
-        }
-        m = Message{MessageType::Open, ""};
-        descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
-        sendFile(descriptor, filename, alreadyInMemory);
-    }
+    m = Message{MessageType::Open, ""};
+    descriptorToEditor.at(descriptor).getSocket()->writeMessage(m);
+    sendFile(descriptor, filename, alreadyInMemory);
 }
 
 void KangarooServer::sendFileList(qintptr descriptor){
